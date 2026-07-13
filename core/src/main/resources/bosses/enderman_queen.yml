@@ -4,7 +4,6 @@ name: "<gradient:#a855f7:#312e81>Nyxara, Queen of the Void</gradient>"
 title: "<gray>Empress of the Endless Dark"
 difficulty: ULTRA_HARD
 base-entity: ENDERMAN
-model: ""
 stats: { health: 640, armor: 10, knockback-resistance: 0.8, damage: 12, speed: 0.3, follow-range: 64, scale: 1.4 }
 bossbar: { color: PURPLE, style: NOTCHED_10 }
 spawn:
@@ -19,10 +18,13 @@ phases:
   - { at-health-percent: 60, message: "<dark_purple>Nyxara flickers between spaces!" }
   - { at-health-percent: 30, enrage: true, message: "<dark_purple>Nyxara tears reality asunder!" }
 skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 50, lines: ["You should not have come here.", "The void hungers.", "I am everywhere and nowhere."] } }
+  - { trigger: onTimer, interval: 10, mechanic: particle, targeter: self_location, params: { particle: PORTAL, count: 12, spread: 0.8, offset-y: 1.2 } }
   - { trigger: onTimer, interval: 70, mechanic: teleport, targeter: nearest_player, params: { radius: 3 } }
   - { trigger: onTimer, interval: 100, mechanic: teleport_target, targeter: random_nearby, params: { radius: 6 } }
   - { trigger: onTimer, interval: 90, mechanic: pull, targeter: players_in_radius, params: { radius: 10, strength: 1.2 } }
   - { trigger: onTimer, interval: 130, mechanic: summon, targeter: self_location, params: { type: ENDERMITE, amount: 5, radius: 4 } }
+  - { trigger: onTimer, interval: 220, mechanic: say, targeter: nearest_player, params: { radius: 50, lines: ["Come closer, little star.", "There is no escape from the dark.", "Blink. I dare you."] } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 10, knockback: 1.0, particle: DRAGON_BREATH } }
 drops:
   items:

@@ -41,6 +41,10 @@ public final class ActiveBoss {
     private LivingEntity target;
     private boolean removed;
 
+    private long fleeAtTick;
+    private String currentAnimState = "";
+    private long attackHoldUntil;
+
     public ActiveBoss(BossDefinition def, LivingEntity entity, BossBar bossBar, ModelHandle model,
                       double maxHealth, long spawnTick, String encounterId) {
         this.def = def;
@@ -111,6 +115,30 @@ public final class ActiveBoss {
         this.target = target;
     }
 
+    public long fleeAtTick() {
+        return fleeAtTick;
+    }
+
+    public void setFleeAtTick(long fleeAtTick) {
+        this.fleeAtTick = fleeAtTick;
+    }
+
+    public String currentAnimState() {
+        return currentAnimState;
+    }
+
+    public void setCurrentAnimState(String currentAnimState) {
+        this.currentAnimState = currentAnimState;
+    }
+
+    public long attackHoldUntil() {
+        return attackHoldUntil;
+    }
+
+    public void setAttackHoldUntil(long attackHoldUntil) {
+        this.attackHoldUntil = attackHoldUntil;
+    }
+
     // ---- skill timers ---------------------------------------------------------------------
 
     public long nextTick(int skillIndex) {
@@ -179,8 +207,8 @@ public final class ActiveBoss {
         }
     }
 
-    /** Convenience: the full display name (name + difficulty) used on the bar and nametag. */
+    /** The display name used on the bar and nametag (difficulty is intentionally not shown here). */
     public Component displayName() {
-        return Text.mm(def.name()).append(Component.space()).append(def.difficulty().bracketed());
+        return Text.mm(def.name());
     }
 }

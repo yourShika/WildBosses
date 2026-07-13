@@ -1,13 +1,13 @@
-# The Rotting Legion - MEDIUM army encounter led by Pestis, the Plaguebearer.
-# Undead that poison. Infects the surrounding ground (terrain theming) - and, because it changes
-# terrain, only ever spawns on ungenerated frontier chunks so no player builds are ever touched.
+# The Rotting Legion - MEDIUM army led by Pestis, the Plaguebearer.
+# Undead that poison, are a little faster, and never burn in daylight. They throw splash potions of
+# poison. The infection they leave on the ground is PERMANENT (restore-on-end: false). Because it
+# changes terrain, the encounter only ever spawns on ungenerated frontier chunks - no player builds.
 id: infected_army
 name: "<gradient:#65a30d:#4d7c0f>Pestis, the Plaguebearer</gradient>"
 title: "<gray>Herald of the Rotting Legion"
 difficulty: MEDIUM
 base-entity: ZOMBIE_VILLAGER
-model: ""
-stats: { health: 340, armor: 10, knockback-resistance: 0.5, damage: 8, speed: 0.27, follow-range: 40, scale: 1.4 }
+stats: { health: 360, armor: 10, knockback-resistance: 0.5, damage: 8, speed: 0.29, follow-range: 42, scale: 1.4 }
 equipment: { hand: IRON_SWORD }
 bossbar: { color: GREEN, style: NOTCHED_10 }
 spawn:
@@ -21,27 +21,29 @@ phases:
   - { at-health-percent: 100, message: "<green>Pestis, the Plaguebearer, festers into being!" }
   - { at-health-percent: 50, enrage: true, message: "<dark_green>Pestis exhales a cloud of pestilence!" }
 skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Breathe deep, it's already in you.", "The rot is a gift.", "Join the Legion... you have no choice."] } }
+  - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: SNEEZE, count: 8, spread: 0.8, offset-y: 1.0 } }
+  - { trigger: onTimer, interval: 70, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, lingering: true, velocity: 0.9 } }
   - { trigger: onTimer, interval: 90, mechanic: potion_cloud, targeter: self_location, params: { type: POISON, duration: 120, amplifier: 0, radius: 4, cloud-duration: 140 } }
   - { trigger: onTimer, interval: 80, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 140, amplifier: 1 } }
-  - { trigger: onTimer, interval: 130, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 3, radius: 5, effects: ["POISON:200:0"] } }
+  - { trigger: onTimer, interval: 130, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 3, radius: 5, effects: ["POISON:200:0", "SPEED:99999:0"] } }
 army:
-  kill-threshold: 28
+  stages: [10, 16, 22, 28]
   wave-size: 6
-  max-alive: 20
+  max-alive: 22
   reinforce-interval-ticks: 110
   radius: 12
   outcome: SPAWN_BOSS
   end-boss: infected_army
-  timeout-seconds: 0
   minions:
-    - { type: ZOMBIE, weight: 3, health: 22, name: "<green>Infected", effects: ["POISON:100:0"] }
-    - { type: HUSK, weight: 2, health: 24, name: "<green>Plagued Husk", effects: ["POISON:100:0"] }
-    - { type: ZOMBIE_VILLAGER, weight: 1, health: 26, name: "<green>Rotting Zealot", effects: ["POISON:100:0"] }
+    - { type: ZOMBIE, weight: 3, health: 22, name: "<green>Infected", effects: ["POISON:100:0", "SPEED:99999:0"] }
+    - { type: HUSK, weight: 2, health: 24, name: "<green>Plagued Husk", effects: ["POISON:100:0", "SPEED:99999:0"] }
+    - { type: ZOMBIE_VILLAGER, weight: 1, health: 26, name: "<green>Rotting Zealot", effects: ["POISON:100:0", "SPEED:99999:0"] }
 terrain:
   enabled: true
   radius: 7
   max-blocks: 4000
-  restore-on-end: true
+  restore-on-end: false     # the infection is permanent - the ground stays corrupted
   require-coreprotect: false
   only-ungenerated-chunks: true
   mappings:

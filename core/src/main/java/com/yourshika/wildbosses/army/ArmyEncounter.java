@@ -51,7 +51,10 @@ public final class ArmyEncounter {
     private BukkitTask task;
     private long elapsedTicks;
     private long nextReinforceTick;
-    private int kills;
+    private long lifetimeTicks;
+    private int currentStage;
+    private int stageKills;
+    private int totalKills;
     private boolean ended;
 
     public ArmyEncounter(WildBossesPlugin plugin, ArmyManager manager, BossDefinition def, Location anchor, String id) {
@@ -62,6 +65,12 @@ public final class ArmyEncounter {
         this.anchor = anchor;
         this.id = id;
         this.bar = BossBar.bossBar(title(), 0f, def.difficulty().barColor(), BossBar.Overlay.NOTCHED_10);
+        long seconds = army.timeoutSeconds() > 0 ? army.timeoutSeconds()
+                : (plugin.config().bossLifetimeEnabled()
+                ? ThreadLocalRandom.current().nextInt(plugin.config().bossLifetimeMinMinutes() * 60,
+                plugin.config().bossLifetimeMaxMinutes() * 60 + 1)
+                : 0);
+        this.lifetimeTicks = seconds * 20L;
     }
 
     public String id() {
@@ -77,7 +86,11 @@ public final class ArmyEncounter {
     }
 
     public int kills() {
-        return kills;
+        return totalKills;
+    }
+
+    public int currentStage() {
+        return currentStage;
     }
 
     public void start() {
@@ -96,11 +109,12 @@ public final class ArmyEncounter {
         elapsedTicks += 20;
         updateViewers();
 
-        if (army.timeoutSeconds() > 0 && elapsedTicks / 20 >= army.timeoutSeconds()) {
-            resolve(ArmyDefinition.Outcome.CLEARED);
+        if (lifetimeTicks > 0 && elapsedTicks >= lifetimeTicks) {
+            plugin.broadcaster().bossFled(def);
+            resolve(ArmyDefinition.Outcome.FLEE);
             return;
         }
-        if (elapsedTicks >= nextReinforceTick && kills < army.killThreshold()) {
+        if (elapsedTicks >= nextReinforceTick) {
             spawnWave();
             nextReinforceTick += army.reinforceIntervalTicks();
         }
@@ -127,6 +141,9 @@ public final class ArmyEncounter {
                 continue;
             }
             entity.getPersistentDataContainer().set(Keys.ARMY_ID, PersistentDataType.STRING, id);
+            if (entity instanceof org.bukkit.entity.Zombie zombie) {
+                zombie.setShouldBurnInDay(false); // infected/army minions don't burn in the sun
+            }
             if (entity instanceof LivingEntity le) {
                 le.setRemoveWhenFarAway(false);
                 if (template.health() > 0) {
@@ -164,10 +181,38 @@ public final class ArmyEncounter {
         if (ended || !alive.remove(entity.getUniqueId())) {
             return;
         }
-        kills++;
+        stageKills++;
+        totalKills++;
         updateBar();
-        if (kills >= army.killThreshold()) {
+        if (stageKills >= army.stageTarget(currentStage)) {
+            advanceStage();
+        }
+    }
+
+    private void advanceStage() {
+        if (currentStage < army.stageCount() - 1) {
+            currentStage++;
+            stageKills = 0;
+            announceNearby("<gold>The horde surges! <yellow>Wave " + (currentStage + 1)
+                    + "<gold> of " + army.stageCount() + " descends!");
+            updateBar();
+            spawnWave();
+        } else {
             resolve(army.outcome());
+        }
+    }
+
+    private void announceNearby(String mini) {
+        World world = anchor.getWorld();
+        if (world == null) {
+            return;
+        }
+        var component = com.yourshika.wildbosses.util.Text.mm(mini);
+        double rSq = VIEW_RANGE * VIEW_RANGE;
+        for (Player p : world.getPlayers()) {
+            if (p.getLocation().distanceSquared(anchor) <= rSq) {
+                p.sendMessage(component);
+            }
         }
     }
 
@@ -244,15 +289,17 @@ public final class ArmyEncounter {
     // ---- boss bar -------------------------------------------------------------------------
 
     private void updateBar() {
-        float progress = army.killThreshold() <= 0 ? 1f
-                : (float) Math.max(0, Math.min(1, (double) kills / army.killThreshold()));
+        int target = army.stageTarget(currentStage);
+        float progress = target <= 0 ? 1f
+                : (float) Math.max(0, Math.min(1, (double) stageKills / target));
         bar.progress(progress);
         bar.name(title());
     }
 
     private net.kyori.adventure.text.Component title() {
-        return Text.mm(def.name() + " " + def.difficulty().bracketedMini()
-                + " <gray>(<yellow>" + kills + "<gray>/<yellow>" + army.killThreshold() + "<gray> slain)");
+        return Text.mm(def.name()
+                + " <gray>(<yellow>Wave " + (currentStage + 1) + "<gray>/<yellow>" + army.stageCount()
+                + " <gray>- <yellow>" + stageKills + "<gray>/<yellow>" + army.stageTarget(currentStage) + "<gray> slain)");
     }
 
     private void updateViewers() {

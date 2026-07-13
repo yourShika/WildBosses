@@ -10,9 +10,12 @@ import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Registry;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -20,15 +23,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Owns all spawned bosses: spawning, the per-tick update loop (boss bar, phase transitions, skill
@@ -130,15 +138,25 @@ public final class BossManager {
         if (le instanceof Mob mob) {
             mob.setAware(true);
         }
-        le.customName(displayName(def));
-        le.setCustomNameVisible(!def.hasModel());
+        if (le instanceof org.bukkit.entity.Zombie zombie) {
+            zombie.setShouldBurnInDay(false); // bosses shouldn't die to sunlight
+        }
         tag(le, def, encounterId);
 
         double maxHp = maxHealthOf(le, def);
         BossBar bar = BossBar.bossBar(displayName(def), 1f, barColor(def), def.bossBar().overlay());
         ModelHandle model = modelManager.attach(le, def);
+        le.customName(displayName(def));
+        // Hide the vanilla name tag only when a custom model is actually shown.
+        le.setCustomNameVisible(model == ModelHandle.NOOP);
 
         ActiveBoss boss = new ActiveBoss(def, le, bar, model, maxHp, tick, encounterId);
+        if (plugin.config().bossLifetimeEnabled()) {
+            long minTicks = plugin.config().bossLifetimeMinMinutes() * 60L * 20L;
+            long maxTicks = plugin.config().bossLifetimeMaxMinutes() * 60L * 20L;
+            long life = maxTicks > minTicks ? ThreadLocalRandom.current().nextLong(minTicks, maxTicks) : minTicks;
+            boss.setFleeAtTick(tick + life);
+        }
         byEntity.put(le.getUniqueId(), boss);
 
         applyPhase(boss, computePhaseIndex(boss), true);
@@ -173,24 +191,28 @@ public final class BossManager {
         if (eq == null) {
             return;
         }
-        EquipmentSet e = def.equipment();
-        if (e.mainHand() != null) {
-            eq.setItemInMainHand(new ItemStack(e.mainHand()));
-        }
-        if (e.offHand() != null) {
-            eq.setItemInOffHand(new ItemStack(e.offHand()));
-        }
-        if (e.helmet() != null) {
-            eq.setHelmet(new ItemStack(e.helmet()));
-        }
-        if (e.chestplate() != null) {
-            eq.setChestplate(new ItemStack(e.chestplate()));
-        }
-        if (e.leggings() != null) {
-            eq.setLeggings(new ItemStack(e.leggings()));
-        }
-        if (e.boots() != null) {
-            eq.setBoots(new ItemStack(e.boots()));
+        if (def.randomEquipment().enabled()) {
+            applyRandomEquipment(eq, def.randomEquipment());
+        } else {
+            EquipmentSet e = def.equipment();
+            if (e.mainHand() != null) {
+                eq.setItemInMainHand(new ItemStack(e.mainHand()));
+            }
+            if (e.offHand() != null) {
+                eq.setItemInOffHand(new ItemStack(e.offHand()));
+            }
+            if (e.helmet() != null) {
+                eq.setHelmet(new ItemStack(e.helmet()));
+            }
+            if (e.chestplate() != null) {
+                eq.setChestplate(new ItemStack(e.chestplate()));
+            }
+            if (e.leggings() != null) {
+                eq.setLeggings(new ItemStack(e.leggings()));
+            }
+            if (e.boots() != null) {
+                eq.setBoots(new ItemStack(e.boots()));
+            }
         }
         eq.setItemInMainHandDropChance(0f);
         eq.setItemInOffHandDropChance(0f);
@@ -198,6 +220,51 @@ public final class BossManager {
         eq.setChestplateDropChance(0f);
         eq.setLeggingsDropChance(0f);
         eq.setBootsDropChance(0f);
+    }
+
+    private void applyRandomEquipment(EntityEquipment eq, RandomEquipment re) {
+        String tier = re.armorTiers().get(ThreadLocalRandom.current().nextInt(re.armorTiers().size()))
+                .toUpperCase(Locale.ROOT);
+        eq.setHelmet(enchantedRandom(armorPiece(tier, "HELMET"), re));
+        eq.setChestplate(enchantedRandom(armorPiece(tier, "CHESTPLATE"), re));
+        eq.setLeggings(enchantedRandom(armorPiece(tier, "LEGGINGS"), re));
+        eq.setBoots(enchantedRandom(armorPiece(tier, "BOOTS"), re));
+        Material weapon = re.weapons().get(ThreadLocalRandom.current().nextInt(re.weapons().size()));
+        eq.setItemInMainHand(enchantedRandom(new ItemStack(weapon), re));
+    }
+
+    private static ItemStack armorPiece(String tier, String slot) {
+        Material m = Material.matchMaterial(tier + "_" + slot);
+        return m == null ? null : new ItemStack(m);
+    }
+
+    /** Apply {@code re.enchantCount} random registry enchants (vanilla + datapack) to an item. */
+    private ItemStack enchantedRandom(ItemStack item, RandomEquipment re) {
+        if (item == null) {
+            return null;
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || re.enchantCount() <= 0) {
+            return item;
+        }
+        List<Enchantment> all = new ArrayList<>();
+        for (Enchantment e : Registry.ENCHANTMENT) {
+            all.add(e);
+        }
+        Collections.shuffle(all);
+        int applied = 0;
+        for (Enchantment e : all) {
+            if (applied >= re.enchantCount()) {
+                break;
+            }
+            if (e.canEnchantItem(item)) {
+                int max = Math.max(1, e.getMaxLevel() + re.extraLevels());
+                meta.addEnchant(e, 1 + ThreadLocalRandom.current().nextInt(max), true);
+                applied++;
+            }
+        }
+        item.setItemMeta(meta);
+        return item;
     }
 
     private void tag(LivingEntity le, BossDefinition def, String encounterId) {
@@ -223,7 +290,8 @@ public final class BossManager {
     }
 
     private Component displayName(BossDefinition def) {
-        return Text.mm(def.name()).append(Component.space()).append(def.difficulty().bracketed());
+        // Difficulty is intentionally not shown on the name tag / boss bar (only in the broadcast).
+        return Text.mm(def.name());
     }
 
     // ---- tick loop ------------------------------------------------------------------------
@@ -242,11 +310,17 @@ public final class BossManager {
                 it.remove();
                 continue;
             }
+            if (boss.fleeAtTick() > 0 && tick >= boss.fleeAtTick()) {
+                fleeBoss(boss);
+                it.remove();
+                continue;
+            }
             boss.updateBossBar();
             int newPhase = computePhaseIndex(boss);
             if (newPhase > boss.phaseIndex()) {
                 applyPhase(boss, newPhase, false);
             }
+            updateAnimation(boss);
             skillEngine.onTick(boss, tick);
         }
     }
@@ -330,6 +404,80 @@ public final class BossManager {
         boss.model().playAnimation(mapped != null ? mapped : nameOrState, loop);
     }
 
+    /** Drive BetterModel state animations (walk/sprint/idle/target/swim/fly) by the boss' state. */
+    private void updateAnimation(ActiveBoss boss) {
+        if (tick < boss.attackHoldUntil()) {
+            return; // let a transient attack animation play out
+        }
+        LivingEntity e = boss.entity();
+        String state;
+        if (e.isInWater()) {
+            state = "swim";
+        } else if (!e.hasGravity()) {
+            state = "fly";
+        } else {
+            double speedSq = e.getVelocity().clone().setY(0).lengthSquared();
+            if (speedSq > 0.09) {
+                state = "sprint";
+            } else if (speedSq > 0.0025) {
+                state = "walk";
+            } else if (boss.target() != null && boss.target().isValid()) {
+                state = "target";
+            } else {
+                state = "idle";
+            }
+        }
+        if (!state.equals(boss.currentAnimState())) {
+            boss.setCurrentAnimState(state);
+            boss.model().playAnimation(mappedState(boss, state), true);
+        }
+    }
+
+    private static String mappedState(ActiveBoss boss, String state) {
+        String mapped = boss.def().animation(state);
+        return mapped != null ? mapped : state;
+    }
+
+    private void fleeBoss(ActiveBoss boss) {
+        broadcaster.bossFled(boss.def());
+        LivingEntity e = boss.entity();
+        if (e instanceof Mob mob) {
+            mob.setTarget(null);
+        }
+        Player near = nearestPlayer(e.getLocation());
+        if (near != null) {
+            Vector away = e.getLocation().toVector().subtract(near.getLocation().toVector());
+            if (away.lengthSquared() > 1.0E-4) {
+                e.setVelocity(away.normalize().multiply(0.8).setY(0.3));
+            }
+        }
+        boss.model().playAnimation(mappedState(boss, "sprint"), true);
+        encounterHook.onEnd(boss);
+        boss.cleanup(false); // remove bar + model, let the entity dash off
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (e.isValid()) {
+                e.remove();
+            }
+        }, 100L);
+    }
+
+    private Player nearestPlayer(Location loc) {
+        World world = loc.getWorld();
+        if (world == null) {
+            return null;
+        }
+        Player best = null;
+        double bestDist = Double.MAX_VALUE;
+        for (Player p : world.getPlayers()) {
+            double d = p.getLocation().distanceSquared(loc);
+            if (d < bestDist) {
+                bestDist = d;
+                best = p;
+            }
+        }
+        return best;
+    }
+
     // ---- death ----------------------------------------------------------------------------
 
     public void handleDeath(ActiveBoss boss, EntityDeathEvent event) {
@@ -345,7 +493,9 @@ public final class BossManager {
         broadcaster.bossDeath(boss.def());
         encounterHook.onEnd(boss);
         skillEngine.onDeath(boss);
-        boss.cleanup(false);
+        // Play a death animation (if the model has one) before tearing the model down.
+        boss.model().playAnimation(mappedState(boss, "death"), false);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> boss.cleanup(false), 20L);
     }
 
     /** Forward: the boss took damage from {@code damager}. */
@@ -358,6 +508,9 @@ public final class BossManager {
 
     /** Forward: the boss dealt damage to {@code victim}. */
     public void onBossDealtDamage(ActiveBoss boss, Entity victim, double amount) {
+        boss.setAttackHoldUntil(tick + 8);
+        boss.setCurrentAnimState("attack");
+        boss.model().playAnimation(mappedState(boss, "attack"), false);
         skillEngine.onDealDamage(boss, victim, amount);
     }
 

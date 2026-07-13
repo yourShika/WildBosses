@@ -21,7 +21,8 @@ public final class BossRegistry {
     /** Bundled default boss files copied to the data folder on first run. */
     private static final List<String> DEFAULTS = List.of(
             "goblin_army", "infected_army", "zombie_king", "skeleton_king",
-            "creeper_king", "enderman_queen", "magical_unicorn", "warthoglin");
+            "creeper_king", "enderman_queen", "magical_unicorn", "warthoglin",
+            "walak", "werewolf", "queen_bee", "leviathan", "medusa", "harvester");
 
     private final Plugin plugin;
     private final Logger logger;

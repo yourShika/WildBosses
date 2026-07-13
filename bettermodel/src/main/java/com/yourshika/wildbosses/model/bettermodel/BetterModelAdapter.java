@@ -41,10 +41,15 @@ public final class BetterModelAdapter implements ModelAdapter {
 
     @Override
     public ModelHandle attach(LivingEntity entity, BossDefinition def) {
-        Optional<ModelRenderer> renderer = BetterModel.model(def.model());
+        // Use the explicit model name if set, otherwise a model named after the boss id.
+        String key = (def.model() != null && !def.model().isBlank()) ? def.model() : def.id();
+        Optional<ModelRenderer> renderer = BetterModel.model(key);
         if (renderer.isEmpty()) {
-            plugin.getLogger().warning("BetterModel model '" + def.model() + "' for boss " + def.id()
-                    + " is not loaded; using vanilla appearance.");
+            // Only warn if a model was explicitly requested; a missing id-named model is normal.
+            if (def.hasModel()) {
+                plugin.getLogger().warning("BetterModel model '" + key + "' for boss " + def.id()
+                        + " is not loaded; using vanilla appearance.");
+            }
             return ModelHandle.NOOP;
         }
         EntityTracker tracker = renderer.get().create(BukkitAdapter.adapt(entity));

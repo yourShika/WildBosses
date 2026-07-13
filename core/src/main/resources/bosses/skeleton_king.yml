@@ -1,13 +1,18 @@
 # Ossaria, the Bonelord - HARD overworld boss.
+# Signature ability: a rain of arrows from the sky. Spawns with randomised, enchanted gear.
 id: skeleton_king
 name: "<gradient:#e5e7eb:#6b7280>Ossaria, the Bonelord</gradient>"
 title: "<gray>Sovereign of the Bonewaste"
 difficulty: HARD
 base-entity: SKELETON
-model: ""
-stats: { health: 520, armor: 14, armor-toughness: 6, knockback-resistance: 0.7, damage: 8, speed: 0.27, follow-range: 48, scale: 1.5 }
-equipment: { hand: BOW, head: IRON_HELMET }
+stats: { health: 540, armor: 14, armor-toughness: 6, knockback-resistance: 0.7, damage: 8, speed: 0.27, follow-range: 50, scale: 1.5 }
 bossbar: { color: WHITE, style: NOTCHED_10 }
+random-equipment:
+  enabled: true
+  armor-tiers: [CHAINMAIL, IRON, DIAMOND]
+  weapons: [BOW]
+  enchant-count: 3
+  extra-levels: 1
 spawn:
   worlds: [OVERWORLD]
   weight: 16
@@ -18,12 +23,16 @@ spawn:
 phases:
   - { at-health-percent: 100, message: "<white>Ossaria, the Bonelord, clatters into being!" }
   - { at-health-percent: 60, message: "<gray>Ossaria raises a shield of bone!" }
-  - { at-health-percent: 30, enrage: true, message: "<gray>Ossaria unleashes a storm of arrows!" }
+  - { at-health-percent: 30, enrage: true, message: "<gray>Ossaria calls down a storm of arrows!" }
 skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["My aim never wavers.", "You will be a pincushion.", "The sky itself is my quiver."] } }
+  - { trigger: onTimer, interval: 20, mechanic: particle, targeter: self_location, params: { particle: SOUL, count: 4, spread: 0.5, offset-y: 1.4 } }
   - { trigger: onTimer, interval: 80, mechanic: arrow_volley, targeter: nearest_player, params: { radius: 40, count: 8, spread: 0.2, velocity: 2.0 } }
+  - { trigger: onTimer, interval: 140, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 12, count: 14, spread: 5, height: 20, damage: 6 } }
   - { trigger: onTimer, interval: 160, mechanic: summon, targeter: self_location, params: { type: STRAY, amount: 3, radius: 5 } }
+  - { trigger: onTimer, interval: 210, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Look up.", "Nowhere to hide.", "Rain of bone!"] } }
   - { trigger: onHealthBelow, value: 60, mechanic: shield, targeter: self, params: { duration: 120, amplifier: 1 } }
-  - { trigger: onHealthBelow, value: 30, mechanic: arrow_volley, targeter: players_in_radius, params: { radius: 30, count: 20, spread: 0.35, velocity: 2.2, fire: true } }
+  - { trigger: onHealthBelow, value: 30, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 16, count: 40, spread: 8, height: 22, damage: 7, fire: true } }
 drops:
   items:
     - { item: DIAMOND, amount: "4-7", chance: 1.0 }

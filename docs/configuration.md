@@ -9,6 +9,10 @@ settings:
   spawn-attempts-per-cycle: 1     # attempts each cycle (each still checks a boss' rules)
   max-active-bosses: 5            # global cap on active bosses (armies count as one)
   min-distance-between-bosses: 200
+  boss-lifetime:                  # undefeated bosses/armies eventually flee (with a broadcast)
+    enabled: true
+    min-minutes: 30
+    max-minutes: 60
   frontier-search:                # placement search for terrain (frontier-only) bosses
     min-distance: 200
     max-distance: 3000

@@ -8,6 +8,7 @@ import com.yourshika.wildbosses.util.Params;
 import com.yourshika.wildbosses.util.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -22,7 +23,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.SmallFireball;
 import org.bukkit.entity.Snowball;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.WitherSkull;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -67,6 +71,15 @@ public final class MechanicRegistry {
         register("shield", MechanicRegistry::shield);
         register("command", MechanicRegistry::command);
         register("projectile", MechanicRegistry::projectile);
+        register("say", MechanicRegistry::say);
+        register("taunt", MechanicRegistry::say);
+        register("arrow_rain", MechanicRegistry::arrowRain);
+        register("throw_potion", MechanicRegistry::throwPotion);
+        register("petrify", MechanicRegistry::petrify);
+        register("lifesteal", MechanicRegistry::lifesteal);
+        register("fly", MechanicRegistry::fly);
+        register("radial", MechanicRegistry::radial);
+        register("axe_throw", MechanicRegistry::radial);
     }
 
     public void register(String key, Mechanic mechanic) {
@@ -126,7 +139,7 @@ public final class MechanicRegistry {
         double speed = p.getDouble("speed", 0.0);
         double offsetY = p.getDouble("offset-y", 1.0);
         for (Location loc : locations(ctx, targets)) {
-            loc.getWorld().spawnParticle(particle, loc.clone().add(0, offsetY, 0), count, spread, spread, spread, speed);
+            emit(loc.getWorld(), particle, loc.clone().add(0, offsetY, 0), count, spread, speed);
         }
     }
 
@@ -147,7 +160,7 @@ public final class MechanicRegistry {
         Location center = ctx.location();
         if (particleName != null) {
             Particle particle = enumOr(Particle.class, particleName, Particle.EXPLOSION);
-            center.getWorld().spawnParticle(particle, center.clone().add(0, 1, 0), 40, radius / 2, 1, radius / 2, 0.02);
+            emit(center.getWorld(), particle, center.clone().add(0, 1, 0), 40, radius / 2, 0.02);
         }
         double rSq = radius * radius;
         for (Player player : center.getWorld().getPlayers()) {
@@ -313,6 +326,144 @@ public final class MechanicRegistry {
         for (Location loc : locations(ctx, targets)) {
             loc.getWorld().createExplosion(loc, power, fire, false, ctx.self());
         }
+        // kill-caster: the boss dies from its own blast (e.g. Creeper King's final detonation).
+        if (p.getBoolean("kill-caster", false) && ctx.self().isValid()) {
+            ctx.self().setHealth(0);
+        }
+    }
+
+    private static void say(SkillContext ctx, List<Target> targets, Params p) {
+        List<String> lines = p.getStringList("lines");
+        if (lines.isEmpty()) {
+            String single = p.getString("line", null);
+            if (single != null) {
+                lines = List.of(single);
+            }
+        }
+        if (lines.isEmpty()) {
+            return;
+        }
+        String line = lines.get(ThreadLocalRandom.current().nextInt(lines.size()));
+        String prefix = p.getString("prefix", ctx.boss().def().name());
+        var message = Text.mm(prefix + "<gray>: <white>" + line);
+        double radius = p.getDouble("radius", 40);
+        double rSq = radius * radius;
+        Location loc = ctx.location();
+        for (Player player : ctx.world().getPlayers()) {
+            if (player.getLocation().distanceSquared(loc) <= rSq) {
+                player.sendMessage(message);
+            }
+        }
+    }
+
+    private static void arrowRain(SkillContext ctx, List<Target> targets, Params p) {
+        int count = Math.max(1, p.getInt("count", 12));
+        double spread = p.getDouble("spread", p.getDouble("radius", 4));
+        double height = p.getDouble("height", 18);
+        boolean fire = p.getBoolean("fire", false);
+        for (Location base : locations(ctx, targets)) {
+            World world = base.getWorld();
+            for (int i = 0; i < count; i++) {
+                Location spawn = base.clone().add(rand(spread), height, rand(spread));
+                Arrow arrow = world.spawn(spawn, Arrow.class);
+                arrow.setVelocity(new Vector(0, -2.2, 0));
+                arrow.setShooter(ctx.self());
+                arrow.setDamage(p.getDouble("damage", 5));
+                if (fire) {
+                    arrow.setFireTicks(200);
+                }
+            }
+        }
+    }
+
+    private static void throwPotion(SkillContext ctx, List<Target> targets, Params p) {
+        PotionEffectType type = Effects.type(p.getString("type", "POISON"));
+        int duration = p.getInt("duration", 140);
+        int amplifier = p.getInt("amplifier", 0);
+        boolean lingering = p.getBoolean("lingering", false);
+        ItemStack potion = new ItemStack(lingering ? Material.LINGERING_POTION : Material.SPLASH_POTION);
+        if (potion.getItemMeta() instanceof PotionMeta meta && type != null) {
+            meta.addCustomEffect(new PotionEffect(type, duration, amplifier, false, true, true), true);
+            potion.setItemMeta(meta);
+        }
+        LivingEntity self = ctx.self();
+        Location eye = self.getEyeLocation();
+        Vector dir = targets.isEmpty() ? eye.getDirection()
+                : targets.get(0).location().clone().add(0, -0.5, 0).toVector().subtract(eye.toVector()).normalize();
+        ThrownPotion thrown = self.launchProjectile(ThrownPotion.class, dir.multiply(p.getDouble("velocity", 0.9)));
+        thrown.setItem(potion);
+        thrown.setShooter(self);
+    }
+
+    private static void petrify(SkillContext ctx, List<Target> targets, Params p) {
+        int duration = p.getInt("duration", 80);
+        for (Target t : targets) {
+            if (t.entity() != null && t.entity() != ctx.self()) {
+                t.entity().addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, 5, false, true, true));
+                t.entity().addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, duration, 2, false, true, true));
+                t.entity().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Math.min(duration, 60), 0, false, true, true));
+            }
+        }
+    }
+
+    private static void lifesteal(SkillContext ctx, List<Target> targets, Params p) {
+        double amount = p.getDouble("amount", 6);
+        double ratio = p.getDouble("heal-ratio", 0.5);
+        double healed = 0;
+        for (Target t : targets) {
+            if (t.entity() != null && t.entity() != ctx.self()) {
+                t.entity().damage(amount, ctx.self());
+                healed += amount * ratio;
+            }
+        }
+        LivingEntity self = ctx.self();
+        if (healed > 0) {
+            self.setHealth(Math.min(ctx.boss().maxHealth(), self.getHealth() + healed));
+        }
+    }
+
+    private static void fly(SkillContext ctx, List<Target> targets, Params p) {
+        int duration = p.getInt("duration", 100);
+        double lift = p.getDouble("lift", 0.5);
+        LivingEntity self = ctx.self();
+        self.setGravity(false);
+        Vector velocity = new Vector(0, lift, 0);
+        if (!targets.isEmpty()) {
+            Vector toward = targets.get(0).location().toVector().subtract(self.getLocation().toVector());
+            toward.setY(0);
+            if (toward.lengthSquared() > 1) {
+                velocity.add(toward.normalize().multiply(0.35));
+            }
+        }
+        self.setVelocity(velocity);
+        Bukkit.getScheduler().runTaskLater(ctx.plugin(), () -> {
+            if (self.isValid()) {
+                self.setGravity(true);
+            }
+        }, duration);
+    }
+
+    private static void radial(SkillContext ctx, List<Target> targets, Params p) {
+        int count = Math.max(1, p.getInt("count", 8));
+        double velocity = p.getDouble("velocity", 1.2);
+        String type = p.getString("type", "ARROW").toUpperCase(Locale.ROOT);
+        Class<? extends Projectile> clazz = switch (type) {
+            case "SNOWBALL" -> Snowball.class;
+            case "SMALL_FIREBALL" -> SmallFireball.class;
+            default -> Arrow.class;
+        };
+        LivingEntity self = ctx.self();
+        for (int i = 0; i < count; i++) {
+            double angle = 2 * Math.PI * i / count;
+            Vector dir = new Vector(Math.cos(angle), 0.08, Math.sin(angle)).multiply(velocity);
+            Projectile proj = self.launchProjectile(clazz, dir);
+            proj.setShooter(self);
+        }
+        String particle = p.getString("particle", null);
+        if (particle != null) {
+            Particle part = enumOr(Particle.class, particle, Particle.CRIT);
+            emit(self.getWorld(), part, self.getLocation().add(0, 1, 0), 30, 1, 0.05);
+        }
     }
 
     private static void arrowVolley(SkillContext ctx, List<Target> targets, Params p) {
@@ -433,6 +584,31 @@ public final class MechanicRegistry {
     }
 
     // ---- helpers --------------------------------------------------------------------------
+
+    /** Spawn a particle, supplying sensible default data for particles that require it (Dust, etc.). */
+    private static void emit(World world, Particle particle, Location loc, int count, double spread, double speed) {
+        Class<?> data = particle.getDataType();
+        try {
+            if (data == org.bukkit.Particle.DustOptions.class) {
+                world.spawnParticle(particle, loc, count, spread, spread, spread, speed,
+                        new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(255, 105, 180), 1.6f));
+            } else if (data == org.bukkit.Particle.DustTransition.class) {
+                world.spawnParticle(particle, loc, count, spread, spread, spread, speed,
+                        new org.bukkit.Particle.DustTransition(org.bukkit.Color.fromRGB(255, 105, 180),
+                                org.bukkit.Color.fromRGB(120, 180, 255), 1.6f));
+            } else if (data == org.bukkit.block.data.BlockData.class) {
+                world.spawnParticle(particle, loc, count, spread, spread, spread, speed, Material.STONE.createBlockData());
+            } else if (data == ItemStack.class) {
+                world.spawnParticle(particle, loc, count, spread, spread, spread, speed, new ItemStack(Material.DIAMOND));
+            } else if (data == Float.class) {
+                world.spawnParticle(particle, loc, count, spread, spread, spread, speed, 0f);
+            } else {
+                world.spawnParticle(particle, loc, count, spread, spread, spread, speed);
+            }
+        } catch (Throwable ignored) {
+            // exotic particle data requirement - skip rather than crash the mechanic
+        }
+    }
 
     private static List<Location> locations(SkillContext ctx, List<Target> targets) {
         if (targets.isEmpty()) {

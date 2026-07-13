@@ -1,15 +1,14 @@
 # Warthoglin, the Goldtusk King - ULTRA_HARD Nether boss.
-# Uses a BetterModel custom model ("warthoglin") when BetterModel is installed; otherwise the
-# vanilla Piglin Brute appearance is used automatically. Provide the .bbmodel to BetterModel and
-# name the model "warthoglin" for the custom model + animations to appear.
+# Uses a BetterModel model named "warthoglin" if present; otherwise the vanilla Piglin Brute.
+# He is immune to lightning-transformation (never zombifies). Signature move: a radial storm of axes.
 id: warthoglin
 name: "<gradient:#f59e0b:#7c2d12>Warthoglin, the Goldtusk King</gradient>"
 title: "<gray>King of the Piglins"
 difficulty: ULTRA_HARD
 base-entity: PIGLIN_BRUTE
 model: "warthoglin"
-animations: { idle: "idle", walk: "walk", attack: "attack", phase2: "rage" }
-stats: { health: 700, armor: 16, armor-toughness: 8, knockback-resistance: 0.85, damage: 14, speed: 0.3, follow-range: 48, scale: 1.0 }
+animations: { idle: idle, walk: walk, sprint: sprint, attack: attack, target: target, death: death }
+stats: { health: 720, armor: 16, armor-toughness: 8, knockback-resistance: 0.85, damage: 14, speed: 0.3, follow-range: 48, scale: 1.0 }
 equipment: { hand: GOLDEN_AXE, head: GOLDEN_HELMET }
 bossbar: { color: RED, style: NOTCHED_10 }
 spawn:
@@ -21,13 +20,17 @@ spawn:
   max-concurrent: 1
 phases:
   - { at-health-percent: 100, message: "<gold>Warthoglin, the Goldtusk King, charges onto the field!" }
-  - { at-health-percent: 60, animation: "rage", message: "<#ff8c00>Warthoglin roars and calls his brutes!" }
-  - { at-health-percent: 30, enrage: true, animation: "rage", message: "<red>Warthoglin enters a golden fury!" }
+  - { at-health-percent: 60, animation: rage, message: "<#ff8c00>Warthoglin roars and calls his brutes!" }
+  - { at-health-percent: 30, enrage: true, animation: rage, message: "<red>Warthoglin enters a golden fury!" }
 skills:
   - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.piglin_brute.angry", volume: 1.5, pitch: 0.7 } }
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Bow to the Goldtusk King!", "Gold... and your bones... are MINE!", "You dare enter my realm?"] } }
+  - { trigger: onTimer, interval: 16, mechanic: particle, targeter: self_location, params: { particle: FLAME, count: 5, spread: 0.6, offset-y: 1.2 } }
   - { trigger: onTimer, interval: 90, mechanic: leap, targeter: nearest_player, params: { power: 1.4, vertical: 0.55 } }
   - { trigger: onTimer, interval: 150, mechanic: summon, targeter: self_location, params: { type: PIGLIN_BRUTE, amount: 2, radius: 5 } }
-  - { trigger: onTimer, interval: 110, mechanic: projectile, targeter: nearest_player, params: { type: SMALL_FIREBALL, velocity: 1.5 } }
+  # Axe storm: Warthoglin plants his feet and hurls axes in every direction.
+  - { trigger: onTimer, interval: 130, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["AXE STORM!", "Chop, chop, chop!"] } }
+  - { trigger: onTimer, interval: 130, mechanic: axe_throw, targeter: self, params: { count: 12, velocity: 1.4, type: ARROW, particle: LAVA } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 12, knockback: 1.5, particle: FLAME } }
 drops:
   items:

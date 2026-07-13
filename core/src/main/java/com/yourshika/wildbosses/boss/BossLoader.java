@@ -52,9 +52,32 @@ public final class BossLoader {
         DropTable drops = parseDrops(root.getConfigurationSection("drops"));
         TerrainSettings terrain = parseTerrain(root.getConfigurationSection("terrain"), id);
         ArmyDefinition army = parseArmy(root.getConfigurationSection("army"));
+        RandomEquipment randomEquipment = parseRandomEquipment(root.getConfigurationSection("random-equipment"));
 
         return new BossDefinition(id, name, title, difficulty, baseEntity, model, animations, stats,
-                equipment, bossBar, spawn, phases, skills, drops, terrain, army);
+                equipment, bossBar, spawn, phases, skills, drops, terrain, army, randomEquipment);
+    }
+
+    private RandomEquipment parseRandomEquipment(ConfigurationSection s) {
+        if (s == null || !s.getBoolean("enabled", false)) {
+            return RandomEquipment.disabled();
+        }
+        List<String> tiers = s.getStringList("armor-tiers");
+        if (tiers.isEmpty()) {
+            tiers = List.of("IRON", "GOLDEN", "DIAMOND");
+        }
+        List<Material> weapons = new ArrayList<>();
+        for (String w : s.getStringList("weapons")) {
+            Material m = material(w);
+            if (m != null) {
+                weapons.add(m);
+            }
+        }
+        if (weapons.isEmpty()) {
+            weapons = List.of(Material.IRON_SWORD, Material.GOLDEN_SWORD, Material.DIAMOND_SWORD, Material.IRON_AXE);
+        }
+        return new RandomEquipment(true, tiers, weapons,
+                Math.max(0, s.getInt("enchant-count", 2)), Math.max(0, s.getInt("extra-levels", 1)));
     }
 
     // ---- component parsers ----------------------------------------------------------------
@@ -229,9 +252,20 @@ public final class BossLoader {
                     p.getString("name", null),
                     p.getStringList("effects")));
         }
+        int killThreshold = Math.max(1, s.getInt("kill-threshold", 30));
+        List<Integer> stages = new ArrayList<>();
+        for (int v : s.getIntegerList("stages")) {
+            if (v > 0) {
+                stages.add(v);
+            }
+        }
+        if (stages.isEmpty()) {
+            stages.add(killThreshold);
+        }
         return new ArmyDefinition(
                 minions,
-                Math.max(1, s.getInt("kill-threshold", 30)),
+                killThreshold,
+                stages,
                 Math.max(1, s.getInt("wave-size", 6)),
                 Math.max(1, s.getInt("max-alive", 20)),
                 Math.max(20, s.getInt("reinforce-interval-ticks", 120)),

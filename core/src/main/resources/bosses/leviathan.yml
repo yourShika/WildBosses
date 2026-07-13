@@ -1,0 +1,34 @@
+# Abyssos, the Leviathan - ULTRA_HARD deep-sea terror. Best fought in/near water.
+id: leviathan
+name: "<gradient:#38bdf8:#0c4a6e>Abyssos, the Leviathan</gradient>"
+title: "<gray>Terror of the Deep"
+difficulty: ULTRA_HARD
+base-entity: ELDER_GUARDIAN
+stats: { health: 780, armor: 14, knockback-resistance: 0.9, damage: 14, speed: 0.28, follow-range: 60, scale: 1.2 }
+bossbar: { color: BLUE, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 10
+  min-players-distance: 48
+  y: { min: 30, max: 70 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<aqua>The water churns - Abyssos, the Leviathan, surfaces!" }
+  - { at-health-percent: 60, message: "<blue>Abyssos drags the deep up with it!" }
+  - { at-health-percent: 30, enrage: true, message: "<blue>Abyssos unleashes the maelstrom!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 55, lines: ["The deep claims all.", "You are so very small.", "Down... come down with me."] } }
+  - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: DRIPPING_DRIPSTONE_LAVA, count: 6, spread: 1.0, offset-y: 1.5 } }
+  - { trigger: onTimer, interval: 70, mechanic: pull, targeter: players_in_radius, params: { radius: 14, strength: 1.4 } }
+  - { trigger: onTimer, interval: 90, mechanic: beam, targeter: nearest_player, params: { radius: 40, damage: 14, particle: BUBBLE } }
+  - { trigger: onTimer, interval: 140, mechanic: summon, targeter: self_location, params: { type: GUARDIAN, amount: 4, radius: 6 } }
+  - { trigger: onTimer, interval: 100, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: MINING_FATIGUE, duration: 200, amplifier: 2 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 13, knockback: 1.4, particle: SPLASH } }
+drops:
+  items:
+    - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0 }
+    - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0 }
+    - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.5, glow: true, name: "<gradient:#38bdf8:#0c4a6e>Leviathan's Core</gradient>" }
+    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
+  xp: 1100

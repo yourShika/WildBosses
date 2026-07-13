@@ -21,6 +21,7 @@ import java.util.List;
 public record ArmyDefinition(
         List<ArmyMinion> minions,
         int killThreshold,
+        List<Integer> stages,
         int waveSize,
         int maxAlive,
         int reinforceIntervalTicks,
@@ -29,6 +30,17 @@ public record ArmyDefinition(
         String endBossId,
         int timeoutSeconds
 ) {
+    /** Kill target for stage {@code index} (0-based). */
+    public int stageTarget(int index) {
+        if (index >= 0 && index < stages.size()) {
+            return stages.get(index);
+        }
+        return killThreshold;
+    }
+
+    public int stageCount() {
+        return Math.max(1, stages.size());
+    }
     /** What happens when an army's kill threshold is reached. */
     public enum Outcome {
         /** Spawn a linked end-boss. */

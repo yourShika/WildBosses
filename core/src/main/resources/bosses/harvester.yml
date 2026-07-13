@@ -1,0 +1,38 @@
+# The Harvester - ULTRA_HARD reaper boss. Drains life and reaps souls with a wide scythe.
+id: harvester
+name: "<gradient:#a3a3a3:#111827>Mortarion, the Harvester</gradient>"
+title: "<gray>Reaper of Souls"
+difficulty: ULTRA_HARD
+base-entity: WITHER_SKELETON
+model: ""
+animations: { idle: idle, walk: walk, attack: attack, death: death }
+stats: { health: 700, armor: 14, armor-toughness: 6, knockback-resistance: 0.8, damage: 13, speed: 0.3, follow-range: 50, scale: 1.6 }
+equipment: { hand: NETHERITE_HOE, head: WITHER_SKELETON_SKULL }
+bossbar: { color: WHITE, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD, NETHER]
+  weight: 12
+  min-players-distance: 44
+  y: { min: 30, max: 110 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<gray>The air turns cold... Mortarion, the Harvester, has come to reap." }
+  - { at-health-percent: 60, message: "<dark_gray>Mortarion swings his soul-scythe in a wide arc!" }
+  - { at-health-percent: 30, enrage: true, message: "<dark_gray>Mortarion drinks deep of the fallen!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Your time is spent.", "The harvest is always plentiful.", "Do not struggle. It is quicker."] } }
+  - { trigger: onTimer, interval: 14, mechanic: particle, targeter: self_location, params: { particle: SOUL, count: 6, spread: 0.7, offset-y: 1.4 } }
+  - { trigger: onTimer, interval: 70, mechanic: lifesteal, targeter: players_in_radius, params: { radius: 4, amount: 8, heal-ratio: 0.75 } }
+  # Scythe sweep: a wide arc that hits everyone around him.
+  - { trigger: onTimer, interval: 110, mechanic: axe_throw, targeter: self, params: { count: 10, velocity: 1.0, type: ARROW, particle: SOUL_FIRE_FLAME } }
+  - { trigger: onTimer, interval: 130, mechanic: throw_potion, targeter: nearest_player, params: { type: WITHER, duration: 120, amplifier: 1, velocity: 1.0 } }
+  - { trigger: onTimer, interval: 150, mechanic: summon, targeter: self_location, params: { type: WITHER_SKELETON, amount: 3, radius: 5 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: lifesteal, targeter: players_in_radius, params: { radius: 8, amount: 12, heal-ratio: 1.0 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.0, particle: SCULK_SOUL } }
+drops:
+  items:
+    - { item: WITHER_SKELETON_SKULL, amount: "1-2", chance: 0.5, glow: true, name: "<gradient:#a3a3a3:#111827>Harvested Skull</gradient>" }
+    - { item: NETHERITE_SCRAP, amount: "2-3", chance: 0.5 }
+    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
+  xp: 1100

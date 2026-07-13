@@ -1,0 +1,36 @@
+# Oberhexe Walak - ULTRA_HARD overworld dark-magic boss.
+# A model named "walak" (BetterModel) is used automatically if present.
+id: walak
+name: "<gradient:#7c3aed:#2e1065>Oberhexe Walak</gradient>"
+title: "<gray>the Blackmage"
+difficulty: ULTRA_HARD
+base-entity: EVOKER
+stats: { health: 600, armor: 8, knockback-resistance: 0.6, damage: 9, speed: 0.3, follow-range: 48, scale: 1.3 }
+bossbar: { color: PURPLE, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 12
+  min-players-distance: 44
+  y: { min: 45, max: 120 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<dark_purple>Oberhexe Walak descends in a swirl of shadow!" }
+  - { at-health-percent: 60, message: "<dark_purple>Walak weaves a darker spell!" }
+  - { at-health-percent: 30, enrage: true, message: "<dark_purple>Walak channels the black storm!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Your soul makes fine reagent.", "Magic older than your gods.", "Let me show you true darkness."] } }
+  - { trigger: onTimer, interval: 10, mechanic: particle, targeter: self_location, params: { particle: WITCH, count: 10, spread: 0.9, offset-y: 1.3 } }
+  - { trigger: onTimer, interval: 90, mechanic: summon, targeter: self_location, params: { type: VEX, amount: 4, radius: 5 } }
+  - { trigger: onTimer, interval: 100, mechanic: throw_potion, targeter: nearest_player, params: { type: INSTANT_DAMAGE, amplifier: 1, velocity: 1.0 } }
+  - { trigger: onTimer, interval: 80, mechanic: teleport, targeter: nearest_player, params: { radius: 4 } }
+  - { trigger: onTimer, interval: 200, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Burn in shadow.", "You cannot ward against me.", "Dance, puppet."] } }
+  - { trigger: onHealthBelow, value: 60, mechanic: lightning, targeter: players_in_radius, params: { damage: true } }
+  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.2, particle: SOUL_FIRE_FLAME } }
+  - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: RESISTANCE, duration: 200, amplifier: 1 } }
+drops:
+  items:
+    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.5, glow: true, name: "<gradient:#7c3aed:#2e1065>Walak's Phylactery</gradient>" }
+    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
+    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.4 }
+  xp: 1000

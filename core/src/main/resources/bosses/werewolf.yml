@@ -1,0 +1,35 @@
+# Fenrar, the Bloodmoon - HARD overworld beast. Base entity is a zombie (for hostile AI + so the
+# vanilla fallback still hunts); add a BetterModel model named "werewolf" for the real look.
+id: werewolf
+name: "<gradient:#9ca3af:#450a0a>Fenrar, the Bloodmoon</gradient>"
+title: "<gray>the Werewolf"
+difficulty: HARD
+base-entity: ZOMBIE
+stats: { health: 500, armor: 8, knockback-resistance: 0.5, damage: 13, speed: 0.36, follow-range: 50, scale: 1.5 }
+bossbar: { color: RED, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 16
+  min-players-distance: 40
+  y: { min: 45, max: 120 }
+  cooldown-seconds: 2400
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<red>A howl splits the night - Fenrar, the Bloodmoon, hunts!" }
+  - { at-health-percent: 50, enrage: true, message: "<dark_red>Fenrar's eyes blaze - the blood moon rises!" }
+skills:
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.wolf.growl", volume: 1.6, pitch: 0.6 } }
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["I can smell your fear.", "Run. It's more fun when you run.", "The pack is always hungry."] } }
+  - { trigger: onTimer, interval: 18, mechanic: particle, targeter: self_location, params: { particle: DUST, count: 4, spread: 0.5, offset-y: 1.0 } }
+  - { trigger: onTimer, interval: 70, mechanic: leap, targeter: nearest_player, params: { power: 1.6, vertical: 0.5 } }
+  - { trigger: onTimer, interval: 90, mechanic: lifesteal, targeter: players_in_radius, params: { radius: 3, amount: 8, heal-ratio: 0.6 } }
+  - { trigger: onTimer, interval: 150, mechanic: summon, targeter: self_location, params: { type: WOLF, amount: 3, radius: 5 } }
+  - { trigger: onTimer, interval: 110, mechanic: poison, targeter: players_in_radius, params: { radius: 3, duration: 100, amplifier: 0 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: buff, targeter: self, params: { type: SPEED, duration: 300, amplifier: 2 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["BLOOD MOON!", "Now you die."] } }
+drops:
+  items:
+    - { item: LEATHER, amount: "6-12", chance: 1.0 }
+    - { item: DIAMOND, amount: "3-6", chance: 1.0 }
+    - { item: GOLDEN_APPLE, amount: "1-3", chance: 0.6, name: "<gradient:#9ca3af:#450a0a>Bloodmoon Heart</gradient>" }
+  xp: 700

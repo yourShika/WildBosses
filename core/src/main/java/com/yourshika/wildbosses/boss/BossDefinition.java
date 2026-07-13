@@ -26,7 +26,8 @@ public record BossDefinition(
         List<SkillDefinition> skills,
         DropTable drops,
         TerrainSettings terrain,
-        ArmyDefinition army
+        ArmyDefinition army,
+        RandomEquipment randomEquipment
 ) {
 
     public boolean isArmy() {

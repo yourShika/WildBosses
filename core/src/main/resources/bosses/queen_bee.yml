@@ -1,0 +1,34 @@
+# Vespula, the Hive Queen - HARD overworld boss. Flies, summons bees, poisons with her sting.
+id: queen_bee
+name: "<gradient:#fde047:#a16207>Vespula, the Hive Queen</gradient>"
+title: "<gray>Queen Bee"
+difficulty: HARD
+base-entity: BEE
+stats: { health: 460, armor: 6, knockback-resistance: 0.4, damage: 8, speed: 0.34, follow-range: 46, scale: 2.2 }
+bossbar: { color: YELLOW, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 14
+  min-players-distance: 40
+  y: { min: 60, max: 130 }
+  cooldown-seconds: 2400
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<yellow>Vespula, the Hive Queen, descends with an angry drone!" }
+  - { at-health-percent: 50, enrage: true, message: "<gold>Vespula summons the swarm!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["You disturbed the hive.", "My children are always hungry.", "Bzzz... you smell like a thief."] } }
+  - { trigger: onTimer, interval: 14, mechanic: particle, targeter: self_location, params: { particle: FALLING_DUST, count: 6, spread: 0.7, offset-y: 1.0 } }
+  - { trigger: onTimer, interval: 110, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 5, radius: 5 } }
+  - { trigger: onTimer, interval: 80, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 140, amplifier: 1 } }
+  - { trigger: onTimer, interval: 95, mechanic: projectile, targeter: nearest_player, params: { type: SMALL_FIREBALL, velocity: 1.2 } }
+  - { trigger: onTimer, interval: 130, mechanic: fly, targeter: nearest_player, params: { duration: 120, lift: 0.5 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 8, radius: 6 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 0.8, particle: HEART } }
+drops:
+  items:
+    - { item: HONEYCOMB, amount: "8-16", chance: 1.0 }
+    - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9 }
+    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, name: "<gradient:#fde047:#a16207>Royal Jelly</gradient>" }
+    - { item: DIAMOND, amount: "2-5", chance: 0.7 }
+  xp: 650

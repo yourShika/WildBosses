@@ -73,15 +73,23 @@ Base command: `/wildbosses` (alias `/wb`).
 
 | Id | Name | Difficulty | Where | Notes |
 |---|---|---|---|---|
-| `goblin_army` | Grizznak the Plunderer | Easy | Overworld | Army → Warlord |
-| `infected_army` | Pestis, the Plaguebearer | Medium | Overworld | Poison army + terrain infection |
-| `zombie_king` | Mortis, the Zombie King | Medium | Overworld | Summons, slam AoE, poison |
-| `skeleton_king` | Ossaria, the Bonelord | Hard | Overworld | Arrow volleys, shield, summons |
-| `creeper_king` | Kaboomicus, the Sundering King | Hard | Overworld | Block-safe explosions |
+| `goblin_army` | Grizznak the Plunderer | Easy | Overworld | 5 escalating waves → Goblin King |
+| `infected_army` | Pestis, the Plaguebearer | Medium | Overworld | Poison army, permanent infection |
+| `zombie_king` | Mortis, the Zombie King | Medium | Overworld | Random gear, summons, AoE |
+| `skeleton_king` | Ossaria, the Bonelord | Hard | Overworld | Arrow rain, random gear |
+| `creeper_king` | Kaboomicus, the Sundering King | Hard | Overworld | Detonates & dies (block-safe) |
 | `enderman_queen` | Nyxara, Queen of the Void | Ultra Hard | End | Teleports, pulls, endermites |
-| `magical_unicorn` | Aurelith, the Prism Mare | Magical | Overworld | Prism beam, charm, heal |
-| `warthoglin` | Warthoglin, the Goldtusk King | Ultra Hard | Nether | **BetterModel** model + fallback |
+| `magical_unicorn` | Aurelith, the Prism Mare | Magical | Overworld | Flies, prism beam, summons |
+| `warthoglin` | Warthoglin, the Goldtusk King | Ultra Hard | Nether | Axe storm, **BetterModel** + fallback |
+| `walak` | Oberhexe Walak | Ultra Hard | Overworld | Dark magic, vexes, lightning |
+| `werewolf` | Fenrar, the Bloodmoon | Hard | Overworld | Fast, leaps, lifesteal, wolves |
+| `queen_bee` | Vespula, the Hive Queen | Hard | Overworld | Flies, swarms, poison sting |
+| `leviathan` | Abyssos, the Leviathan | Ultra Hard | Overworld (water) | Pull, beam, guardians |
+| `medusa` | Medusa of Bikini Bottom | Ultra Hard | Overworld | Petrifying gaze, serpents |
+| `harvester` | Mortarion, the Harvester | Ultra Hard | Overworld/Nether | Lifesteal, scythe, wither |
 
+Each boss taunts players with random dialogue, has ambient particles/sounds, and (if undefeated)
+eventually flees. Difficulty is shown only in the spawn broadcast — not on the boss bar or name tag.
 Full authoring reference: [docs/boss-authoring.md](docs/boss-authoring.md).
 
 ---

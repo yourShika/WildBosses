@@ -1,10 +1,10 @@
-# Kaboomicus, the Sundering King - HARD overworld boss. Explosions never break blocks.
+# Kaboomicus, the Sundering King - HARD overworld boss.
+# Explosions never break blocks. At low health he detonates - and dies from his own blast.
 id: creeper_king
 name: "<gradient:#22c55e:#064e3b>Kaboomicus, the Sundering King</gradient>"
 title: "<gray>He Who Ends With a Bang"
 difficulty: HARD
 base-entity: CREEPER
-model: ""
 stats: { health: 480, armor: 8, knockback-resistance: 0.4, damage: 7, speed: 0.28, follow-range: 40, scale: 1.7 }
 bossbar: { color: GREEN, style: NOTCHED_10 }
 spawn:
@@ -17,12 +17,18 @@ spawn:
 phases:
   - { at-health-percent: 100, message: "<green>Kaboomicus fizzes ominously into view..." }
   - { at-health-percent: 50, enrage: true, message: "<dark_green>Kaboomicus begins to overcharge!" }
+  - { at-health-percent: 15, message: "<red>Kaboomicus swells to bursting - RUN!" }
 skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Sssssay goodbye.", "Tick... tick... tick...", "Let's make a big bang."] } }
+  - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: FLAME, count: 6, spread: 0.7, offset-y: 0.8 } }
   - { trigger: onTargetInRange, radius: 5, cooldown: 100, mechanic: explode, targeter: self_location, params: { power: 3.0, fire: false } }
   - { trigger: onTimer, interval: 140, mechanic: summon, targeter: self_location, params: { type: CREEPER, amount: 4, radius: 6 } }
   - { trigger: onTimer, interval: 60, mechanic: knockback, targeter: players_in_radius, params: { radius: 5, strength: 1.4, vertical: 0.5 } }
+  - { trigger: onTimer, interval: 190, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Ka... BOOM!", "Feel the pressure?", "Hold still, this won't hurt... me."] } }
   - { trigger: onHealthBelow, value: 50, mechanic: explode, targeter: self_location, params: { power: 5.0, fire: false } }
-  - { trigger: onDeath, mechanic: explode, targeter: self_location, params: { power: 4.0, fire: false } }
+  # Final detonation: a huge blast that also kills Kaboomicus (kill-caster). Still no block damage.
+  - { trigger: onHealthBelow, value: 15, mechanic: say, targeter: players_in_radius, params: { radius: 40, lines: ["IF I FALL... YOU FALL WITH ME!"] } }
+  - { trigger: onHealthBelow, value: 15, mechanic: explode, targeter: self_location, params: { power: 8.0, fire: false, kill-caster: true } }
 drops:
   items:
     - { item: DIAMOND, amount: "3-6", chance: 1.0 }

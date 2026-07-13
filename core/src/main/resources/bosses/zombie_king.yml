@@ -1,13 +1,18 @@
 # Mortis, the Zombie King - MEDIUM overworld boss.
+# Spawns with randomised, enchanted gear. A model named "zombie_king" (BetterModel) is used if present.
 id: zombie_king
 name: "<gradient:#4ade80:#14532d>Mortis, the Zombie King</gradient>"
 title: "<gray>Lord of the Rotting Throng"
 difficulty: MEDIUM
 base-entity: ZOMBIE
-model: ""
-stats: { health: 420, armor: 12, armor-toughness: 4, knockback-resistance: 0.6, damage: 9, speed: 0.26, follow-range: 40, scale: 1.6 }
-equipment: { hand: IRON_SWORD, head: GOLDEN_HELMET }
+stats: { health: 460, armor: 12, armor-toughness: 4, knockback-resistance: 0.6, damage: 9, speed: 0.26, follow-range: 44, scale: 1.6 }
 bossbar: { color: GREEN, style: NOTCHED_10 }
+random-equipment:
+  enabled: true
+  armor-tiers: [IRON, GOLDEN, DIAMOND]
+  weapons: [IRON_SWORD, GOLDEN_SWORD, DIAMOND_SWORD, IRON_AXE]
+  enchant-count: 2
+  extra-levels: 1
 spawn:
   worlds: [OVERWORLD]
   weight: 22
@@ -18,12 +23,17 @@ spawn:
 phases:
   - { at-health-percent: 100, message: "<green>Mortis, the Zombie King, rises from the earth!" }
   - { at-health-percent: 50, enrage: true, message: "<dark_green>Mortis bellows and the horde swells!" }
+  - { at-health-percent: 25, enrage: true, message: "<dark_green>Mortis pounds the ground in fury!" }
 skills:
   - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.zombie.death", volume: 1.4, pitch: 0.6 } }
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Your flesh will join my court.", "Rise, my children... feast!", "The grave has no king but me."] } }
+  - { trigger: onTimer, interval: 15, mechanic: particle, targeter: self_location, params: { particle: SCULK_SOUL, count: 6, spread: 0.6, offset-y: 1.2 } }
   - { trigger: onTimer, interval: 120, mechanic: summon, targeter: self_location, params: { type: ZOMBIE, amount: 3, radius: 4 } }
   - { trigger: onTimer, interval: 90, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 120, amplifier: 0 } }
+  - { trigger: onTimer, interval: 200, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Kneel before the King.", "Rot spreads... you cannot stop it.", "More! I need MORE!"] } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 1.2, particle: SCULK_CHARGE } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 4, radius: 5 } }
+  - { trigger: onHealthBelow, value: 25, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.6, particle: EXPLOSION_EMITTER } }
 drops:
   items:
     - { item: DIAMOND, amount: "3-6", chance: 1.0 }

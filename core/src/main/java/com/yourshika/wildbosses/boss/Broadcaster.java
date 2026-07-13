@@ -24,7 +24,14 @@ public final class Broadcaster {
     }
 
     public void bossDeath(BossDefinition def) {
-        String fmt = plugin.config().broadcastBossDeath();
+        broadcastSimple(plugin.config().broadcastBossDeath(), def);
+    }
+
+    public void bossFled(BossDefinition def) {
+        broadcastSimple(plugin.config().broadcastBossFled(), def);
+    }
+
+    private void broadcastSimple(String fmt, BossDefinition def) {
         if (!plugin.config().broadcastEnabled() || fmt == null || fmt.isBlank()) {
             return;
         }

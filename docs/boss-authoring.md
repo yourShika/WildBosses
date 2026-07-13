@@ -109,6 +109,39 @@ skills:
 | `shield` | `duration`, `amplifier` (absorption + resistance) |
 | `command` | `command` (`%boss%`, `%player%`) |
 | `projectile` | `type` (`FIREBALL`/`SMALL_FIREBALL`/`WITHER_SKULL`/`SNOWBALL`/`ARROW`), `velocity`, `yield`, `fire` |
+| `say` / `taunt` | `lines: [ ... ]` (a random line is spoken as `[BossName]: ...`), `radius`, `prefix` |
+| `arrow_rain` | `count`, `spread`, `height`, `damage`, `fire` — arrows fall from the sky onto targets |
+| `throw_potion` | `type`, `duration`, `amplifier`, `lingering` (bool), `velocity` — throws a splash/lingering potion |
+| `petrify` | `duration` — heavy slowness + mining fatigue + blindness ("turn to stone") |
+| `lifesteal` | `amount`, `heal-ratio` — damage targets and heal the boss |
+| `fly` | `duration`, `lift` — the boss lifts off and hovers/drifts toward its target (plays the `fly` animation) |
+| `radial` / `axe_throw` | `count`, `velocity`, `type`, `particle` — launches projectiles evenly in all directions |
+
+`explode` also accepts `kill-caster: true` — the boss dies from its own blast (used by the Creeper King's final detonation). Explosions never break blocks regardless.
+
+### Dialogue
+
+Bosses "speak" via the `say`/`taunt` mechanic on any trigger. Put multiple `lines:` and a random one
+is chosen and broadcast to nearby players as `[<boss name>]: <line>`:
+
+```yaml
+- { trigger: onPhaseChange, phase: 1, mechanic: say, targeter: nearest_player,
+    params: { radius: 40, lines: ["You've angered me now!", "Enough games!"] } }
+```
+
+### Random equipment
+
+Instead of fixed `equipment:`, a boss can spawn with randomised, enchanted gear. Enchants are pulled
+from the enchantment registry, so vanilla **and** datapack custom enchantments are used automatically:
+
+```yaml
+random-equipment:
+  enabled: true
+  armor-tiers: [IRON, GOLDEN, DIAMOND]        # armor built as <tier>_HELMET etc.
+  weapons: [IRON_SWORD, DIAMOND_SWORD, IRON_AXE]
+  enchant-count: 2                            # random enchants per item
+  extra-levels: 1                             # levels above each enchant's max (over-enchant)
+```
 
 ## Drops
 
@@ -127,17 +160,21 @@ drops:
 
 ```yaml
 army:
-  kill-threshold: 24        # kills to resolve
+  stages: [8, 12, 16, 20, 24]   # kill target per wave (increasing). Omit for a single wave.
+  kill-threshold: 24            # fallback target if 'stages' is omitted
   wave-size: 6
   max-alive: 18
   reinforce-interval-ticks: 100
   radius: 12
-  outcome: SPAWN_BOSS       # SPAWN_BOSS | FLEE | CLEARED
-  end-boss: my_boss         # boss id spawned on SPAWN_BOSS (often this same file)
-  timeout-seconds: 0        # 0 = no timeout
+  outcome: SPAWN_BOSS           # SPAWN_BOSS | FLEE | CLEARED (after the final wave)
+  end-boss: my_boss             # boss id spawned on SPAWN_BOSS (often this same file)
+  timeout-seconds: 0            # 0 = use the global boss-lifetime; otherwise a fixed limit
   minions:
-    - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Raider", effects: ["POISON:100:0"] }
+    - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Raider", effects: ["POISON:100:0", "SPEED:99999:0"] }
 ```
+
+With `stages`, players must slay more each wave; the army bar shows `Wave x/n`. Zombie-type minions
+never burn in daylight. Give minions a permanent `SPEED` effect (large duration) to make them faster.
 
 When `outcome: SPAWN_BOSS` points `end-boss` at the same file, the file's top-level statline is the
 army's leader that emerges once the horde is beaten.

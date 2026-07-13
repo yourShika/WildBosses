@@ -1,0 +1,33 @@
+# Medusa of Bikini Bottom - ULTRA_HARD overworld boss. Her gaze petrifies; her hair bites.
+id: medusa
+name: "<gradient:#34d399:#065f46>Medusa of Bikini Bottom</gradient>"
+title: "<gray>the Petrifying Gaze"
+difficulty: ULTRA_HARD
+base-entity: WITCH
+stats: { health: 580, armor: 8, knockback-resistance: 0.5, damage: 9, speed: 0.3, follow-range: 48, scale: 1.3 }
+bossbar: { color: GREEN, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 11
+  min-players-distance: 44
+  y: { min: 45, max: 110 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<green>Medusa of Bikini Bottom slithers into view - don't look!" }
+  - { at-health-percent: 50, enrage: true, message: "<dark_green>Medusa's serpents hiss as one!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Look at me. I insist.", "You'd make a lovely statue.", "My hairdresser is... to die for."] } }
+  - { trigger: onTimer, interval: 14, mechanic: particle, targeter: self_location, params: { particle: HAPPY_VILLAGER, count: 6, spread: 0.8, offset-y: 1.4 } }
+  - { trigger: onTimer, interval: 100, mechanic: petrify, targeter: players_in_radius, params: { radius: 10, duration: 90 } }
+  - { trigger: onTimer, interval: 80, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, velocity: 1.0 } }
+  - { trigger: onTimer, interval: 120, mechanic: summon, targeter: self_location, params: { type: SILVERFISH, amount: 5, radius: 5 } }
+  - { trigger: onTimer, interval: 190, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["GAZE UPON ME!", "Hold still now.", "Stone suits you."] } }
+  - { trigger: onHealthBelow, value: 50, mechanic: petrify, targeter: players_in_radius, params: { radius: 14, duration: 140 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 7, damage: 10, knockback: 0.6, particle: SNEEZE } }
+drops:
+  items:
+    - { item: ENDER_EYE, amount: "2-4", chance: 0.8, name: "<gradient:#34d399:#065f46>Medusa's Gaze</gradient>" }
+    - { item: EMERALD, amount: "4-8", chance: 1.0 }
+    - { item: DIAMOND, amount: "4-7", chance: 1.0 }
+  xp: 950

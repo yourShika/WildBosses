@@ -48,16 +48,20 @@ public final class ModelManager {
         return adapter.supportsModels();
     }
 
-    /** Attach the boss' model, or return {@link ModelHandle#NOOP} if not applicable. */
+    /**
+     * Attach the boss' model. The adapter resolves the model name as {@code model:} if set, otherwise
+     * the boss id (so a model whose name matches the boss id is used automatically). Returns
+     * {@link ModelHandle#NOOP} when no matching model is loaded (vanilla appearance).
+     */
     public ModelHandle attach(LivingEntity entity, BossDefinition def) {
-        if (!def.hasModel() || !adapter.supportsModels()) {
+        if (!adapter.supportsModels()) {
             return ModelHandle.NOOP;
         }
         try {
             ModelHandle handle = adapter.attach(entity, def);
             return handle == null ? ModelHandle.NOOP : handle;
         } catch (Throwable t) {
-            plugin.getLogger().warning("Model '" + def.model() + "' failed to attach for boss " + def.id()
+            plugin.getLogger().warning("Model attach failed for boss " + def.id()
                     + " (" + t.getMessage() + "); using vanilla appearance.");
             return ModelHandle.NOOP;
         }

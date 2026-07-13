@@ -32,6 +32,11 @@ public final class PluginConfig {
     private String broadcastBossSpawn = "";
     private String broadcastArmySpawn = "";
     private String broadcastBossDeath = "";
+    private String broadcastBossFled = "";
+
+    private boolean bossLifetimeEnabled = true;
+    private int bossLifetimeMinMinutes = 30;
+    private int bossLifetimeMaxMinutes = 60;
 
     public void load(FileConfiguration c, Logger logger) {
         randomSpawns = c.getBoolean("settings.random-spawns", true);
@@ -39,6 +44,10 @@ public final class PluginConfig {
         spawnAttemptsPerCycle = Math.max(1, c.getInt("settings.spawn-attempts-per-cycle", 1));
         maxActiveBosses = Math.max(1, c.getInt("settings.max-active-bosses", 5));
         minDistanceBetweenBosses = Math.max(0, c.getDouble("settings.min-distance-between-bosses", 200));
+
+        bossLifetimeEnabled = c.getBoolean("settings.boss-lifetime.enabled", true);
+        bossLifetimeMinMinutes = Math.max(1, c.getInt("settings.boss-lifetime.min-minutes", 30));
+        bossLifetimeMaxMinutes = Math.max(bossLifetimeMinMinutes, c.getInt("settings.boss-lifetime.max-minutes", 60));
 
         frontierMinDistance = Math.max(0, c.getInt("settings.frontier-search.min-distance", 200));
         frontierMaxDistance = Math.max(frontierMinDistance + 16, c.getInt("settings.frontier-search.max-distance", 3000));
@@ -53,6 +62,7 @@ public final class PluginConfig {
         broadcastBossSpawn = c.getString("broadcast.boss-spawn", "");
         broadcastArmySpawn = c.getString("broadcast.army-spawn", "");
         broadcastBossDeath = c.getString("broadcast.boss-death", "");
+        broadcastBossFled = c.getString("broadcast.boss-fled", "");
 
         applyDifficultyOverrides(c.getConfigurationSection("difficulties"), logger);
     }
@@ -141,5 +151,21 @@ public final class PluginConfig {
 
     public String broadcastBossDeath() {
         return broadcastBossDeath;
+    }
+
+    public String broadcastBossFled() {
+        return broadcastBossFled;
+    }
+
+    public boolean bossLifetimeEnabled() {
+        return bossLifetimeEnabled;
+    }
+
+    public int bossLifetimeMinMinutes() {
+        return bossLifetimeMinMinutes;
+    }
+
+    public int bossLifetimeMaxMinutes() {
+        return bossLifetimeMaxMinutes;
     }
 }
