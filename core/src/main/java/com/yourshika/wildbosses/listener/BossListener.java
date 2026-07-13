@@ -1,6 +1,7 @@
 package com.yourshika.wildbosses.listener;
 
 import com.yourshika.wildbosses.boss.ActiveBoss;
+import com.yourshika.wildbosses.boss.BossDefinition;
 import com.yourshika.wildbosses.boss.BossManager;
 import com.yourshika.wildbosses.util.Keys;
 import org.bukkit.entity.LivingEntity;
@@ -8,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -19,6 +21,32 @@ public final class BossListener implements Listener {
 
     public BossListener(BossManager manager) {
         this.manager = manager;
+    }
+
+    /** Cancel damage a boss is immune to. Runs early (LOW) so immune hits are ignored downstream. */
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void onDamageCause(EntityDamageEvent event) {
+        ActiveBoss boss = manager.get(event.getEntity());
+        if (boss == null || boss.def().immunities().isEmpty()) {
+            return;
+        }
+        if (isImmune(boss.def(), event.getCause().name())) {
+            event.setCancelled(true);
+        }
+    }
+
+    private static boolean isImmune(BossDefinition def, String cause) {
+        return switch (cause) {
+            case "PROJECTILE" -> def.immuneTo("PROJECTILE");
+            case "FIRE", "FIRE_TICK", "LAVA", "HOT_FLOOR" -> def.immuneTo("FIRE");
+            case "FALL" -> def.immuneTo("FALL");
+            case "DROWNING" -> def.immuneTo("DROWNING");
+            case "BLOCK_EXPLOSION", "ENTITY_EXPLOSION" -> def.immuneTo("EXPLOSION");
+            case "WITHER" -> def.immuneTo("WITHER");
+            case "MAGIC" -> def.immuneTo("MAGIC");
+            case "POISON" -> def.immuneTo("POISON");
+            default -> false;
+        };
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

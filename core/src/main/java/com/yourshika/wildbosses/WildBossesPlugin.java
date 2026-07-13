@@ -67,6 +67,15 @@ public final class WildBossesPlugin extends JavaPlugin {
         spawnScheduler.setArmyStarter(armyManager);
         spawnScheduler.start();
 
+        if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            try {
+                new com.yourshika.wildbosses.integration.WildBossesExpansion(this).register();
+                getLogger().info("Registered PlaceholderAPI expansion 'wildbosses'.");
+            } catch (Throwable t) {
+                getLogger().warning("Failed to register PlaceholderAPI expansion: " + t.getMessage());
+            }
+        }
+
         PluginCommand command = getCommand("wildbosses");
         if (command != null) {
             WildBossesCommand handler = new WildBossesCommand(this);

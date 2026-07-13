@@ -54,8 +54,26 @@ public final class BossLoader {
         ArmyDefinition army = parseArmy(root.getConfigurationSection("army"));
         RandomEquipment randomEquipment = parseRandomEquipment(root.getConfigurationSection("random-equipment"));
 
+        Set<String> immunities = new java.util.LinkedHashSet<>();
+        for (String s : root.getStringList("immunities")) {
+            immunities.add(s.trim().toUpperCase(Locale.ROOT));
+        }
+        EnrageTimer enrage = parseEnrage(root.getConfigurationSection("enrage-timer"));
+
         return new BossDefinition(id, name, title, difficulty, baseEntity, model, animations, stats,
-                equipment, bossBar, spawn, phases, skills, drops, terrain, army, randomEquipment);
+                equipment, bossBar, spawn, phases, skills, drops, terrain, army, randomEquipment,
+                immunities, enrage);
+    }
+
+    private EnrageTimer parseEnrage(ConfigurationSection s) {
+        if (s == null || !s.getBoolean("enabled", false)) {
+            return EnrageTimer.disabled();
+        }
+        return new EnrageTimer(true,
+                Math.max(1, s.getInt("after-seconds", 300)),
+                Math.max(1, s.getInt("interval-seconds", 30)),
+                s.getDouble("damage-mult", 1.1),
+                s.getDouble("speed-mult", 1.05));
     }
 
     private RandomEquipment parseRandomEquipment(ConfigurationSection s) {
@@ -122,9 +140,14 @@ public final class BossLoader {
 
     private SpawnRules parseSpawn(ConfigurationSection s) {
         if (s == null) {
-            return new SpawnRules(Set.of(World.Environment.NORMAL), 10, 40, -64, 320, 1800, 1);
+            return new SpawnRules(Set.of(World.Environment.NORMAL), 10, 40, -64, 320, 1800, 1,
+                    "ANY", Set.of(), false);
         }
         Set<World.Environment> envs = parseEnvironments(s.getStringList("worlds"));
+        Set<String> biomes = new LinkedHashSet<>();
+        for (String b : s.getStringList("biomes")) {
+            biomes.add(b.trim().toUpperCase(Locale.ROOT));
+        }
         return new SpawnRules(
                 envs,
                 s.getInt("weight", 10),
@@ -132,7 +155,10 @@ public final class BossLoader {
                 s.getInt("y.min", -64),
                 s.getInt("y.max", 320),
                 s.getInt("cooldown-seconds", 1800),
-                s.getInt("max-concurrent", 1));
+                s.getInt("max-concurrent", 1),
+                s.getString("time", "ANY").trim().toUpperCase(Locale.ROOT),
+                biomes,
+                s.getBoolean("near-water", false));
     }
 
     private List<PhaseDefinition> parsePhases(List<Map<?, ?>> raw) {

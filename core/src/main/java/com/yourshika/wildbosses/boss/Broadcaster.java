@@ -1,6 +1,7 @@
 package com.yourshika.wildbosses.boss;
 
 import com.yourshika.wildbosses.WildBossesPlugin;
+import com.yourshika.wildbosses.integration.DiscordWebhook;
 import com.yourshika.wildbosses.util.Text;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
@@ -17,14 +18,25 @@ public final class Broadcaster {
 
     public void bossSpawn(BossDefinition def, Location loc) {
         sendLocated(plugin.config().broadcastBossSpawn(), def, loc);
+        DiscordWebhook.send(plugin, ":crossed_swords: **" + Text.plain(def.name()) + "** ["
+                + def.difficulty().label() + "] appeared in " + worldName(loc)
+                + " near " + loc.getBlockX() + ", " + loc.getBlockZ());
     }
 
     public void armySpawn(BossDefinition def, Location loc) {
         sendLocated(plugin.config().broadcastArmySpawn(), def, loc);
+        DiscordWebhook.send(plugin, ":skull: **" + Text.plain(def.name()) + "** ["
+                + def.difficulty().label() + "] is invading " + worldName(loc)
+                + " near " + loc.getBlockX() + ", " + loc.getBlockZ());
     }
 
     public void bossDeath(BossDefinition def) {
         broadcastSimple(plugin.config().broadcastBossDeath(), def);
+        DiscordWebhook.send(plugin, ":trophy: **" + Text.plain(def.name()) + "** has been slain!");
+    }
+
+    private static String worldName(Location loc) {
+        return loc.getWorld() == null ? "?" : loc.getWorld().getName();
     }
 
     public void bossFled(BossDefinition def) {

@@ -22,7 +22,10 @@ public record SpawnRules(
         int minY,
         int maxY,
         int cooldownSeconds,
-        int maxConcurrent
+        int maxConcurrent,
+        String timeRequirement,
+        Set<String> biomes,
+        boolean nearWater
 ) {
     public boolean allows(World.Environment env) {
         return environments.contains(env);

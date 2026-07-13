@@ -42,6 +42,25 @@ army: { ... }               # optional, see Army
 `bossbar.style`: `PROGRESS`, `NOTCHED_6`, `NOTCHED_10`, `NOTCHED_12`, `NOTCHED_20`.
 `bossbar.color`: `PINK`, `BLUE`, `RED`, `GREEN`, `YELLOW`, `PURPLE`, `WHITE`.
 
+### Optional top-level blocks
+
+```yaml
+immunities: [PROJECTILE, KNOCKBACK, FIRE, FALL, DROWNING, EXPLOSION, WITHER, MAGIC, POISON]
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.12, speed-mult: 1.05 }
+```
+
+- **immunities** — damage the boss ignores. `KNOCKBACK` is applied as full knockback resistance.
+- **enrage-timer** — after `after-seconds`, the boss' damage/speed ramp every `interval-seconds`.
+
+Extra `spawn:` conditions (checked by the random scheduler):
+
+```yaml
+spawn:
+  time: NIGHT            # ANY | DAY | NIGHT
+  biomes: [OCEAN, RIVER] # substring match against the biome key (any match)
+  near-water: true       # only where water is within ~6 blocks
+```
+
 ## Skills
 
 A skill is `trigger → mechanic @ targeter ?conditions`:
@@ -116,6 +135,10 @@ skills:
 | `lifesteal` | `amount`, `heal-ratio` — damage targets and heal the boss |
 | `fly` | `duration`, `lift` — the boss lifts off and hovers/drifts toward its target (plays the `fly` animation) |
 | `radial` / `axe_throw` | `count`, `velocity`, `type`, `particle` — launches projectiles evenly in all directions |
+| `danger_zone` | `radius`, `damage`, `delay`, `knockback`, `warn-particle`, `particle` — telegraphed AoE (warning ring, then it strikes) |
+| `shockwave` | `radius`, `damage`, `knockup`, `particle` — ground-slam ring that damages and launches players up |
+| `meteor` / `meteor_rain` | `count`, `radius`, `height`, `damage`, `delay`, `fire` — meteors fall on marked spots (block-safe) |
+| `healer_adds` | `type`, `amount`, `radius`, `heal-per-second`, `name` — spawns adds that heal the boss until killed |
 
 `explode` also accepts `kill-caster: true` — the boss dies from its own blast (used by the Creeper King's final detonation). Explosions never break blocks regardless.
 

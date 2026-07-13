@@ -7,6 +7,8 @@ difficulty: ULTRA_HARD
 base-entity: EVOKER
 stats: { health: 600, armor: 8, knockback-resistance: 0.6, damage: 9, speed: 0.3, follow-range: 48, scale: 1.3 }
 bossbar: { color: PURPLE, style: NOTCHED_10 }
+immunities: [MAGIC]
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.12, speed-mult: 1.05 }
 spawn:
   worlds: [OVERWORLD]
   weight: 12
@@ -25,6 +27,8 @@ skills:
   - { trigger: onTimer, interval: 100, mechanic: throw_potion, targeter: nearest_player, params: { type: INSTANT_DAMAGE, amplifier: 1, velocity: 1.0 } }
   - { trigger: onTimer, interval: 80, mechanic: teleport, targeter: nearest_player, params: { radius: 4 } }
   - { trigger: onTimer, interval: 200, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Burn in shadow.", "You cannot ward against me.", "Dance, puppet."] } }
+  - { trigger: onTimer, interval: 150, mechanic: meteor, targeter: players_in_radius, params: { count: 4, radius: 7, height: 20, damage: 10, delay: 25 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: healer_adds, targeter: self, params: { type: VEX, amount: 3, radius: 4, heal-per-second: 14, name: "<dark_purple>Dark Attendant" } }
   - { trigger: onHealthBelow, value: 60, mechanic: lightning, targeter: players_in_radius, params: { damage: true } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.2, particle: SOUL_FIRE_FLAME } }
   - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: RESISTANCE, duration: 200, amplifier: 1 } }

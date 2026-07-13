@@ -45,6 +45,12 @@ public final class ActiveBoss {
     private String currentAnimState = "";
     private long attackHoldUntil;
 
+    private final Set<UUID> healers = new HashSet<>();
+    private final Map<UUID, Double> damageByPlayer = new HashMap<>();
+    private double addMultiplier = 1.0;
+    private double healerHealPerTick;
+    private long lastEnrageTick;
+
     public ActiveBoss(BossDefinition def, LivingEntity entity, BossBar bossBar, ModelHandle model,
                       double maxHealth, long spawnTick, String encounterId) {
         this.def = def;
@@ -137,6 +143,47 @@ public final class ActiveBoss {
 
     public void setAttackHoldUntil(long attackHoldUntil) {
         this.attackHoldUntil = attackHoldUntil;
+    }
+
+    public Set<UUID> healers() {
+        return healers;
+    }
+
+    public void addHealer(UUID uuid) {
+        healers.add(uuid);
+    }
+
+    public double healerHealPerTick() {
+        return healerHealPerTick;
+    }
+
+    public void setHealerHealPerTick(double healerHealPerTick) {
+        this.healerHealPerTick = healerHealPerTick;
+    }
+
+    public double addMultiplier() {
+        return addMultiplier;
+    }
+
+    public void setAddMultiplier(double addMultiplier) {
+        this.addMultiplier = addMultiplier;
+    }
+
+    public long lastEnrageTick() {
+        return lastEnrageTick;
+    }
+
+    public void setLastEnrageTick(long lastEnrageTick) {
+        this.lastEnrageTick = lastEnrageTick;
+    }
+
+    /** Record damage a player dealt to this boss (for participation loot). */
+    public void recordDamage(UUID player, double amount) {
+        damageByPlayer.merge(player, amount, Double::sum);
+    }
+
+    public Map<UUID, Double> damageByPlayer() {
+        return damageByPlayer;
     }
 
     // ---- skill timers ---------------------------------------------------------------------

@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.Registry;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
@@ -31,6 +32,7 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -143,6 +145,7 @@ public final class BossManager {
         }
         tag(le, def, encounterId);
 
+        double scale = applyScaling(le, loc);
         double maxHp = maxHealthOf(le, def);
         BossBar bar = BossBar.bossBar(displayName(def), 1f, barColor(def), def.bossBar().overlay());
         ModelHandle model = modelManager.attach(le, def);
@@ -151,6 +154,8 @@ public final class BossManager {
         le.setCustomNameVisible(model == ModelHandle.NOOP);
 
         ActiveBoss boss = new ActiveBoss(def, le, bar, model, maxHp, tick, encounterId);
+        boss.setAddMultiplier(scale);
+        spawnBurst(le.getLocation());
         if (plugin.config().bossLifetimeEnabled()) {
             long minTicks = plugin.config().bossLifetimeMinMinutes() * 60L * 20L;
             long maxTicks = plugin.config().bossLifetimeMaxMinutes() * 60L * 20L;
@@ -183,7 +188,37 @@ public final class BossManager {
         if (s.scale() != 1.0) {
             setAttr(le, Attribute.SCALE, s.scale());
         }
+        if (def.immuneTo("KNOCKBACK")) {
+            setAttr(le, Attribute.KNOCKBACK_RESISTANCE, 1.0);
+        }
         le.setHealth(maxHealthOf(le, def));
+    }
+
+    /** Multiply the boss' max health by the nearby-player scaling factor and return that factor. */
+    private double applyScaling(LivingEntity le, Location loc) {
+        if (!plugin.config().scalingEnabled()) {
+            return 1.0;
+        }
+        double radiusSq = plugin.config().scalingRadius() * plugin.config().scalingRadius();
+        int players = 0;
+        World world = loc.getWorld();
+        if (world != null) {
+            for (Player p : world.getPlayers()) {
+                if (p.getLocation().distanceSquared(loc) <= radiusSq) {
+                    players++;
+                }
+            }
+        }
+        double mult = Math.min(plugin.config().scalingMaxMultiplier(),
+                1.0 + Math.max(0, players - 1) * plugin.config().scalingHealthPerPlayer());
+        if (mult > 1.0) {
+            AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
+            if (max != null) {
+                max.setBaseValue(max.getBaseValue() * mult);
+                le.setHealth(max.getValue());
+            }
+        }
+        return mult;
     }
 
     private void applyEquipment(LivingEntity le, BossDefinition def) {
@@ -321,6 +356,8 @@ public final class BossManager {
                 applyPhase(boss, newPhase, false);
             }
             updateAnimation(boss);
+            processEnrage(boss);
+            processHealers(boss);
             skillEngine.onTick(boss, tick);
         }
     }
@@ -461,6 +498,89 @@ public final class BossManager {
         }, 100L);
     }
 
+    private void processEnrage(ActiveBoss boss) {
+        EnrageTimer et = boss.def().enrageTimer();
+        if (!et.enabled()) {
+            return;
+        }
+        long afterTicks = et.afterSeconds() * 20L;
+        long intervalTicks = et.intervalSeconds() * 20L;
+        if (tick - boss.spawnTick() < afterTicks) {
+            return;
+        }
+        if (boss.lastEnrageTick() != 0 && tick - boss.lastEnrageTick() < intervalTicks) {
+            return;
+        }
+        boss.setLastEnrageTick(tick);
+        LivingEntity e = boss.entity();
+        AttributeInstance dmg = e.getAttribute(Attribute.ATTACK_DAMAGE);
+        if (dmg != null) {
+            dmg.setBaseValue(dmg.getBaseValue() * et.damageMult());
+        }
+        AttributeInstance spd = e.getAttribute(Attribute.MOVEMENT_SPEED);
+        if (spd != null) {
+            spd.setBaseValue(spd.getBaseValue() * et.speedMult());
+        }
+        e.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, e.getLocation().add(0, 1.8, 0), 8, 0.4, 0.4, 0.4, 0);
+    }
+
+    private void processHealers(ActiveBoss boss) {
+        if (boss.healers().isEmpty()) {
+            return;
+        }
+        LivingEntity self = boss.entity();
+        double heal = boss.healerHealPerTick();
+        double total = 0;
+        Iterator<UUID> it = boss.healers().iterator();
+        while (it.hasNext()) {
+            Entity e = Bukkit.getEntity(it.next());
+            if (e == null || e.isDead() || !e.isValid()) {
+                it.remove();
+                continue;
+            }
+            total += heal;
+            if (tick % 4 == 0) {
+                e.getWorld().spawnParticle(Particle.HEART, e.getLocation().add(0, 1, 0), 1, 0.2, 0.2, 0.2, 0);
+            }
+        }
+        if (total > 0 && self.getHealth() < boss.maxHealth()) {
+            self.setHealth(Math.min(boss.maxHealth(), self.getHealth() + total));
+        }
+    }
+
+    private void spawnBurst(Location loc) {
+        World world = loc.getWorld();
+        if (world == null) {
+            return;
+        }
+        world.spawnParticle(Particle.EXPLOSION_EMITTER, loc.clone().add(0, 1, 0), 1, 0, 0, 0, 0);
+        world.spawnParticle(Particle.END_ROD, loc.clone().add(0, 1, 0), 40, 0.6, 1.0, 0.6, 0.05);
+    }
+
+    /** A rising light beam at a boss' death location for a few seconds (loot marker). */
+    private void deathBeam(Location loc) {
+        World world = loc.getWorld();
+        if (world == null) {
+            return;
+        }
+        Location base = loc.clone();
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int ticks = 0;
+
+            @Override
+            public void run() {
+                if (ticks >= 100 || !base.getChunk().isLoaded()) {
+                    cancel();
+                    return;
+                }
+                for (double y = 0; y < 12; y += 0.5) {
+                    world.spawnParticle(Particle.END_ROD, base.clone().add(0, y, 0), 1, 0.05, 0, 0.05, 0);
+                }
+                ticks += 2;
+            }
+        }.runTaskTimer(plugin, 0L, 2L);
+    }
+
     private Player nearestPlayer(Location loc) {
         World world = loc.getWorld();
         if (world == null) {
@@ -482,6 +602,7 @@ public final class BossManager {
 
     public void handleDeath(ActiveBoss boss, EntityDeathEvent event) {
         byEntity.remove(boss.entity().getUniqueId());
+        deathBeam(boss.entity().getLocation());
         event.getDrops().clear();
         event.setDroppedExp(0);
         Player killer = boss.entity().getKiller();
@@ -503,7 +624,22 @@ public final class BossManager {
         if (damager instanceof LivingEntity living) {
             boss.setTarget(living);
         }
+        Player contributor = resolvePlayer(damager);
+        if (contributor != null) {
+            boss.recordDamage(contributor.getUniqueId(), amount);
+        }
         skillEngine.onDamaged(boss, damager, amount);
+    }
+
+    private static Player resolvePlayer(Entity entity) {
+        if (entity instanceof Player player) {
+            return player;
+        }
+        if (entity instanceof org.bukkit.entity.Projectile projectile
+                && projectile.getShooter() instanceof Player shooter) {
+            return shooter;
+        }
+        return null;
     }
 
     /** Forward: the boss dealt damage to {@code victim}. */

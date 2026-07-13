@@ -38,6 +38,14 @@ public final class PluginConfig {
     private int bossLifetimeMinMinutes = 30;
     private int bossLifetimeMaxMinutes = 60;
 
+    private boolean scalingEnabled = true;
+    private double scalingRadius = 48;
+    private double scalingHealthPerPlayer = 0.25;
+    private double scalingMaxMultiplier = 4.0;
+
+    private boolean participationLoot = true;
+    private String discordWebhook = "";
+
     public void load(FileConfiguration c, Logger logger) {
         randomSpawns = c.getBoolean("settings.random-spawns", true);
         spawnIntervalSeconds = Math.max(5, c.getInt("settings.spawn-interval-seconds", 600));
@@ -48,6 +56,14 @@ public final class PluginConfig {
         bossLifetimeEnabled = c.getBoolean("settings.boss-lifetime.enabled", true);
         bossLifetimeMinMinutes = Math.max(1, c.getInt("settings.boss-lifetime.min-minutes", 30));
         bossLifetimeMaxMinutes = Math.max(bossLifetimeMinMinutes, c.getInt("settings.boss-lifetime.max-minutes", 60));
+
+        scalingEnabled = c.getBoolean("settings.scaling.enabled", true);
+        scalingRadius = Math.max(8, c.getDouble("settings.scaling.radius", 48));
+        scalingHealthPerPlayer = Math.max(0, c.getDouble("settings.scaling.health-per-player", 0.25));
+        scalingMaxMultiplier = Math.max(1, c.getDouble("settings.scaling.max-multiplier", 4.0));
+
+        participationLoot = c.getBoolean("rewards.participation-loot", true);
+        discordWebhook = c.getString("integrations.discord-webhook", "");
 
         frontierMinDistance = Math.max(0, c.getInt("settings.frontier-search.min-distance", 200));
         frontierMaxDistance = Math.max(frontierMinDistance + 16, c.getInt("settings.frontier-search.max-distance", 3000));
@@ -167,5 +183,29 @@ public final class PluginConfig {
 
     public int bossLifetimeMaxMinutes() {
         return bossLifetimeMaxMinutes;
+    }
+
+    public boolean scalingEnabled() {
+        return scalingEnabled;
+    }
+
+    public double scalingRadius() {
+        return scalingRadius;
+    }
+
+    public double scalingHealthPerPlayer() {
+        return scalingHealthPerPlayer;
+    }
+
+    public double scalingMaxMultiplier() {
+        return scalingMaxMultiplier;
+    }
+
+    public boolean participationLoot() {
+        return participationLoot;
+    }
+
+    public String discordWebhook() {
+        return discordWebhook;
     }
 }

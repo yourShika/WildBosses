@@ -7,6 +7,7 @@ difficulty: HARD
 base-entity: CREEPER
 stats: { health: 480, armor: 8, knockback-resistance: 0.4, damage: 7, speed: 0.28, follow-range: 40, scale: 1.7 }
 bossbar: { color: GREEN, style: NOTCHED_10 }
+immunities: [EXPLOSION]     # his own blasts don't chip him; only the final self-detonation kills him
 spawn:
   worlds: [OVERWORLD]
   weight: 14

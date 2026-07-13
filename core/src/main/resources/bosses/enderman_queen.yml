@@ -6,6 +6,7 @@ difficulty: ULTRA_HARD
 base-entity: ENDERMAN
 stats: { health: 640, armor: 10, knockback-resistance: 0.8, damage: 12, speed: 0.3, follow-range: 64, scale: 1.4 }
 bossbar: { color: PURPLE, style: NOTCHED_10 }
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.05 }
 spawn:
   worlds: [THE_END]
   weight: 18

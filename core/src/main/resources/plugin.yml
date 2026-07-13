@@ -10,6 +10,7 @@ softdepend:
   - CoreProtect
   - WorldGuard
   - GriefPrevention
+  - PlaceholderAPI
 commands:
   wildbosses:
     description: WildBosses admin command.

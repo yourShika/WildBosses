@@ -6,6 +6,8 @@ difficulty: ULTRA_HARD
 base-entity: ELDER_GUARDIAN
 stats: { health: 780, armor: 14, knockback-resistance: 0.9, damage: 14, speed: 0.28, follow-range: 60, scale: 1.2 }
 bossbar: { color: BLUE, style: NOTCHED_10 }
+immunities: [DROWNING, FIRE]
+enrage-timer: { enabled: true, after-seconds: 360, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.04 }
 spawn:
   worlds: [OVERWORLD]
   weight: 10
@@ -13,6 +15,8 @@ spawn:
   y: { min: 30, max: 70 }
   cooldown-seconds: 3000
   max-concurrent: 1
+  near-water: true          # only surfaces near water
+  biomes: [OCEAN, RIVER, BEACH, SWAMP]
 phases:
   - { at-health-percent: 100, message: "<aqua>The water churns - Abyssos, the Leviathan, surfaces!" }
   - { at-health-percent: 60, message: "<blue>Abyssos drags the deep up with it!" }

@@ -21,6 +21,20 @@ settings:
     enabled: true
     min-minutes: 30
     max-minutes: 60
+  # Scale a boss up when more players are nearby (health and summoned add counts).
+  scaling:
+    enabled: true
+    radius: 48
+    health-per-player: 0.25      # +25% max health per extra player
+    max-multiplier: 4.0
+
+rewards:
+  # If true, every player who damaged the boss gets their own loot roll (no loot stealing).
+  participation-loot: true
+
+integrations:
+  # Optional Discord webhook URL - posts a message on boss spawn and kill. Leave blank to disable.
+  discord-webhook: ""
   # When placing a terrain-changing boss, it is only spawned on never-generated ("frontier")
   # chunks. These control how far out from a player the spawner searches for such a spot.
   frontier-search:

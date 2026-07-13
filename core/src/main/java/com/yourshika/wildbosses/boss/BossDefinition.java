@@ -6,6 +6,7 @@ import org.bukkit.entity.EntityType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An immutable, fully-parsed boss definition (loaded from a {@code bosses/<id>.yml} file).
@@ -27,8 +28,14 @@ public record BossDefinition(
         DropTable drops,
         TerrainSettings terrain,
         ArmyDefinition army,
-        RandomEquipment randomEquipment
+        RandomEquipment randomEquipment,
+        Set<String> immunities,
+        EnrageTimer enrageTimer
 ) {
+
+    public boolean immuneTo(String key) {
+        return immunities.contains(key);
+    }
 
     public boolean isArmy() {
         return army != null;

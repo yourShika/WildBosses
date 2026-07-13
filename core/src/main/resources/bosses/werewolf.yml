@@ -14,6 +14,7 @@ spawn:
   y: { min: 45, max: 120 }
   cooldown-seconds: 2400
   max-concurrent: 1
+  time: NIGHT                # the werewolf only hunts at night
 phases:
   - { at-health-percent: 100, message: "<red>A howl splits the night - Fenrar, the Bloodmoon, hunts!" }
   - { at-health-percent: 50, enrage: true, message: "<dark_red>Fenrar's eyes blaze - the blood moon rises!" }

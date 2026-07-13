@@ -6,6 +6,7 @@ difficulty: ULTRA_HARD
 base-entity: WITCH
 stats: { health: 580, armor: 8, knockback-resistance: 0.5, damage: 9, speed: 0.3, follow-range: 48, scale: 1.3 }
 bossbar: { color: GREEN, style: NOTCHED_10 }
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.05 }
 spawn:
   worlds: [OVERWORLD]
   weight: 11
@@ -23,6 +24,7 @@ skills:
   - { trigger: onTimer, interval: 80, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, velocity: 1.0 } }
   - { trigger: onTimer, interval: 120, mechanic: summon, targeter: self_location, params: { type: SILVERFISH, amount: 5, radius: 5 } }
   - { trigger: onTimer, interval: 190, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["GAZE UPON ME!", "Hold still now.", "Stone suits you."] } }
+  - { trigger: onTimer, interval: 150, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 4, damage: 8, delay: 30, warn-particle: HAPPY_VILLAGER, particle: SNEEZE } }
   - { trigger: onHealthBelow, value: 50, mechanic: petrify, targeter: players_in_radius, params: { radius: 14, duration: 140 } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 7, damage: 10, knockback: 0.6, particle: SNEEZE } }
 drops:

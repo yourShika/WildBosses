@@ -13,6 +13,17 @@ settings:
     enabled: true
     min-minutes: 30
     max-minutes: 60
+  scaling:                        # scale a boss up when more players are nearby
+    enabled: true
+    radius: 48
+    health-per-player: 0.25       # +25% max health per extra player (also scales summoned adds)
+    max-multiplier: 4.0
+
+rewards:
+  participation-loot: true        # every player who damaged the boss gets their own loot roll
+
+integrations:
+  discord-webhook: ""             # optional: posts to Discord on boss spawn/kill (leave blank to disable)
   frontier-search:                # placement search for terrain (frontier-only) bosses
     min-distance: 200
     max-distance: 3000

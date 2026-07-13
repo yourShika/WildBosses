@@ -46,11 +46,16 @@ public final class RewardManager implements BossDeathListener {
             return;
         }
 
-        for (DropEntry entry : drops.items()) {
-            if (ThreadLocalRandom.current().nextDouble() > entry.chance()) {
-                continue;
+        var contributors = boss.damageByPlayer();
+        if (plugin.config().participationLoot() && !contributors.isEmpty()) {
+            // Everyone who dealt damage gets their own loot roll at their feet (no loot stealing).
+            for (java.util.UUID id : contributors.keySet()) {
+                Player p = Bukkit.getPlayer(id);
+                Location dropLoc = (p != null && p.getWorld().equals(world)) ? p.getLocation() : loc;
+                rollDrops(drops, dropLoc);
             }
-            world.dropItemNaturally(loc, build(entry));
+        } else {
+            rollDrops(drops, loc);
         }
 
         if (drops.xp() > 0) {
@@ -62,6 +67,19 @@ public final class RewardManager implements BossDeathListener {
         for (String command : drops.commands()) {
             String resolved = command.replace("%player%", playerName).replace("%boss%", boss.def().id());
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved);
+        }
+    }
+
+    private void rollDrops(DropTable drops, Location loc) {
+        World world = loc.getWorld();
+        if (world == null) {
+            return;
+        }
+        for (DropEntry entry : drops.items()) {
+            if (ThreadLocalRandom.current().nextDouble() > entry.chance()) {
+                continue;
+            }
+            world.dropItemNaturally(loc, build(entry));
         }
     }
 

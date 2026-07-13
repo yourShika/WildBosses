@@ -80,6 +80,11 @@ public final class MechanicRegistry {
         register("fly", MechanicRegistry::fly);
         register("radial", MechanicRegistry::radial);
         register("axe_throw", MechanicRegistry::radial);
+        register("danger_zone", MechanicRegistry::dangerZone);
+        register("shockwave", MechanicRegistry::shockwave);
+        register("meteor", MechanicRegistry::meteor);
+        register("meteor_rain", MechanicRegistry::meteor);
+        register("healer_adds", MechanicRegistry::healerAdds);
     }
 
     public void register(String key, Mechanic mechanic) {
@@ -175,7 +180,7 @@ public final class MechanicRegistry {
 
     private static void summon(SkillContext ctx, List<Target> targets, Params p) {
         EntityType type = enumOr(EntityType.class, p.getString("type", "ZOMBIE"), EntityType.ZOMBIE);
-        int amount = Math.max(1, p.getInt("amount", 3));
+        int amount = Math.max(1, (int) Math.round(p.getInt("amount", 3) * ctx.boss().addMultiplier()));
         double radius = p.getDouble("radius", 3);
         double health = p.getDouble("health", 0);
         boolean baby = p.getBoolean("baby", false);
@@ -580,6 +585,132 @@ public final class MechanicRegistry {
         if (proj instanceof Fireball fb) {
             fb.setYield((float) p.getDouble("yield", 0));
             fb.setIsIncendiary(p.getBoolean("fire", false));
+        }
+    }
+
+    private static void dangerZone(SkillContext ctx, List<Target> targets, Params p) {
+        double radius = p.getDouble("radius", 4);
+        double damage = p.getDouble("damage", 8);
+        double knockback = p.getDouble("knockback", 0);
+        int delay = Math.max(5, p.getInt("delay", 30));
+        Particle warn = enumOr(Particle.class, p.getString("warn-particle", "FLAME"), Particle.FLAME);
+        Particle hit = enumOr(Particle.class, p.getString("particle", "EXPLOSION_EMITTER"), Particle.EXPLOSION_EMITTER);
+        java.util.List<Location> spots = new java.util.ArrayList<>();
+        for (Location l : locations(ctx, targets)) {
+            spots.add(l.clone());
+        }
+        LivingEntity self = ctx.self();
+        var plugin = ctx.plugin();
+        for (int t = 0; t < delay; t += 4) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> spots.forEach(loc -> ring(loc, radius, warn)), t);
+        }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            for (Location loc : spots) {
+                emit(loc.getWorld(), hit, loc.clone().add(0, 0.5, 0), 30, radius / 2, 0.03);
+                double rSq = radius * radius;
+                for (Player pl : loc.getWorld().getPlayers()) {
+                    if (pl.getLocation().distanceSquared(loc) <= rSq) {
+                        pl.damage(damage, self);
+                        if (knockback > 0) {
+                            pushAway(pl, loc, knockback, 0.4);
+                        }
+                    }
+                }
+            }
+        }, delay);
+    }
+
+    private static void shockwave(SkillContext ctx, List<Target> targets, Params p) {
+        double radius = p.getDouble("radius", 6);
+        double damage = p.getDouble("damage", 8);
+        double knockup = p.getDouble("knockup", 0.8);
+        Particle particle = enumOr(Particle.class, p.getString("particle", "EXPLOSION"), Particle.EXPLOSION);
+        Location center = ctx.location().clone();
+        LivingEntity self = ctx.self();
+        var plugin = ctx.plugin();
+        for (int step = 1; step <= 5; step++) {
+            double r = radius * step / 5.0;
+            Bukkit.getScheduler().runTaskLater(plugin, () -> ring(center, r, particle), step * 2L);
+        }
+        double rSq = radius * radius;
+        for (Player pl : center.getWorld().getPlayers()) {
+            if (pl.getLocation().distanceSquared(center) <= rSq) {
+                pl.damage(damage, self);
+                Vector v = pl.getLocation().toVector().subtract(center.toVector());
+                v.setY(0);
+                if (v.lengthSquared() < 1.0E-4) {
+                    v = new Vector(0, 1, 0);
+                }
+                pl.setVelocity(v.normalize().multiply(0.6).setY(knockup));
+            }
+        }
+    }
+
+    private static void meteor(SkillContext ctx, List<Target> targets, Params p) {
+        int count = Math.max(1, p.getInt("count", 6));
+        double radius = p.getDouble("radius", 8);
+        double height = p.getDouble("height", 22);
+        double damage = p.getDouble("damage", 8);
+        int delay = Math.max(10, p.getInt("delay", 25));
+        boolean fire = p.getBoolean("fire", false);
+        Location base = (targets.isEmpty() ? ctx.location() : targets.get(0).location()).clone();
+        World w = base.getWorld();
+        LivingEntity self = ctx.self();
+        var plugin = ctx.plugin();
+        for (int i = 0; i < count; i++) {
+            Location spot = base.clone().add(rand(radius), 0, rand(radius));
+            for (int t = 0; t < delay; t += 4) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> ring(spot, 2.0, Particle.FLAME), t);
+            }
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                SmallFireball fb = w.spawn(spot.clone().add(0, height, 0), SmallFireball.class);
+                fb.setVelocity(new Vector(0, -2, 0));
+                fb.setYield(0f);
+                fb.setIsIncendiary(fire);
+                fb.setShooter(self);
+            }, delay - 8L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                emit(w, Particle.EXPLOSION_EMITTER, spot.clone().add(0, 0.5, 0), 20, 1.5, 0.02);
+                w.playSound(spot, "entity.generic.explode", 1.2f, 1.0f);
+                for (Player pl : w.getPlayers()) {
+                    if (pl.getLocation().distanceSquared(spot) <= 9) {
+                        pl.damage(damage, self);
+                        if (fire) {
+                            pl.setFireTicks(60);
+                        }
+                    }
+                }
+            }, delay);
+        }
+    }
+
+    private static void healerAdds(SkillContext ctx, List<Target> targets, Params p) {
+        EntityType type = enumOr(EntityType.class, p.getString("type", "VEX"), EntityType.VEX);
+        int amount = Math.max(1, p.getInt("amount", 2));
+        double radius = p.getDouble("radius", 5);
+        String name = p.getString("name", "<green>Attendant");
+        double hps = p.getDouble("heal-per-second", ctx.boss().maxHealth() * 0.02);
+        ctx.boss().setHealerHealPerTick(hps / 20.0);
+        Location base = ctx.location();
+        World w = base.getWorld();
+        for (int i = 0; i < amount; i++) {
+            Location loc = base.clone().add(rand(radius), 0, rand(radius));
+            Entity e = w.spawnEntity(loc, type);
+            e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
+            if (e instanceof LivingEntity le) {
+                le.customName(Text.mm(name));
+                le.setCustomNameVisible(true);
+            }
+            ctx.boss().addHealer(e.getUniqueId());
+        }
+    }
+
+    private static void ring(Location center, double radius, Particle particle) {
+        World w = center.getWorld();
+        int points = (int) Math.max(8, radius * 8);
+        for (int i = 0; i < points; i++) {
+            double a = 2 * Math.PI * i / points;
+            emit(w, particle, center.clone().add(Math.cos(a) * radius, 0.2, Math.sin(a) * radius), 1, 0, 0);
         }
     }
 

@@ -11,6 +11,8 @@ animations: { idle: idle, walk: walk, sprint: sprint, attack: attack, target: ta
 stats: { health: 720, armor: 16, armor-toughness: 8, knockback-resistance: 0.85, damage: 14, speed: 0.3, follow-range: 48, scale: 1.0 }
 equipment: { hand: GOLDEN_AXE, head: GOLDEN_HELMET }
 bossbar: { color: RED, style: NOTCHED_10 }
+immunities: [FIRE, KNOCKBACK]
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.12, speed-mult: 1.05 }
 spawn:
   worlds: [NETHER]
   weight: 12
@@ -31,6 +33,8 @@ skills:
   # Axe storm: Warthoglin plants his feet and hurls axes in every direction.
   - { trigger: onTimer, interval: 130, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["AXE STORM!", "Chop, chop, chop!"] } }
   - { trigger: onTimer, interval: 130, mechanic: axe_throw, targeter: self, params: { count: 12, velocity: 1.4, type: ARROW, particle: LAVA } }
+  - { trigger: onTimer, interval: 170, mechanic: meteor, targeter: players_in_radius, params: { count: 5, radius: 8, height: 20, damage: 10, delay: 25, fire: true } }
+  - { trigger: onHealthBelow, value: 60, mechanic: shockwave, targeter: self, params: { radius: 8, damage: 12, knockup: 0.9, particle: LAVA } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 12, knockback: 1.5, particle: FLAME } }
 drops:
   items:

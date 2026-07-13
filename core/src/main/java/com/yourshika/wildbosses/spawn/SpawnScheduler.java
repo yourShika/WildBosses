@@ -10,10 +10,13 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
+import org.bukkit.Material;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -146,8 +149,59 @@ public final class SpawnScheduler {
     }
 
     private Location resolveLocation(Player anchor, BossDefinition def) {
+        if (!timeOk(def, anchor.getWorld())) {
+            return null;
+        }
         boolean frontier = def.hasTerrain() && def.terrain().onlyUngeneratedChunks();
         return frontier ? findFrontierLocation(anchor, def) : findNearbyLocation(anchor, def);
+    }
+
+    private boolean timeOk(BossDefinition def, World world) {
+        String t = def.spawn().timeRequirement();
+        if (t == null || t.equals("ANY")) {
+            return true;
+        }
+        long time = world.getTime() % 24000;
+        boolean day = time < 12300 || time > 23850;
+        return t.equals("DAY") ? day : (!t.equals("NIGHT") || !day);
+    }
+
+    private boolean conditionsMet(BossDefinition def, Location loc) {
+        return biomeOk(def, loc) && waterOk(def, loc);
+    }
+
+    private boolean biomeOk(BossDefinition def, Location loc) {
+        var biomes = def.spawn().biomes();
+        if (biomes.isEmpty()) {
+            return true;
+        }
+        String name = loc.getBlock().getBiome().getKey().value().toUpperCase(Locale.ROOT);
+        for (String want : biomes) {
+            if (name.contains(want)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean waterOk(BossDefinition def, Location loc) {
+        if (!def.spawn().nearWater()) {
+            return true;
+        }
+        World w = loc.getWorld();
+        int bx = loc.getBlockX();
+        int by = loc.getBlockY();
+        int bz = loc.getBlockZ();
+        for (int dx = -6; dx <= 6; dx++) {
+            for (int dz = -6; dz <= 6; dz++) {
+                for (int dy = -3; dy <= 1; dy++) {
+                    if (w.getBlockAt(bx + dx, by + dy, bz + dz).getType() == Material.WATER) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private Location findNearbyLocation(Player anchor, BossDefinition def) {
@@ -161,7 +215,10 @@ public final class SpawnScheduler {
             int z = anchor.getLocation().getBlockZ() + (int) (Math.sin(angle) * dist);
             Integer y = findSafeY(world, x, z, rules.minY(), rules.maxY());
             if (y != null) {
-                return new Location(world, x + 0.5, y, z + 0.5);
+                Location candidate = new Location(world, x + 0.5, y, z + 0.5);
+                if (conditionsMet(def, candidate)) {
+                    return candidate;
+                }
             }
         }
         return null;
@@ -184,7 +241,10 @@ public final class SpawnScheduler {
             // Generating the column here is intentional - the chunk is pristine (never visited).
             Integer y = findSafeY(world, x, z, rules.minY(), rules.maxY());
             if (y != null) {
-                return new Location(world, x + 0.5, y, z + 0.5);
+                Location candidate = new Location(world, x + 0.5, y, z + 0.5);
+                if (conditionsMet(def, candidate)) {
+                    return candidate;
+                }
             }
         }
         return null;

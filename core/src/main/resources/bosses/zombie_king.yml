@@ -33,7 +33,7 @@ skills:
   - { trigger: onTimer, interval: 200, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Kneel before the King.", "Rot spreads... you cannot stop it.", "More! I need MORE!"] } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 1.2, particle: SCULK_CHARGE } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 4, radius: 5 } }
-  - { trigger: onHealthBelow, value: 25, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.6, particle: EXPLOSION_EMITTER } }
+  - { trigger: onHealthBelow, value: 25, mechanic: shockwave, targeter: self, params: { radius: 8, damage: 12, knockup: 0.9, particle: EXPLOSION } }
 drops:
   items:
     - { item: DIAMOND, amount: "3-6", chance: 1.0 }

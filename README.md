@@ -31,6 +31,11 @@ vanilla fallback when BetterModel isn't installed.
   the BetterModel plugin is present. Without it, bosses use their vanilla base entity automatically.
 - **In-game admin GUI** (`/wb gui`) — browse and spawn bosses, quick-edit common stats, manage active
   encounters, and toggle settings, all persisted back to the YAML/config.
+- **Fight design** — telegraphed danger zones, ground-slam shockwaves, meteor rain, enrage timers,
+  healer adds, per-boss damage immunities, and nearby-player scaling (health + adds).
+- **Rewards** — participation loot (everyone who helped gets a roll), plus per-boss drops/XP/commands.
+- **Integrations** — optional PlaceholderAPI (`%wildbosses_active%`, `%wildbosses_nearest%`, …) and a
+  Discord webhook on spawn/kill.
 
 ---
 
@@ -40,7 +45,7 @@ vanilla fallback when BetterModel isn't installed.
 |---|---|
 | Server | Paper (or a Paper fork: Purpur, Folia, etc.) for **Minecraft 26.1.2** |
 | Java | **25+** (required by MC 26.1) |
-| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) for custom models; CoreProtect / WorldGuard / GriefPrevention for extra terrain protection |
+| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) (custom models); CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
 
 ## Installation
 
