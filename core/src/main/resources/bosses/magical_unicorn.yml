@@ -1,0 +1,32 @@
+# Aurelith, the Prism Mare - MAGICAL overworld boss.
+id: magical_unicorn
+name: "<gradient:#f9a8d4:#a78bfa:#93c5fd>Aurelith, the Prism Mare</gradient>"
+title: "<gray>Keeper of Impossible Colours"
+difficulty: MAGICAL
+base-entity: HORSE
+model: ""
+stats: { health: 500, armor: 6, knockback-resistance: 0.5, damage: 8, speed: 0.35, follow-range: 40, scale: 1.3 }
+bossbar: { color: PINK, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 8
+  min-players-distance: 40
+  y: { min: 60, max: 120 }
+  cooldown-seconds: 3600
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<gradient:#f9a8d4:#93c5fd>Aurelith, the Prism Mare, shimmers into the world!</gradient>" }
+  - { at-health-percent: 50, message: "<light_purple>Aurelith's mane blazes with prism-light!" }
+skills:
+  - { trigger: onSpawn, mechanic: particle, targeter: self_location, params: { particle: HEART, count: 40, spread: 1.5 } }
+  - { trigger: onTimer, interval: 80, mechanic: beam, targeter: nearest_player, params: { radius: 30, damage: 10, particle: DRAGON_BREATH } }
+  - { trigger: onTimer, interval: 120, mechanic: charm, targeter: players_in_radius, params: { radius: 8, duration: 120 } }
+  - { trigger: onTimer, interval: 100, mechanic: particle, targeter: self_location, params: { particle: END_ROD, count: 30, spread: 1.2 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: heal, targeter: self, params: { amount: 80 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: buff, targeter: self, params: { type: SPEED, duration: 200, amplifier: 1 } }
+drops:
+  items:
+    - { item: NETHER_STAR, amount: 1, chance: 0.6, glow: true, name: "<gradient:#f9a8d4:#93c5fd>Heart of Aurelith</gradient>" }
+    - { item: GOLDEN_APPLE, amount: "3-6", chance: 1.0 }
+    - { item: DIAMOND, amount: "4-8", chance: 1.0 }
+  xp: 900

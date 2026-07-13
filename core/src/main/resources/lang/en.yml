@@ -1,0 +1,30 @@
+# WildBosses language file (English). All values are MiniMessage.
+prefix: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> "
+
+no-permission: "<red>You don't have permission to do that."
+player-only: "<red>That can only be used in-game by a player."
+reloaded: "<green>Configuration and bosses reloaded (<yellow><count></yellow> bosses loaded)."
+reload-failed: "<red>Reload failed: <yellow><error></yellow>. Check the console."
+
+unknown-boss: "<red>Unknown boss id: <yellow><id></yellow>."
+spawned: "<green>Spawned <boss> <green>at <yellow><x>, <y>, <z></yellow> in <yellow><world></yellow>."
+spawn-failed: "<red>Could not spawn <yellow><id></yellow>: <gray><reason></gray>."
+army-started: "<green>Started the <boss> <green>encounter in <yellow><world></yellow>."
+killed-all: "<green>Removed <yellow><count></yellow> active boss(es)/encounter(s)."
+no-active: "<gray>There are no active bosses right now."
+
+list-header: "<gradient:#f8b500:#fceabb><bold>WildBosses</bold></gradient> <gray>- registered bosses (<yellow><count></yellow>):"
+list-entry: "<gray> - <white><id> <difficulty> <dark_gray>(<gray><worlds></dark_gray>)"
+active-header: "<gray>Active encounters (<yellow><count></yellow>):"
+active-entry: "<gray> - <white><boss> <gray>@ <yellow><world> <x> <y> <z></yellow> <dark_gray>(<gray><health></gray> HP)"
+
+help:
+  - "<gradient:#f8b500:#fceabb><bold>WildBosses</bold></gradient> <gray>commands:"
+  - "<yellow>/wb spawn <id> [here|player] <gray>- spawn a boss"
+  - "<yellow>/wb army <id> <gray>- start an army encounter"
+  - "<yellow>/wb list <gray>- list registered bosses"
+  - "<yellow>/wb active <gray>- list active encounters"
+  - "<yellow>/wb info <id> <gray>- show details for a boss"
+  - "<yellow>/wb gui <gray>- open the admin GUI"
+  - "<yellow>/wb killall <gray>- remove all active bosses"
+  - "<yellow>/wb reload <gray>- reload config and bosses"

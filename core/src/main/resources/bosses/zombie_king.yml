@@ -1,0 +1,34 @@
+# Mortis, the Zombie King - MEDIUM overworld boss.
+id: zombie_king
+name: "<gradient:#4ade80:#14532d>Mortis, the Zombie King</gradient>"
+title: "<gray>Lord of the Rotting Throng"
+difficulty: MEDIUM
+base-entity: ZOMBIE
+model: ""
+stats: { health: 420, armor: 12, armor-toughness: 4, knockback-resistance: 0.6, damage: 9, speed: 0.26, follow-range: 40, scale: 1.6 }
+equipment: { hand: IRON_SWORD, head: GOLDEN_HELMET }
+bossbar: { color: GREEN, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 22
+  min-players-distance: 40
+  y: { min: 40, max: 100 }
+  cooldown-seconds: 1800
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<green>Mortis, the Zombie King, rises from the earth!" }
+  - { at-health-percent: 50, enrage: true, message: "<dark_green>Mortis bellows and the horde swells!" }
+skills:
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.zombie.death", volume: 1.4, pitch: 0.6 } }
+  - { trigger: onTimer, interval: 120, mechanic: summon, targeter: self_location, params: { type: ZOMBIE, amount: 3, radius: 4 } }
+  - { trigger: onTimer, interval: 90, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 120, amplifier: 0 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 1.2, particle: SCULK_CHARGE } }
+  - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 4, radius: 5 } }
+drops:
+  items:
+    - { item: DIAMOND, amount: "3-6", chance: 1.0 }
+    - { item: EMERALD, amount: "4-8", chance: 0.8 }
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.25, glow: true, name: "<gradient:#ffd700:#fff3b0>Crown Apple of Mortis</gradient>" }
+    - { item: NETHERITE_SCRAP, amount: "1-2", chance: 0.2 }
+  xp: 500
+  commands: []

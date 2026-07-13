@@ -1,0 +1,35 @@
+name: WildBosses
+version: '${version}'
+main: com.yourshika.wildbosses.WildBossesPlugin
+api-version: '1.21'
+author: yourShika
+description: Random custom world bosses with phases, abilities, AoEs, armies, custom drops, terrain theming and optional BetterModel custom models.
+website: https://github.com/yourShika/WildBosses
+softdepend:
+  - BetterModel
+  - CoreProtect
+  - WorldGuard
+  - GriefPrevention
+commands:
+  wildbosses:
+    description: WildBosses admin command.
+    aliases: [wb]
+    usage: /wb help
+    permission: wildbosses.command
+permissions:
+  wildbosses.command:
+    description: Access to the base /wildbosses command.
+    default: op
+  wildbosses.admin:
+    description: Full administrative access (reload, killall, editing).
+    default: op
+    children:
+      wildbosses.command: true
+      wildbosses.spawn: true
+      wildbosses.gui: true
+  wildbosses.spawn:
+    description: Allows manually spawning bosses and armies.
+    default: op
+  wildbosses.gui:
+    description: Allows opening the WildBosses admin GUI.
+    default: op

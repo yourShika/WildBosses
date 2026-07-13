@@ -1,0 +1,44 @@
+# =====================================================================================
+#  WildBosses - main configuration
+#  All message strings use MiniMessage (https://docs.advntr.dev/minimessage/) and support
+#  <gradient:#aaa:#bbb>, <color>, <bold>, hover/click tags, etc.
+# =====================================================================================
+
+settings:
+  # Master switch for automatic random boss spawning.
+  random-spawns: true
+  # How often (seconds) the scheduler runs a spawn cycle.
+  spawn-interval-seconds: 600
+  # How many spawn attempts to make each cycle (each still has to satisfy a boss' spawn rules).
+  spawn-attempts-per-cycle: 1
+  # Hard cap on how many bosses may be active at once (armies count as one).
+  max-active-bosses: 5
+  # Minimum distance (blocks) enforced between two active bosses.
+  min-distance-between-bosses: 200
+  # When placing a terrain-changing boss, it is only spawned on never-generated ("frontier")
+  # chunks. These control how far out from a player the spawner searches for such a spot.
+  frontier-search:
+    min-distance: 200
+    max-distance: 3000
+    attempts: 24
+
+# Enable/disable spawning per dimension.
+worlds:
+  OVERWORLD: true
+  NETHER: true
+  THE_END: true
+
+broadcast:
+  enabled: true
+  # Placeholders: <boss> <difficulty> <world> <x> <y> <z>
+  boss-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>A wild <boss> <difficulty> <white>has appeared in <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
+  army-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <difficulty> <white>is invading <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
+  boss-death: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <white>has been slain!"
+
+# Override the look of each difficulty tier. Bar colours: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE.
+difficulties:
+  EASY:       { label: "Easy",       from: "#7CFC00", to: "#2E8B57", bar: GREEN }
+  MEDIUM:     { label: "Medium",     from: "#FFD700", to: "#FFB300", bar: YELLOW }
+  HARD:       { label: "Hard",       from: "#FF8C00", to: "#FF2D00", bar: RED }
+  ULTRA_HARD: { label: "Ultra Hard", from: "#FF1A4B", to: "#7A0000", bar: RED }
+  MAGICAL:    { label: "Magical",    from: "#C86BFF", to: "#FF6BD6", bar: PURPLE }

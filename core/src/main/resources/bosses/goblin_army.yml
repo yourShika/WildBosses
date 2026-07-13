@@ -1,0 +1,44 @@
+# The Goblin Warband - EASY army encounter led by Grizznak the Plunderer.
+# The army spawns waves of goblins; once enough are slain, Grizznak (this def's own statline) emerges.
+id: goblin_army
+name: "<gradient:#84cc16:#3f6212>Grizznak the Plunderer</gradient>"
+title: "<gray>Warlord of the Goblin Warband"
+difficulty: EASY
+base-entity: VINDICATOR
+model: ""
+stats: { health: 260, armor: 8, knockback-resistance: 0.4, damage: 8, speed: 0.32, follow-range: 40, scale: 1.3 }
+equipment: { hand: IRON_AXE, head: LEATHER_HELMET }
+bossbar: { color: GREEN, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 30
+  min-players-distance: 40
+  y: { min: 45, max: 110 }
+  cooldown-seconds: 1200
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<green>Grizznak the Plunderer bellows a war cry!" }
+  - { at-health-percent: 40, enrage: true, message: "<dark_green>Grizznak flies into a plundering rage!" }
+skills:
+  - { trigger: onTimer, interval: 100, mechanic: leap, targeter: nearest_player, params: { power: 1.2, vertical: 0.5 } }
+  - { trigger: onTimer, interval: 140, mechanic: summon, targeter: self_location, params: { type: VINDICATOR, amount: 3, radius: 5 } }
+  - { trigger: onTimer, interval: 70, mechanic: knockback, targeter: players_in_radius, params: { radius: 4, strength: 1.0, vertical: 0.35 } }
+army:
+  kill-threshold: 24
+  wave-size: 6
+  max-alive: 18
+  reinforce-interval-ticks: 100
+  radius: 12
+  outcome: SPAWN_BOSS
+  end-boss: goblin_army
+  timeout-seconds: 0
+  minions:
+    - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Goblin Raider" }
+    - { type: ZOMBIE, weight: 2, health: 20, name: "<green>Goblin Grunt" }
+    - { type: PILLAGER, weight: 1, health: 22, name: "<green>Goblin Slinger" }
+drops:
+  items:
+    - { item: EMERALD, amount: "4-10", chance: 1.0 }
+    - { item: IRON_INGOT, amount: "4-8", chance: 0.9 }
+    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
+  xp: 400

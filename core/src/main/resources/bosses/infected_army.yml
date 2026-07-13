@@ -1,0 +1,59 @@
+# The Rotting Legion - MEDIUM army encounter led by Pestis, the Plaguebearer.
+# Undead that poison. Infects the surrounding ground (terrain theming) - and, because it changes
+# terrain, only ever spawns on ungenerated frontier chunks so no player builds are ever touched.
+id: infected_army
+name: "<gradient:#65a30d:#4d7c0f>Pestis, the Plaguebearer</gradient>"
+title: "<gray>Herald of the Rotting Legion"
+difficulty: MEDIUM
+base-entity: ZOMBIE_VILLAGER
+model: ""
+stats: { health: 340, armor: 10, knockback-resistance: 0.5, damage: 8, speed: 0.27, follow-range: 40, scale: 1.4 }
+equipment: { hand: IRON_SWORD }
+bossbar: { color: GREEN, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 26
+  min-players-distance: 40
+  y: { min: 45, max: 110 }
+  cooldown-seconds: 1500
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<green>Pestis, the Plaguebearer, festers into being!" }
+  - { at-health-percent: 50, enrage: true, message: "<dark_green>Pestis exhales a cloud of pestilence!" }
+skills:
+  - { trigger: onTimer, interval: 90, mechanic: potion_cloud, targeter: self_location, params: { type: POISON, duration: 120, amplifier: 0, radius: 4, cloud-duration: 140 } }
+  - { trigger: onTimer, interval: 80, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 140, amplifier: 1 } }
+  - { trigger: onTimer, interval: 130, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 3, radius: 5, effects: ["POISON:200:0"] } }
+army:
+  kill-threshold: 28
+  wave-size: 6
+  max-alive: 20
+  reinforce-interval-ticks: 110
+  radius: 12
+  outcome: SPAWN_BOSS
+  end-boss: infected_army
+  timeout-seconds: 0
+  minions:
+    - { type: ZOMBIE, weight: 3, health: 22, name: "<green>Infected", effects: ["POISON:100:0"] }
+    - { type: HUSK, weight: 2, health: 24, name: "<green>Plagued Husk", effects: ["POISON:100:0"] }
+    - { type: ZOMBIE_VILLAGER, weight: 1, health: 26, name: "<green>Rotting Zealot", effects: ["POISON:100:0"] }
+terrain:
+  enabled: true
+  radius: 7
+  max-blocks: 4000
+  restore-on-end: true
+  require-coreprotect: false
+  only-ungenerated-chunks: true
+  mappings:
+    GRASS_BLOCK: MYCELIUM
+    DIRT: PODZOL
+    COARSE_DIRT: PODZOL
+    SAND: SOUL_SAND
+    STONE: COBBLESTONE
+drops:
+  items:
+    - { item: ROTTEN_FLESH, amount: "12-24", chance: 1.0 }
+    - { item: EMERALD, amount: "3-7", chance: 0.9 }
+    - { item: DIAMOND, amount: "2-4", chance: 0.6 }
+    - { item: GOLDEN_APPLE, amount: 1, chance: 0.4, name: "<gradient:#65a30d:#365314>Plaguebearer's Boon</gradient>" }
+  xp: 550

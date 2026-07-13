@@ -1,0 +1,10 @@
+# Normalise line endings. Keep shell scripts LF (Linux CI runs ./gradlew).
+* text=auto eol=lf
+*.bat text eol=crlf
+gradlew text eol=lf
+gradlew.bat text eol=crlf
+
+# Binary assets - never convert.
+*.jar binary
+*.png binary
+*.bbmodel binary

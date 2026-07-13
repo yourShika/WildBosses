@@ -1,0 +1,32 @@
+# Ossaria, the Bonelord - HARD overworld boss.
+id: skeleton_king
+name: "<gradient:#e5e7eb:#6b7280>Ossaria, the Bonelord</gradient>"
+title: "<gray>Sovereign of the Bonewaste"
+difficulty: HARD
+base-entity: SKELETON
+model: ""
+stats: { health: 520, armor: 14, armor-toughness: 6, knockback-resistance: 0.7, damage: 8, speed: 0.27, follow-range: 48, scale: 1.5 }
+equipment: { hand: BOW, head: IRON_HELMET }
+bossbar: { color: WHITE, style: NOTCHED_10 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 16
+  min-players-distance: 40
+  y: { min: 30, max: 110 }
+  cooldown-seconds: 2400
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<white>Ossaria, the Bonelord, clatters into being!" }
+  - { at-health-percent: 60, message: "<gray>Ossaria raises a shield of bone!" }
+  - { at-health-percent: 30, enrage: true, message: "<gray>Ossaria unleashes a storm of arrows!" }
+skills:
+  - { trigger: onTimer, interval: 80, mechanic: arrow_volley, targeter: nearest_player, params: { radius: 40, count: 8, spread: 0.2, velocity: 2.0 } }
+  - { trigger: onTimer, interval: 160, mechanic: summon, targeter: self_location, params: { type: STRAY, amount: 3, radius: 5 } }
+  - { trigger: onHealthBelow, value: 60, mechanic: shield, targeter: self, params: { duration: 120, amplifier: 1 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: arrow_volley, targeter: players_in_radius, params: { radius: 30, count: 20, spread: 0.35, velocity: 2.2, fire: true } }
+drops:
+  items:
+    - { item: DIAMOND, amount: "4-7", chance: 1.0 }
+    - { item: BOW, amount: 1, chance: 0.5, glow: true, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Longbow</gradient>", enchants: ["POWER:5", "FLAME:1", "INFINITY:1"] }
+    - { item: NETHERITE_INGOT, amount: 1, chance: 0.15 }
+  xp: 700
