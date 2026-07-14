@@ -37,6 +37,9 @@ integrations:
   discord-webhook: ""
   # GitHub repo (owner/name) used by "/wb update" to fetch the latest release jar.
   update-repo: "yourShika/WildBosses"
+  oraxen:
+    # Deploy custom mob textures/models into the Oraxen pack on startup (run /oraxen reload after).
+    auto-deploy: true
   # When placing a terrain-changing boss, it is only spawned on never-generated ("frontier")
   # chunks. These control how far out from a player the spawner searches for such a spot.
   frontier-search:

@@ -28,4 +28,5 @@ help:
   - "<yellow>/wb gui <gray>- open the admin GUI"
   - "<yellow>/wb killall <gray>- remove all active bosses"
   - "<yellow>/wb reload <gray>- reload config and bosses"
+  - "<yellow>/wb assets status|redeploy <gray>- sync custom textures/models into Oraxen"
   - "<yellow>/wb update <gray>- download the latest release from GitHub"

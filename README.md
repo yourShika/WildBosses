@@ -45,7 +45,7 @@ vanilla fallback when BetterModel isn't installed.
 |---|---|
 | Server | Paper (or a Paper fork: Purpur, Folia, etc.) for **Minecraft 26.1.2** |
 | Java | **25+** (required by MC 26.1) |
-| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) (custom models); CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
+| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) (custom models); Oraxen (custom textures / bundled pack); CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
 
 ## Installation
 
@@ -69,6 +69,7 @@ Base command: `/wildbosses` (alias `/wb`).
 | `/wb gui` | Open the admin GUI | `wildbosses.gui` |
 | `/wb killall` | Remove all active encounters | `wildbosses.admin` |
 | `/wb reload` | Reload config and bosses | `wildbosses.admin` |
+| `/wb assets status\|redeploy` | Sync custom textures/models into the Oraxen pack | `wildbosses.admin` |
 | `/wb update` | Download the latest release from GitHub (applied on restart) | `wildbosses.admin` |
 
 `wildbosses.admin` (default: op) grants everything.
@@ -130,11 +131,13 @@ Configure per boss under `terrain:` (see [docs/configuration.md](docs/configurat
 
 Reload after edits with `/wb reload`.
 
-## BetterModel
+## Custom models & textures
 
-WildBosses uses BetterModel only if the plugin is present; otherwise it falls back to the vanilla
-base entity — no configuration needed. See [docs/bettermodel.md](docs/bettermodel.md) for wiring a
-custom model (e.g. Warthoglin) to a boss.
+Give a boss a custom look via **BetterModel** (full model + animations) or a **custom texture** shown
+through Oraxen — rendering falls back BetterModel → Oraxen texture → vanilla automatically. Drop a
+`<bossId>.png` in `plugins/WildBosses/textures/` (or a `<bossId>.json` in `models/`) and run
+`/wb assets redeploy` then `/oraxen reload`. See [docs/bettermodel.md](docs/bettermodel.md) and
+[docs/oraxen.md](docs/oraxen.md).
 
 ---
 

@@ -27,7 +27,7 @@ import java.util.StringJoiner;
 public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "update", "help");
+            List.of("spawn", "army", "list", "active", "info", "gui", "assets", "killall", "reload", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -49,6 +49,7 @@ public final class WildBossesCommand implements TabExecutor {
             case "active" -> active(sender);
             case "info" -> info(sender, args);
             case "gui" -> gui(sender);
+            case "assets" -> assets(sender, args);
             case "update" -> update(sender);
             case "killall" -> killAll(sender);
             case "help" -> sendHelp(sender);
@@ -222,6 +223,34 @@ public final class WildBossesCommand implements TabExecutor {
         new MainMenu(plugin).open(player);
     }
 
+    private void assets(CommandSender sender, String[] args) {
+        if (denied(sender, "wildbosses.admin")) {
+            return;
+        }
+        var oa = plugin.oraxenAssets();
+        String sub = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "status";
+        if (sub.equals("redeploy")) {
+            var r = oa.deploy();
+            if (!r.oraxen()) {
+                sender.sendMessage(Text.mm("<red>Oraxen is not installed."));
+                return;
+            }
+            if (r.error() != null) {
+                sender.sendMessage(Text.mm("<red>Deploy failed: <gray>" + r.error()));
+                return;
+            }
+            sender.sendMessage(Text.mm("<green>Deployed <yellow>" + r.textures() + "<green> texture(s) and <yellow>"
+                    + r.models() + "<green> model(s). <gold>Now run /oraxen reload."));
+        } else {
+            var st = oa.status();
+            sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses assets</bold></gradient>"));
+            sender.sendMessage(Text.mm("<gray>Oraxen present: <white>" + (st.oraxen() ? "yes" : "no")));
+            sender.sendMessage(Text.mm("<gray>Textures: <white>" + st.textures() + " <gray>Models: <white>" + st.models()));
+            sender.sendMessage(Text.mm("<gray>Drop files in <yellow>plugins/WildBosses/textures/<gray> and <yellow>models/"
+                    + " <gray>named after a boss id, then <yellow>/wb assets redeploy<gray>."));
+        }
+    }
+
     private void update(CommandSender sender) {
         if (denied(sender, "wildbosses.admin")) {
             return;
@@ -281,6 +310,9 @@ public final class WildBossesCommand implements TabExecutor {
             if (sub.equals("spawn") || sub.equals("info") || sub.equals("army")) {
                 return filter(new ArrayList<>(plugin.registry().ids()), args[1]);
             }
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("assets")) {
+            return filter(List.of("status", "redeploy"), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
             List<String> opts = new ArrayList<>();

@@ -35,6 +35,7 @@ public final class WildBossesPlugin extends JavaPlugin {
     private TerrainManager terrainManager;
     private SpawnScheduler spawnScheduler;
     private ArmyManager armyManager;
+    private com.yourshika.wildbosses.integration.OraxenAssets oraxenAssets;
 
     @Override
     public void onEnable() {
@@ -50,11 +51,16 @@ public final class WildBossesPlugin extends JavaPlugin {
         terrainManager = new TerrainManager(this);
 
         modelManager.select();
+        oraxenAssets = new com.yourshika.wildbosses.integration.OraxenAssets(this);
         bossManager.setSkillEngine(new DefaultSkillEngine(this));
         bossManager.setDeathListener(new RewardManager(this));
         bossManager.setEncounterHook(terrainManager);
         terrainManager.restorePersisted();
         reloadAll();
+
+        if (pluginConfig.oraxenAutoDeploy() && oraxenAssets.oraxenPresent()) {
+            oraxenAssets.deploy();
+        }
 
         armyManager = new ArmyManager(this);
 
@@ -153,5 +159,9 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     public ArmyManager armyManager() {
         return armyManager;
+    }
+
+    public com.yourshika.wildbosses.integration.OraxenAssets oraxenAssets() {
+        return oraxenAssets;
     }
 }

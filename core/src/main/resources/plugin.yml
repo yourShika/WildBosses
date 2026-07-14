@@ -11,6 +11,7 @@ softdepend:
   - WorldGuard
   - GriefPrevention
   - PlaceholderAPI
+  - Oraxen
 commands:
   wildbosses:
     description: WildBosses admin command.
