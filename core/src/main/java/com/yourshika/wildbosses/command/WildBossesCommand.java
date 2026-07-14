@@ -253,10 +253,23 @@ public final class WildBossesCommand implements TabExecutor {
             sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses assets</bold></gradient>"));
             sender.sendMessage(Text.mm("<gray>BetterModel: <white>" + (st.betterModel() ? "yes" : "no")
                     + " <gray>Oraxen: <white>" + (st.oraxen() ? "yes" : "no")
-                    + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")));
-            sender.sendMessage(Text.mm("<gray>.bbmodel models: <white>" + st.bbmodels()));
-            sender.sendMessage(Text.mm("<gray>Put <yellow>.bbmodel<gray> (named by boss id) in <yellow>plugins/WildBosses/models/<gray>, "
-                    + "then <yellow>/wb assets redeploy<gray> → <yellow>/bettermodel reload<gray> → <yellow>/wb assets redeploy<gray> → <yellow>/oraxen reload<gray>."));
+                    + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")
+                    + " <gray>merged into Oraxen: <white>" + (oa.uploadsPresent() ? "yes" : "no")));
+
+            var files = oa.modelFileNames();
+            if (files.isEmpty()) {
+                sender.sendMessage(Text.mm("<gray>No .bbmodel in <yellow>plugins/WildBosses/models/<gray>."));
+            } else {
+                for (String f : files) {
+                    sender.sendMessage(Text.mm("<gray> - <white>" + f + " <gray>installed in BetterModel: <white>"
+                            + (oa.installedInBetterModel(f) ? "yes" : "no")));
+                }
+            }
+            var keys = oa.betterModelKeys();
+            sender.sendMessage(Text.mm("<gray>BetterModel loaded models: <white>"
+                    + (keys.isEmpty() ? "(none / BetterModel absent)" : String.join(", ", keys))));
+            sender.sendMessage(Text.mm("<gray>A boss uses the model whose name = its <yellow>id<gray> (or its <yellow>model:<gray> field). "
+                    + "The .bbmodel becomes JSON+PNG <italic>inside</italic> bettermodel.zip - it won't appear as a file in Oraxen."));
         }
     }
 

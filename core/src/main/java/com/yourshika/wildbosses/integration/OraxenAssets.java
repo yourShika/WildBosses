@@ -140,6 +140,48 @@ public final class OraxenAssets {
         }
     }
 
+    // ---- diagnostics ----------------------------------------------------------------------
+
+    /** File names of the .bbmodel files in the WildBosses models folder. */
+    public java.util.List<String> modelFileNames() {
+        File[] files = modelsDir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".bbmodel"));
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (files != null) {
+            for (File f : files) {
+                out.add(f.getName());
+            }
+        }
+        return out;
+    }
+
+    /** Whether a given .bbmodel file is present in BetterModel's models folder. */
+    public boolean installedInBetterModel(String fileName) {
+        Plugin bm = Bukkit.getPluginManager().getPlugin("BetterModel");
+        return bm != null && new File(new File(bm.getDataFolder(), "models"), fileName).isFile();
+    }
+
+    /** The model names BetterModel has actually loaded (reflective; empty if BetterModel is absent). */
+    public java.util.Set<String> betterModelKeys() {
+        try {
+            Object keys = Class.forName("kr.toxicity.model.api.BetterModel").getMethod("modelKeys").invoke(null);
+            if (keys instanceof java.util.Collection<?> collection) {
+                java.util.Set<String> out = new java.util.TreeSet<>();
+                for (Object o : collection) {
+                    out.add(String.valueOf(o));
+                }
+                return out;
+            }
+        } catch (Throwable ignored) {
+        }
+        return java.util.Set.of();
+    }
+
+    /** Whether the BetterModel pack has been merged into Oraxen's uploads. */
+    public boolean uploadsPresent() {
+        Plugin ox = Bukkit.getPluginManager().getPlugin("Oraxen");
+        return ox != null && new File(ox.getDataFolder(), "pack/uploads/bettermodel.zip").isFile();
+    }
+
     // ---- helpers --------------------------------------------------------------------------
 
     private void copyWithBackup(Path source, Path target) throws Exception {
