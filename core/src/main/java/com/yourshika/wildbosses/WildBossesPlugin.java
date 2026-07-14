@@ -114,6 +114,11 @@ public final class WildBossesPlugin extends JavaPlugin {
         return count;
     }
 
+    /** The plugin's own jar file (used by the self-updater to name the replacement jar). */
+    public java.io.File pluginFile() {
+        return getFile();
+    }
+
     public PluginConfig config() {
         return pluginConfig;
     }

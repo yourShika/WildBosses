@@ -45,6 +45,7 @@ public final class PluginConfig {
 
     private boolean participationLoot = true;
     private String discordWebhook = "";
+    private String updateRepo = "yourShika/WildBosses";
 
     public void load(FileConfiguration c, Logger logger) {
         randomSpawns = c.getBoolean("settings.random-spawns", true);
@@ -64,6 +65,7 @@ public final class PluginConfig {
 
         participationLoot = c.getBoolean("rewards.participation-loot", true);
         discordWebhook = c.getString("integrations.discord-webhook", "");
+        updateRepo = c.getString("integrations.update-repo", "yourShika/WildBosses");
 
         frontierMinDistance = Math.max(0, c.getInt("settings.frontier-search.min-distance", 200));
         frontierMaxDistance = Math.max(frontierMinDistance + 16, c.getInt("settings.frontier-search.max-distance", 3000));
@@ -207,5 +209,9 @@ public final class PluginConfig {
 
     public String discordWebhook() {
         return discordWebhook;
+    }
+
+    public String updateRepo() {
+        return updateRepo;
     }
 }

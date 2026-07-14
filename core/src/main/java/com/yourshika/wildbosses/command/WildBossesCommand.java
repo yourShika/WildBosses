@@ -5,6 +5,7 @@ import com.yourshika.wildbosses.army.ArmyEncounter;
 import com.yourshika.wildbosses.boss.ActiveBoss;
 import com.yourshika.wildbosses.boss.BossDefinition;
 import com.yourshika.wildbosses.gui.MainMenu;
+import com.yourshika.wildbosses.integration.Updater;
 import com.yourshika.wildbosses.util.Text;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -26,7 +27,7 @@ import java.util.StringJoiner;
 public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "help");
+            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -48,6 +49,7 @@ public final class WildBossesCommand implements TabExecutor {
             case "active" -> active(sender);
             case "info" -> info(sender, args);
             case "gui" -> gui(sender);
+            case "update" -> update(sender);
             case "killall" -> killAll(sender);
             case "help" -> sendHelp(sender);
             default -> sendHelp(sender);
@@ -218,6 +220,13 @@ public final class WildBossesCommand implements TabExecutor {
             return;
         }
         new MainMenu(plugin).open(player);
+    }
+
+    private void update(CommandSender sender) {
+        if (denied(sender, "wildbosses.admin")) {
+            return;
+        }
+        Updater.run(plugin, sender);
     }
 
     private void killAll(CommandSender sender) {

@@ -69,6 +69,7 @@ Base command: `/wildbosses` (alias `/wb`).
 | `/wb gui` | Open the admin GUI | `wildbosses.gui` |
 | `/wb killall` | Remove all active encounters | `wildbosses.admin` |
 | `/wb reload` | Reload config and bosses | `wildbosses.admin` |
+| `/wb update` | Download the latest release from GitHub (applied on restart) | `wildbosses.admin` |
 
 `wildbosses.admin` (default: op) grants everything.
 
