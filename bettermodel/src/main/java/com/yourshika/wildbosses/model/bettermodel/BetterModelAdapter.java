@@ -47,8 +47,15 @@ public final class BetterModelAdapter implements ModelAdapter {
         if (renderer.isEmpty()) {
             // Only warn if a model was explicitly requested; a missing id-named model is normal.
             if (def.hasModel()) {
+                String available;
+                try {
+                    available = String.join(", ", BetterModel.modelKeys());
+                } catch (Throwable t) {
+                    available = "?";
+                }
                 plugin.getLogger().warning("BetterModel model '" + key + "' for boss " + def.id()
-                        + " is not loaded; using vanilla appearance.");
+                        + " is not loaded; using vanilla. Loaded models: [" + available + "]"
+                        + " - set 'model:' in the boss file to one of these, or rename your .bbmodel.");
             }
             return ModelHandle.NOOP;
         }

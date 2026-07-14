@@ -44,7 +44,10 @@ public final class Updater {
 
     private static void doUpdate(WildBossesPlugin plugin, CommandSender sender, String repo) {
         try {
-            HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(15))
+                    .followRedirects(HttpClient.Redirect.NORMAL) // GitHub asset downloads 302 to a CDN
+                    .build();
             HttpResponse<String> res = client.send(HttpRequest.newBuilder(
                             URI.create("https://api.github.com/repos/" + repo + "/releases/latest"))
                     .header("Accept", "application/vnd.github+json")

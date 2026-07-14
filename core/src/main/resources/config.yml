@@ -38,13 +38,12 @@ integrations:
   # GitHub repo (owner/name) used by "/wb update" to fetch the latest release jar.
   update-repo: "yourShika/WildBosses"
   oraxen:
-    # Deploy custom mob textures/models into the Oraxen pack on startup (run /oraxen reload after).
+    # On startup, install models/*.bbmodel into BetterModel and merge BetterModel's built pack into
+    # Oraxen. Run /bettermodel reload and /oraxen reload afterwards.
     auto-deploy: true
-    # A flat texture (textures/<id>.png) cannot be wrapped onto a 3D mob - that needs a BlockBench
-    # model (BetterModel). If you enable this, a boss WITHOUT a model shows its texture as a flat 2D
-    # sprite (billboard facing the player) on an invisible mob. Off by default; use BetterModel for
-    # a real textured mob.
-    flat-texture-display: false
+    # Path (relative to the BetterModel plugin folder) of BetterModel's generated pack zip. If it is
+    # not found there, WildBosses uses the newest .zip anywhere under the BetterModel folder.
+    bettermodel-pack: "pack/BetterModel-Pack.zip"
   # When placing a terrain-changing boss, it is only spawned on never-generated ("frontier")
   # chunks. These control how far out from a player the spawner searches for such a spot.
   frontier-search:

@@ -239,19 +239,24 @@ public final class WildBossesCommand implements TabExecutor {
                 sender.sendMessage(Text.mm("<red>Neither Oraxen nor BetterModel is installed - nothing to deploy."));
                 return;
             }
-            sender.sendMessage(Text.mm("<green>Deployed <yellow>" + r.bbmodels() + "<green> model(s) to BetterModel, <yellow>"
-                    + r.textures() + "<green> texture(s) to Oraxen. Pack merged: <yellow>" + (r.packMerged() ? "yes" : "no")));
-            sender.sendMessage(Text.mm("<gold>Now run /bettermodel reload, then /oraxen reload."));
+            sender.sendMessage(Text.mm("<green>Installed <yellow>" + r.bbmodels() + "<green> model(s) into BetterModel."));
+            if (r.packMerged()) {
+                sender.sendMessage(Text.mm("<green>Merged BetterModel's pack into Oraxen. <gold>Now run /oraxen reload."));
+            } else if (!r.packFound()) {
+                sender.sendMessage(Text.mm("<yellow>BetterModel's pack isn't built yet. Run <white>/bettermodel reload"
+                        + "<yellow>, then <white>/wb assets redeploy<yellow> again to merge it into Oraxen."));
+            } else {
+                sender.sendMessage(Text.mm("<yellow>Oraxen not installed - could not merge the pack."));
+            }
         } else {
             var st = oa.status();
             sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses assets</bold></gradient>"));
             sender.sendMessage(Text.mm("<gray>BetterModel: <white>" + (st.betterModel() ? "yes" : "no")
                     + " <gray>Oraxen: <white>" + (st.oraxen() ? "yes" : "no")
                     + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")));
-            sender.sendMessage(Text.mm("<gray>.bbmodel models: <white>" + st.bbmodels()
-                    + " <gray>textures: <white>" + st.textures()));
-            sender.sendMessage(Text.mm("<gray>Put <yellow>.bbmodel<gray> in <yellow>plugins/WildBosses/models/<gray> and "
-                    + "<yellow>.png<gray> in <yellow>textures/<gray> (named by boss id), then <yellow>/wb assets redeploy<gray>."));
+            sender.sendMessage(Text.mm("<gray>.bbmodel models: <white>" + st.bbmodels()));
+            sender.sendMessage(Text.mm("<gray>Put <yellow>.bbmodel<gray> (named by boss id) in <yellow>plugins/WildBosses/models/<gray>, "
+                    + "then <yellow>/wb assets redeploy<gray> → <yellow>/bettermodel reload<gray> → <yellow>/wb assets redeploy<gray> → <yellow>/oraxen reload<gray>."));
         }
     }
 

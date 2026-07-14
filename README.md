@@ -45,7 +45,7 @@ vanilla fallback when BetterModel isn't installed.
 |---|---|
 | Server | Paper (or a Paper fork: Purpur, Folia, etc.) for **Minecraft 26.1.2** |
 | Java | **25+** (required by MC 26.1) |
-| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) (custom models); Oraxen (custom textures / bundled pack); CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
+| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) (custom models); Oraxen (merge the BetterModel pack into one resource pack); CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
 
 ## Installation
 
@@ -133,12 +133,11 @@ Reload after edits with `/wb reload`.
 
 ## Custom models & textures
 
-Give a boss a custom look via **BetterModel** (full BlockBench model + animations) or a flat **custom
-texture** — rendering falls back BetterModel → Oraxen texture → vanilla automatically. Drop a
-`<bossId>.bbmodel` in `plugins/WildBosses/models/` (rendered by BetterModel) or a `<bossId>.png` in
-`textures/` (flat, no BetterModel). `/wb assets redeploy` installs the model into BetterModel and
-merges BetterModel's built pack into the Oraxen texture pack (`pack/uploads/`); then run
-`/bettermodel reload` and `/oraxen reload`. See [docs/bettermodel.md](docs/bettermodel.md) and
+Give a boss a custom look with **BetterModel** (BlockBench model + animations). Drop a
+`<bossId>.bbmodel` in `plugins/WildBosses/models/`; `/wb assets redeploy` installs it into BetterModel
+and, if you run **Oraxen**, merges BetterModel's built pack into the Oraxen resource pack
+(`pack/uploads/`) so you serve a single pack. Flow: `/wb assets redeploy` → `/bettermodel reload` →
+`/wb assets redeploy` → `/oraxen reload`. See [docs/bettermodel.md](docs/bettermodel.md) and
 [docs/oraxen.md](docs/oraxen.md).
 
 ---

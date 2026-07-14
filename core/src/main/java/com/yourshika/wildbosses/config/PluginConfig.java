@@ -47,7 +47,7 @@ public final class PluginConfig {
     private String discordWebhook = "";
     private String updateRepo = "yourShika/WildBosses";
     private boolean oraxenAutoDeploy = true;
-    private boolean oraxenFlatTextureDisplay = false;
+    private String oraxenBetterModelPack = "pack/BetterModel-Pack.zip";
 
     public void load(FileConfiguration c, Logger logger) {
         randomSpawns = c.getBoolean("settings.random-spawns", true);
@@ -69,7 +69,7 @@ public final class PluginConfig {
         discordWebhook = c.getString("integrations.discord-webhook", "");
         updateRepo = c.getString("integrations.update-repo", "yourShika/WildBosses");
         oraxenAutoDeploy = c.getBoolean("integrations.oraxen.auto-deploy", true);
-        oraxenFlatTextureDisplay = c.getBoolean("integrations.oraxen.flat-texture-display", false);
+        oraxenBetterModelPack = c.getString("integrations.oraxen.bettermodel-pack", "pack/BetterModel-Pack.zip");
 
         frontierMinDistance = Math.max(0, c.getInt("settings.frontier-search.min-distance", 200));
         frontierMaxDistance = Math.max(frontierMinDistance + 16, c.getInt("settings.frontier-search.max-distance", 3000));
@@ -223,7 +223,7 @@ public final class PluginConfig {
         return oraxenAutoDeploy;
     }
 
-    public boolean oraxenFlatTextureDisplay() {
-        return oraxenFlatTextureDisplay;
+    public String oraxenBetterModelPack() {
+        return oraxenBetterModelPack;
     }
 }

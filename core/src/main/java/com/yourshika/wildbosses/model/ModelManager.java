@@ -6,12 +6,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.plugin.Plugin;
 
 /**
- * Selects how bosses are rendered, trying each source in order and falling back cleanly:
- * <ol>
- *   <li><b>BetterModel</b> — full custom BlockBench model (loaded reflectively; module in :bettermodel).</li>
- *   <li><b>Oraxen texture</b> — a custom texture/model deployed to Oraxen, shown via an ItemDisplay.</li>
- *   <li><b>Vanilla</b> — the base entity's own appearance.</li>
- * </ol>
+ * Selects how bosses are rendered: a full <b>BetterModel</b> BlockBench model (loaded reflectively;
+ * module in :bettermodel) if present, otherwise the base entity's <b>vanilla</b> appearance.
  */
 public final class ModelManager {
 
@@ -20,7 +16,6 @@ public final class ModelManager {
 
     private final Plugin plugin;
     private ModelAdapter betterModel;
-    private OraxenItemAdapter oraxen;
 
     public ModelManager(Plugin plugin) {
         this.plugin = plugin;
@@ -28,8 +23,6 @@ public final class ModelManager {
 
     public void select() {
         betterModel = null;
-        oraxen = null;
-
         if (Bukkit.getPluginManager().isPluginEnabled("BetterModel")) {
             try {
                 Class<?> clazz = Class.forName(BETTERMODEL_ADAPTER);
@@ -39,37 +32,19 @@ public final class ModelManager {
                 plugin.getLogger().warning("BetterModel is installed but the adapter failed to load ("
                         + t.getClass().getSimpleName() + ": " + t.getMessage() + ").");
             }
-        }
-        boolean flatTextures = plugin instanceof com.yourshika.wildbosses.WildBossesPlugin wb
-                && wb.config().oraxenFlatTextureDisplay();
-        if (flatTextures && Bukkit.getPluginManager().isPluginEnabled("Oraxen")) {
-            oraxen = new OraxenItemAdapter(plugin);
-            if (oraxen.supportsModels()) {
-                plugin.getLogger().info("Oraxen flat-texture display enabled (2D sprites for texture-only bosses).");
-            }
-        }
-        if (betterModel == null && (oraxen == null || !oraxen.supportsModels())) {
-            plugin.getLogger().info("No model provider - bosses use their vanilla appearance.");
+        } else {
+            plugin.getLogger().info("BetterModel not installed - bosses use their vanilla appearance.");
         }
     }
 
     public boolean supportsModels() {
-        return betterModel != null || (oraxen != null && oraxen.supportsModels());
+        return betterModel != null;
     }
 
-    /** Attach a model/texture to the boss entity, or {@link ModelHandle#NOOP} for vanilla. */
+    /** Attach a BetterModel model to the boss entity, or {@link ModelHandle#NOOP} for vanilla. */
     public ModelHandle attach(LivingEntity entity, BossDefinition def) {
         if (betterModel != null) {
-            ModelHandle handle = tryAttach(betterModel, entity, def);
-            if (handle != ModelHandle.NOOP) {
-                return handle;
-            }
-        }
-        if (oraxen != null && oraxen.supportsModels()) {
-            ModelHandle handle = tryAttach(oraxen, entity, def);
-            if (handle != ModelHandle.NOOP) {
-                return handle;
-            }
+            return tryAttach(betterModel, entity, def);
         }
         return ModelHandle.NOOP;
     }
