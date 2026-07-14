@@ -58,7 +58,7 @@ public final class WildBossesPlugin extends JavaPlugin {
         terrainManager.restorePersisted();
         reloadAll();
 
-        if (pluginConfig.oraxenAutoDeploy() && oraxenAssets.oraxenPresent()) {
+        if (pluginConfig.oraxenAutoDeploy() && (oraxenAssets.oraxenPresent() || oraxenAssets.betterModelPresent())) {
             oraxenAssets.deploy();
         }
 

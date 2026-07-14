@@ -16,21 +16,24 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Deploys WildBosses' custom mob assets into Oraxen's resource pack so a single Oraxen pack ships
- * every boss texture/model. Drop files into the plugin's {@code textures/} and {@code models/}
- * folders named after the boss id:
+ * Bridges WildBosses' custom-mob assets into a single Oraxen resource pack.
  *
+ * <p>Two folders in the plugin data folder (filename = boss id):</p>
  * <ul>
- *   <li>{@code textures/<bossId>.png} → an Oraxen item {@code wildbosses_<bossId>} (generated model)</li>
- *   <li>{@code models/<bossId>.json} → a custom model referenced by that item</li>
+ *   <li>{@code models/<bossId>.bbmodel} → copied into BetterModel's {@code models/} folder. BetterModel
+ *       loads it and builds its pack ({@code plugins/BetterModel/pack/BetterModel-Pack.zip}); that zip
+ *       is then handed to Oraxen ({@code Oraxen/pack/uploads/}) which merges it into its pack.</li>
+ *   <li>{@code textures/<bossId>.png} → a flat custom texture with no BetterModel: copied into
+ *       {@code Oraxen/pack/textures/wildbosses/} and registered as an Oraxen item
+ *       {@code wildbosses_<bossId>} (used by {@code OraxenItemAdapter}).</li>
  * </ul>
  *
- * <p>Assets are copied into {@code Oraxen/pack/textures/wildbosses/}, {@code Oraxen/pack/models/wildbosses/}
- * and an {@code Oraxen/items/wildbosses.yml} is (re)generated. Existing pack files are backed up before
- * being overwritten. Run {@code /oraxen reload} afterwards (or {@code /wb assets redeploy}) to rebuild
- * the pack. Mirrors the workflow of yourShika-Backpacks.</p>
+ * <p>After a deploy, run {@code /bettermodel reload} (rebuild the model pack) and {@code /oraxen reload}
+ * (rebuild the merged pack). Mirrors the workflow of yourShika-Backpacks.</p>
  */
 public final class OraxenAssets {
+
+    private static final String BETTERMODEL_PACK = "pack/BetterModel-Pack.zip";
 
     private final WildBossesPlugin plugin;
     private final File texturesDir;
@@ -45,22 +48,23 @@ public final class OraxenAssets {
     }
 
     private void ensureFolders() {
-        if (texturesDir.mkdirs() || modelsDir.mkdirs()) {
-            writeReadme();
-        } else if (!new File(texturesDir, "README.txt").exists()) {
-            writeReadme();
-        }
+        texturesDir.mkdirs();
+        modelsDir.mkdirs();
+        writeReadmeIfMissing(new File(modelsDir, "README.txt"),
+                "Drop a BlockBench .bbmodel named after a boss id here, e.g. warthoglin.bbmodel\n"
+                        + "It is installed into BetterModel; run /wb assets redeploy, then /bettermodel reload\n"
+                        + "and /oraxen reload to build the merged texture pack.\n");
+        writeReadmeIfMissing(new File(texturesDir, "README.txt"),
+                "Drop a flat PNG named after a boss id here, e.g. medusa.png (used WITHOUT BetterModel).\n"
+                        + "Run /wb assets redeploy, then /oraxen reload to build the pack.\n");
     }
 
-    private void writeReadme() {
-        try {
-            Files.writeString(new File(texturesDir, "README.txt").toPath(),
-                    "Drop a PNG named after a boss id here, e.g. warthoglin.png\n"
-                            + "Run /wb assets redeploy and then /oraxen reload to build the pack.\n");
-            Files.writeString(new File(modelsDir, "README.txt").toPath(),
-                    "Drop a Minecraft item-model .json named after a boss id here, e.g. warthoglin.json\n"
-                            + "Run /wb assets redeploy and then /oraxen reload to build the pack.\n");
-        } catch (Exception ignored) {
+    private void writeReadmeIfMissing(File file, String content) {
+        if (!file.exists()) {
+            try {
+                Files.writeString(file.toPath(), content);
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -68,74 +72,105 @@ public final class OraxenAssets {
         return Bukkit.getPluginManager().getPlugin("Oraxen") != null;
     }
 
+    public boolean betterModelPresent() {
+        return Bukkit.getPluginManager().getPlugin("BetterModel") != null;
+    }
+
     /** Read-only summary for {@code /wb assets status}. */
-    public record Status(boolean oraxen, int textures, int models) {
+    public record Status(boolean oraxen, boolean betterModel, int textures, int bbmodels, boolean packBuilt) {
     }
 
     public Status status() {
-        return new Status(oraxenPresent(), count(texturesDir, ".png"), count(modelsDir, ".json"));
+        Plugin bm = Bukkit.getPluginManager().getPlugin("BetterModel");
+        boolean packBuilt = bm != null && new File(bm.getDataFolder(), BETTERMODEL_PACK).isFile();
+        return new Status(oraxenPresent(), bm != null,
+                count(texturesDir, ".png"), count(modelsDir, ".bbmodel"), packBuilt);
     }
 
     /** Result of a deploy for the command to report. */
-    public record DeployResult(boolean oraxen, int textures, int models, int backups, String error) {
+    public record DeployResult(boolean oraxen, boolean betterModel, int textures, int bbmodels,
+                               boolean packMerged, int backups, String error) {
     }
 
     public DeployResult deploy() {
         Plugin oraxen = Bukkit.getPluginManager().getPlugin("Oraxen");
-        if (oraxen == null) {
-            return new DeployResult(false, 0, 0, 0, "Oraxen is not installed");
-        }
-        File oxData = oraxen.getDataFolder();
-        File oxTex = new File(oxData, "pack/textures/wildbosses");
-        File oxModels = new File(oxData, "pack/models/wildbosses");
-        File itemsFile = new File(oxData, "items/wildbosses.yml");
+        Plugin betterModel = Bukkit.getPluginManager().getPlugin("BetterModel");
         backupRoot = null;
-        int texCount = 0;
-        int modelCount = 0;
+        int bbmodels = 0;
+        int textures = 0;
         int backups = 0;
+        boolean packMerged = false;
 
-        YamlConfiguration items = new YamlConfiguration();
         try {
-            File[] textures = texturesDir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".png"));
-            if (textures != null) {
-                for (File png : textures) {
-                    String base = stripExt(png.getName());
-                    if (copyWithBackup(png.toPath(), new File(oxTex, base + ".png").toPath())) {
-                        backups++;
+            // 1. Install .bbmodel files into BetterModel.
+            if (betterModel != null) {
+                File bmModels = new File(betterModel.getDataFolder(), "models");
+                File[] files = modelsDir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".bbmodel"));
+                if (files != null) {
+                    for (File model : files) {
+                        if (copyWithBackup(model.toPath(), new File(bmModels, model.getName()).toPath())) {
+                            backups++;
+                        }
+                        bbmodels++;
                     }
-                    String id = "wildbosses_" + base;
-                    items.set(id + ".displayname", "<white>" + base);
-                    items.set(id + ".material", "PAPER");
-                    items.set(id + ".Pack.generate_model", true);
-                    items.set(id + ".Pack.parent_model", "item/generated");
-                    items.set(id + ".Pack.textures", List.of("wildbosses/" + base));
-                    texCount++;
                 }
             }
-            File[] models = modelsDir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".json"));
-            if (models != null) {
-                for (File json : models) {
-                    String base = stripExt(json.getName());
-                    if (copyWithBackup(json.toPath(), new File(oxModels, base + ".json").toPath())) {
-                        backups++;
-                    }
-                    String id = "wildbosses_" + base;
-                    items.set(id + ".displayname", "<white>" + base);
-                    items.set(id + ".material", "PAPER");
-                    items.set(id + ".Pack.model", "wildbosses/" + base);
-                    modelCount++;
+
+            // 2. Hand BetterModel's built pack to Oraxen for merging (pack/uploads).
+            if (betterModel != null && oraxen != null) {
+                File packZip = new File(betterModel.getDataFolder(), BETTERMODEL_PACK);
+                if (packZip.isFile()) {
+                    File uploads = new File(oraxen.getDataFolder(), "pack/uploads/bettermodel.zip");
+                    Files.createDirectories(uploads.getParentFile().toPath());
+                    Files.copy(packZip.toPath(), uploads.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    packMerged = true;
                 }
             }
-            Files.createDirectories(itemsFile.getParentFile().toPath());
-            items.save(itemsFile);
+
+            // 3. Deploy flat textures as Oraxen items (custom texture without BetterModel).
+            if (oraxen != null) {
+                int[] res = deployTextures(oraxen);
+                textures = res[0];
+                backups += res[1];
+            }
         } catch (Exception ex) {
             plugin.getLogger().warning("Oraxen asset deploy failed: " + ex.getMessage());
-            return new DeployResult(true, texCount, modelCount, backups, ex.getMessage());
+            return new DeployResult(oraxen != null, betterModel != null, textures, bbmodels, packMerged, backups, ex.getMessage());
         }
 
-        plugin.getLogger().info("Deployed " + texCount + " texture(s) and " + modelCount
-                + " model(s) to Oraxen. Run /oraxen reload to rebuild the pack.");
-        return new DeployResult(true, texCount, modelCount, backups, null);
+        plugin.getLogger().info("Assets deployed: " + bbmodels + " model(s) to BetterModel, "
+                + textures + " texture(s) to Oraxen, pack merged: " + packMerged
+                + ". Run /bettermodel reload and /oraxen reload.");
+        return new DeployResult(oraxen != null, betterModel != null, textures, bbmodels, packMerged, backups, null);
+    }
+
+    /** @return {@code [textureCount, backupCount]} */
+    private int[] deployTextures(Plugin oraxen) throws Exception {
+        File oxData = oraxen.getDataFolder();
+        File oxTex = new File(oxData, "pack/textures/wildbosses");
+        File itemsFile = new File(oxData, "items/wildbosses.yml");
+        int count = 0;
+        int backups = 0;
+        YamlConfiguration items = new YamlConfiguration();
+        File[] pngs = texturesDir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".png"));
+        if (pngs != null) {
+            for (File png : pngs) {
+                String base = stripExt(png.getName());
+                if (copyWithBackup(png.toPath(), new File(oxTex, base + ".png").toPath())) {
+                    backups++;
+                }
+                String id = "wildbosses_" + base;
+                items.set(id + ".displayname", "<white>" + base);
+                items.set(id + ".material", "PAPER");
+                items.set(id + ".Pack.generate_model", true);
+                items.set(id + ".Pack.parent_model", "item/generated");
+                items.set(id + ".Pack.textures", List.of("wildbosses/" + base));
+                count++;
+            }
+        }
+        Files.createDirectories(itemsFile.getParentFile().toPath());
+        items.save(itemsFile);
+        return new int[]{count, backups};
     }
 
     // ---- helpers --------------------------------------------------------------------------
@@ -144,7 +179,7 @@ public final class OraxenAssets {
         boolean backedUp = false;
         if (Files.exists(target)) {
             if (sha256(Files.readAllBytes(target)).equals(sha256(Files.readAllBytes(source)))) {
-                return false; // already identical
+                return false;
             }
             backup(target);
             backedUp = true;

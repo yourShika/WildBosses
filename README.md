@@ -133,10 +133,12 @@ Reload after edits with `/wb reload`.
 
 ## Custom models & textures
 
-Give a boss a custom look via **BetterModel** (full model + animations) or a **custom texture** shown
-through Oraxen — rendering falls back BetterModel → Oraxen texture → vanilla automatically. Drop a
-`<bossId>.png` in `plugins/WildBosses/textures/` (or a `<bossId>.json` in `models/`) and run
-`/wb assets redeploy` then `/oraxen reload`. See [docs/bettermodel.md](docs/bettermodel.md) and
+Give a boss a custom look via **BetterModel** (full BlockBench model + animations) or a flat **custom
+texture** — rendering falls back BetterModel → Oraxen texture → vanilla automatically. Drop a
+`<bossId>.bbmodel` in `plugins/WildBosses/models/` (rendered by BetterModel) or a `<bossId>.png` in
+`textures/` (flat, no BetterModel). `/wb assets redeploy` installs the model into BetterModel and
+merges BetterModel's built pack into the Oraxen texture pack (`pack/uploads/`); then run
+`/bettermodel reload` and `/oraxen reload`. See [docs/bettermodel.md](docs/bettermodel.md) and
 [docs/oraxen.md](docs/oraxen.md).
 
 ---

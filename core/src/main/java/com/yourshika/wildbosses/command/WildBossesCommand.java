@@ -231,23 +231,27 @@ public final class WildBossesCommand implements TabExecutor {
         String sub = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "status";
         if (sub.equals("redeploy")) {
             var r = oa.deploy();
-            if (!r.oraxen()) {
-                sender.sendMessage(Text.mm("<red>Oraxen is not installed."));
-                return;
-            }
             if (r.error() != null) {
                 sender.sendMessage(Text.mm("<red>Deploy failed: <gray>" + r.error()));
                 return;
             }
-            sender.sendMessage(Text.mm("<green>Deployed <yellow>" + r.textures() + "<green> texture(s) and <yellow>"
-                    + r.models() + "<green> model(s). <gold>Now run /oraxen reload."));
+            if (!r.oraxen() && !r.betterModel()) {
+                sender.sendMessage(Text.mm("<red>Neither Oraxen nor BetterModel is installed - nothing to deploy."));
+                return;
+            }
+            sender.sendMessage(Text.mm("<green>Deployed <yellow>" + r.bbmodels() + "<green> model(s) to BetterModel, <yellow>"
+                    + r.textures() + "<green> texture(s) to Oraxen. Pack merged: <yellow>" + (r.packMerged() ? "yes" : "no")));
+            sender.sendMessage(Text.mm("<gold>Now run /bettermodel reload, then /oraxen reload."));
         } else {
             var st = oa.status();
             sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses assets</bold></gradient>"));
-            sender.sendMessage(Text.mm("<gray>Oraxen present: <white>" + (st.oraxen() ? "yes" : "no")));
-            sender.sendMessage(Text.mm("<gray>Textures: <white>" + st.textures() + " <gray>Models: <white>" + st.models()));
-            sender.sendMessage(Text.mm("<gray>Drop files in <yellow>plugins/WildBosses/textures/<gray> and <yellow>models/"
-                    + " <gray>named after a boss id, then <yellow>/wb assets redeploy<gray>."));
+            sender.sendMessage(Text.mm("<gray>BetterModel: <white>" + (st.betterModel() ? "yes" : "no")
+                    + " <gray>Oraxen: <white>" + (st.oraxen() ? "yes" : "no")
+                    + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")));
+            sender.sendMessage(Text.mm("<gray>.bbmodel models: <white>" + st.bbmodels()
+                    + " <gray>textures: <white>" + st.textures()));
+            sender.sendMessage(Text.mm("<gray>Put <yellow>.bbmodel<gray> in <yellow>plugins/WildBosses/models/<gray> and "
+                    + "<yellow>.png<gray> in <yellow>textures/<gray> (named by boss id), then <yellow>/wb assets redeploy<gray>."));
         }
     }
 
