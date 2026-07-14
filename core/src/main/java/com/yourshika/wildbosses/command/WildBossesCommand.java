@@ -229,6 +229,17 @@ public final class WildBossesCommand implements TabExecutor {
         }
         var oa = plugin.oraxenAssets();
         String sub = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "status";
+        if (sub.equals("setup")) {
+            String err = oa.setupForOraxen();
+            if (err != null) {
+                sender.sendMessage(Text.mm("<red>Setup failed: <gray>" + err));
+                return;
+            }
+            sender.sendMessage(Text.mm("<green>Configured BetterModel to write its pack straight into Oraxen "
+                    + "(single pack). <gray>Backup: config.yml.wildbosses-backup"));
+            sender.sendMessage(Text.mm("<gold>Now run /bettermodel reload, then /oraxen reload."));
+            return;
+        }
         if (sub.equals("redeploy")) {
             var r = oa.deploy();
             if (r.error() != null) {
@@ -251,10 +262,14 @@ public final class WildBossesCommand implements TabExecutor {
         } else {
             var st = oa.status();
             sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses assets</bold></gradient>"));
+            boolean folder = oa.writesIntoOraxen();
             sender.sendMessage(Text.mm("<gray>BetterModel: <white>" + (st.betterModel() ? "yes" : "no")
                     + " <gray>Oraxen: <white>" + (st.oraxen() ? "yes" : "no")
-                    + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")
-                    + " <gray>merged into Oraxen: <white>" + (oa.uploadsPresent() ? "yes" : "no")));
+                    + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")));
+            sender.sendMessage(Text.mm("<gray>Pack mode: <white>" + (folder
+                    ? "folder → Oraxen (single pack) ✔"
+                    : "zip → uploads (merged: " + (oa.uploadsPresent() ? "yes" : "no")
+                            + ") - run <yellow>/wb assets setup<gray> for a single Oraxen pack")));
 
             var files = oa.modelFileNames();
             if (files.isEmpty()) {
@@ -334,7 +349,7 @@ public final class WildBossesCommand implements TabExecutor {
             }
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("assets")) {
-            return filter(List.of("status", "redeploy"), args[1]);
+            return filter(List.of("status", "redeploy", "setup"), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
             List<String> opts = new ArrayList<>();

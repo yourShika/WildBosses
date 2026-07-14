@@ -28,5 +28,5 @@ help:
   - "<yellow>/wb gui <gray>- open the admin GUI"
   - "<yellow>/wb killall <gray>- remove all active bosses"
   - "<yellow>/wb reload <gray>- reload config and bosses"
-  - "<yellow>/wb assets status|redeploy <gray>- install models & merge the BetterModel pack into Oraxen"
+  - "<yellow>/wb assets setup|status|redeploy <gray>- BetterModel models into one Oraxen pack"
   - "<yellow>/wb update <gray>- download the latest release from GitHub"

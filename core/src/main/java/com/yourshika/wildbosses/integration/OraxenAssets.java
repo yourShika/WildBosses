@@ -2,6 +2,7 @@ package com.yourshika.wildbosses.integration;
 
 import com.yourshika.wildbosses.WildBossesPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
@@ -9,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Bridges WildBosses' BlockBench models and BetterModel's generated pack into a single Oraxen pack.
@@ -96,8 +99,13 @@ public final class OraxenAssets {
                 }
             }
 
-            // 2. Hand BetterModel's built pack to Oraxen (pack/uploads) for merging.
-            if (oraxen != null && packZip != null) {
+            // 2. Get BetterModel's assets into Oraxen.
+            if (betterModel != null && oraxen != null && writesIntoOraxen()) {
+                // Folder mode: BetterModel writes its assets straight into Oraxen's pack. One pack,
+                // nothing to copy - just reload both plugins.
+                packMerged = true;
+                packZip = null;
+            } else if (oraxen != null && packZip != null) {
                 File uploads = new File(oraxen.getDataFolder(), "pack/uploads/bettermodel.zip");
                 Files.createDirectories(uploads.getParentFile().toPath());
                 Files.copy(packZip.toPath(), uploads.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -109,8 +117,9 @@ public final class OraxenAssets {
         }
 
         if (packMerged) {
-            plugin.getLogger().info("Installed " + bbmodels + " model(s) and merged BetterModel's pack ("
-                    + packZip.getName() + ") into Oraxen. Run /oraxen reload.");
+            String how = packZip != null ? "merged BetterModel's pack (" + packZip.getName() + ") into Oraxen"
+                    : "BetterModel writes straight into Oraxen (folder mode)";
+            plugin.getLogger().info("Installed " + bbmodels + " model(s); " + how + ". Run /bettermodel reload and /oraxen reload.");
         } else if (betterModel != null && packZip == null) {
             plugin.getLogger().info("Installed " + bbmodels + " model(s). BetterModel's pack is not built yet - "
                     + "run /bettermodel reload, then /wb assets redeploy again to merge it into Oraxen.");
@@ -180,6 +189,62 @@ public final class OraxenAssets {
     public boolean uploadsPresent() {
         Plugin ox = Bukkit.getPluginManager().getPlugin("Oraxen");
         return ox != null && new File(ox.getDataFolder(), "pack/uploads/bettermodel.zip").isFile();
+    }
+
+    /** True if BetterModel is configured to write its pack (folder mode) straight into Oraxen's pack. */
+    public boolean writesIntoOraxen() {
+        Plugin bm = Bukkit.getPluginManager().getPlugin("BetterModel");
+        if (bm == null) {
+            return false;
+        }
+        File cfg = new File(bm.getDataFolder(), "config.yml");
+        if (!cfg.isFile()) {
+            return false;
+        }
+        YamlConfiguration y = YamlConfiguration.loadConfiguration(cfg);
+        String type = y.getString("pack-type", "zip");
+        String loc = y.getString("build-folder-location", "BetterModel/build");
+        return type.equalsIgnoreCase("folder") && loc.replace('\\', '/').toLowerCase(Locale.ROOT).contains("oraxen");
+    }
+
+    /**
+     * Configure BetterModel to output its pack directly into Oraxen's pack folder, so a single pack is
+     * served by Oraxen (no double pack, no zip juggling). Backs up BetterModel's config first.
+     *
+     * @return null on success, or an error message
+     */
+    public String setupForOraxen() {
+        Plugin bm = Bukkit.getPluginManager().getPlugin("BetterModel");
+        if (bm == null) {
+            return "BetterModel is not installed";
+        }
+        File cfg = new File(bm.getDataFolder(), "config.yml");
+        if (!cfg.isFile()) {
+            return "BetterModel/config.yml not found";
+        }
+        try {
+            Files.copy(cfg.toPath(), new File(bm.getDataFolder(), "config.yml.wildbosses-backup").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+            List<String> lines = Files.readAllLines(cfg.toPath());
+            setTopLevel(lines, "pack-type", "folder");
+            setTopLevel(lines, "build-folder-location", "plugins/Oraxen/pack");
+            setTopLevel(lines, "merge-with-external-resources", "false");
+            Files.write(cfg.toPath(), lines);
+            return null;
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+    }
+
+    private static void setTopLevel(List<String> lines, String key, String value) {
+        Pattern p = Pattern.compile("^" + Pattern.quote(key) + "\\s*:.*");
+        for (int i = 0; i < lines.size(); i++) {
+            if (p.matcher(lines.get(i)).matches()) {
+                lines.set(i, key + ": " + value);
+                return;
+            }
+        }
+        lines.add(key + ": " + value);
     }
 
     // ---- helpers --------------------------------------------------------------------------

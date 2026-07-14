@@ -17,31 +17,47 @@ its file). If it doesn't, set `model: "<modelName>"` in the boss's `bosses/<id>.
 isn't found, WildBosses logs the list of models BetterModel actually loaded so you can pick the right
 name.
 
-## The flow
+## Recommended: one pack via Oraxen (`/wb assets setup`)
+
+To serve a **single** pack through Oraxen (no double pack), let BetterModel write its assets straight
+into Oraxen's pack folder. Run once:
+
+```
+/wb assets setup      # sets BetterModel to pack-type: folder, build-folder-location: plugins/Oraxen/pack,
+                      # merge-with-external-resources: false  (a backup config.yml.wildbosses-backup is made)
+```
+
+Then, whenever you add/change a model:
 
 ```
 /wb assets redeploy   # installs models/*.bbmodel into plugins/BetterModel/models/
-/bettermodel reload   # BetterModel loads the models and BUILDS its pack (BetterModel-Pack.zip)
-/wb assets redeploy   # copies the freshly-built pack into Oraxen/pack/uploads/bettermodel.zip
-/oraxen reload        # Oraxen merges pack/uploads/*.zip and re-serves the pack
+/bettermodel reload   # BetterModel writes its models+textures into Oraxen/pack/assets
+/oraxen reload        # Oraxen builds & serves the one pack (now containing the models)
 ```
 
-Why twice? BetterModel's pack zip only exists **after** `/bettermodel reload`. The first redeploy
-installs the models; the second (after the reload) grabs the built pack. `/wb assets redeploy` tells
-you exactly which step is still missing (e.g. "BetterModel's pack isn't built yet").
+`/wb assets status` shows the **Pack mode**: `folder → Oraxen (single pack) ✔` once setup is done.
 
-`/wb assets status` shows whether BetterModel/Oraxen are present, how many `.bbmodel` you have, and
-whether BetterModel has built its pack yet.
+### Alternative (without setup): zip → uploads
+
+Without `/wb assets setup`, WildBosses copies BetterModel's built pack zip into `Oraxen/pack/uploads/`
+so Oraxen merges it. This needs an extra step (the zip only exists after `/bettermodel reload`):
+`/wb assets redeploy` → `/bettermodel reload` → `/wb assets redeploy` → `/oraxen reload`.
+
+## Single pack, no fighting
+
+With Oraxen serving the pack, BetterModel does not send its own pack (it has no resource-pack server),
+so there is no double pack — everything the client downloads comes from Oraxen. The `setup` command
+also turns off BetterModel's `merge-with-external-resources` so only Oraxen does the merging.
 
 ## Config
 
 ```yaml
 integrations:
   oraxen:
-    auto-deploy: true                              # deploy on startup
-    bettermodel-pack: "pack/BetterModel-Pack.zip"  # where BetterModel writes its pack (relative to
-                                                   # the BetterModel folder). If not found there,
-                                                   # the newest .zip under the BetterModel folder is used.
+    auto-deploy: true                              # install models + merge on startup
+    bettermodel-pack: "pack/BetterModel-Pack.zip"  # (zip mode only) where BetterModel writes its pack,
+                                                   # relative to the BetterModel folder; if not found
+                                                   # there, the newest .zip under it is used.
 ```
 
 ## Troubleshooting "the model doesn't show"
