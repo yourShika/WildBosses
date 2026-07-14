@@ -29,7 +29,7 @@ public final class ActiveBoss {
     private final BossDefinition def;
     private final LivingEntity entity;
     private final BossBar bossBar;
-    private final ModelHandle model;
+    private ModelHandle model;
     private final double maxHealth;
     private final long spawnTick;
     private final String encounterId;
@@ -76,6 +76,10 @@ public final class ActiveBoss {
 
     public ModelHandle model() {
         return model;
+    }
+
+    public void setModel(ModelHandle model) {
+        this.model = model == null ? ModelHandle.NOOP : model;
     }
 
     public double maxHealth() {

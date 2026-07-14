@@ -60,6 +60,15 @@ public final class BetterModelAdapter implements ModelAdapter {
             return ModelHandle.NOOP;
         }
         EntityTracker tracker = renderer.get().create(BukkitAdapter.adapt(entity));
+        try {
+            tracker.updateBaseEntity(); // hide/sync the vanilla mob
+        } catch (Throwable ignored) {
+        }
+        try {
+            tracker.refresh(); // force the model to render to nearby players
+        } catch (Throwable ignored) {
+        }
+        plugin.getLogger().info("Attached BetterModel model '" + key + "' to boss " + def.id() + ".");
         return new BetterModelHandle(tracker);
     }
 

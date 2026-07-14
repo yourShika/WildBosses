@@ -151,12 +151,10 @@ public final class BossManager {
         double scale = applyScaling(le, loc);
         double maxHp = maxHealthOf(le, def);
         BossBar bar = BossBar.bossBar(displayName(def), 1f, barColor(def), def.bossBar().overlay());
-        ModelHandle model = modelManager.attach(le, def);
         le.customName(displayName(def));
-        // Hide the vanilla name tag only when a custom model is actually shown.
-        le.setCustomNameVisible(model == ModelHandle.NOOP);
+        le.setCustomNameVisible(!def.hasModel()); // provisional; corrected once the model attaches
 
-        ActiveBoss boss = new ActiveBoss(def, le, bar, model, maxHp, tick, encounterId);
+        ActiveBoss boss = new ActiveBoss(def, le, bar, ModelHandle.NOOP, maxHp, tick, encounterId);
         boss.setAddMultiplier(scale);
         spawnBurst(le.getLocation());
         if (plugin.config().bossLifetimeEnabled()) {
@@ -168,7 +166,7 @@ public final class BossManager {
         byEntity.put(le.getUniqueId(), boss);
 
         applyPhase(boss, computePhaseIndex(boss), true);
-        playAnimationState(boss, "idle", true);
+        attachModelLater(boss, le, def);
         if (applyTerrain) {
             encounterHook.onStart(boss);
         }
@@ -430,6 +428,21 @@ public final class BossManager {
                 p.sendMessage(message);
             }
         }
+    }
+
+    /** Attach the model one tick after spawn (BetterModel needs the entity registered in its tracker). */
+    private void attachModelLater(ActiveBoss boss, LivingEntity le, BossDefinition def) {
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!boss.isValid()) {
+                return;
+            }
+            ModelHandle handle = modelManager.attach(le, def);
+            boss.setModel(handle);
+            le.setCustomNameVisible(handle == ModelHandle.NOOP);
+            if (handle != ModelHandle.NOOP) {
+                playAnimationState(boss, "idle", true);
+            }
+        }, 1L);
     }
 
     private void playAnimationState(ActiveBoss boss, String state, boolean loop) {
