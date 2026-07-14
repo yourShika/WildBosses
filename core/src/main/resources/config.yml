@@ -40,6 +40,11 @@ integrations:
   oraxen:
     # Deploy custom mob textures/models into the Oraxen pack on startup (run /oraxen reload after).
     auto-deploy: true
+    # A flat texture (textures/<id>.png) cannot be wrapped onto a 3D mob - that needs a BlockBench
+    # model (BetterModel). If you enable this, a boss WITHOUT a model shows its texture as a flat 2D
+    # sprite (billboard facing the player) on an invisible mob. Off by default; use BetterModel for
+    # a real textured mob.
+    flat-texture-display: false
   # When placing a terrain-changing boss, it is only spawned on never-generated ("frontier")
   # chunks. These control how far out from a player the spawner searches for such a spot.
   frontier-search:

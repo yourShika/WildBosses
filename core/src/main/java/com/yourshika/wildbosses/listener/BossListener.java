@@ -4,6 +4,7 @@ import com.yourshika.wildbosses.boss.ActiveBoss;
 import com.yourshika.wildbosses.boss.BossDefinition;
 import com.yourshika.wildbosses.boss.BossManager;
 import com.yourshika.wildbosses.util.Keys;
+import org.bukkit.entity.Creeper;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,6 +13,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.persistence.PersistentDataType;
 
 /** Bridges Bukkit combat/death events into the boss runtime. */
@@ -68,6 +70,21 @@ public final class BossListener implements Listener {
         ActiveBoss boss = manager.get(event.getEntity());
         if (boss != null) {
             manager.handleDeath(boss, event);
+        }
+    }
+
+    /**
+     * Stop a boss Creeper from self-detonating (and dying) when a player gets close. The boss only
+     * "explodes" through its scripted skills; its own vanilla ignition is cancelled so the fight lasts.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPrime(ExplosionPrimeEvent event) {
+        if (manager.get(event.getEntity()) != null) {
+            event.setCancelled(true);
+            if (event.getEntity() instanceof Creeper creeper) {
+                creeper.setIgnited(false);
+                creeper.setFuseTicks(creeper.getMaxFuseTicks());
+            }
         }
     }
 

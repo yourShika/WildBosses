@@ -143,6 +143,9 @@ public final class BossManager {
         if (le instanceof org.bukkit.entity.Zombie zombie) {
             zombie.setShouldBurnInDay(false); // bosses shouldn't die to sunlight
         }
+        if (le instanceof org.bukkit.entity.Creeper creeper) {
+            creeper.setExplosionRadius(0); // no self-detonation; boss explodes only via its skills
+        }
         tag(le, def, encounterId);
 
         double scale = applyScaling(le, loc);

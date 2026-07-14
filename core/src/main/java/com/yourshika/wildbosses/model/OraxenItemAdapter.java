@@ -68,10 +68,12 @@ public final class OraxenItemAdapter implements ModelAdapter {
         }
         ItemDisplay display = entity.getWorld().spawn(entity.getLocation(), ItemDisplay.class);
         display.setItemStack(item);
-        display.setBillboard(Display.Billboard.FIXED);
-        float scale = (float) Math.max(1.0, def.stats().scale() * 2.0); // items render small; scale up
+        // CENTER billboard = a flat 2D sprite that always faces the player (a raw texture cannot be
+        // wrapped onto the 3D mob shape; that needs a BlockBench model via BetterModel).
+        display.setBillboard(Display.Billboard.CENTER);
+        float scale = (float) Math.max(1.5, def.stats().scale() * 2.5);
         display.setTransformation(new Transformation(
-                new Vector3f(0, (float) (entity.getHeight() * 0.5), 0),
+                new Vector3f(0, (float) (entity.getHeight() * 0.6f), 0),
                 new AxisAngle4f(0, 0, 0, 1),
                 new Vector3f(scale, scale, scale),
                 new AxisAngle4f(0, 0, 0, 1)));

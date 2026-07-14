@@ -40,10 +40,12 @@ public final class ModelManager {
                         + t.getClass().getSimpleName() + ": " + t.getMessage() + ").");
             }
         }
-        if (Bukkit.getPluginManager().isPluginEnabled("Oraxen")) {
+        boolean flatTextures = plugin instanceof com.yourshika.wildbosses.WildBossesPlugin wb
+                && wb.config().oraxenFlatTextureDisplay();
+        if (flatTextures && Bukkit.getPluginManager().isPluginEnabled("Oraxen")) {
             oraxen = new OraxenItemAdapter(plugin);
             if (oraxen.supportsModels()) {
-                plugin.getLogger().info("Oraxen detected - custom textures via ItemDisplay enabled.");
+                plugin.getLogger().info("Oraxen flat-texture display enabled (2D sprites for texture-only bosses).");
             }
         }
         if (betterModel == null && (oraxen == null || !oraxen.supportsModels())) {

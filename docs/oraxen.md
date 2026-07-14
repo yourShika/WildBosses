@@ -51,10 +51,16 @@ Existing files are backed up to `plugins/WildBosses/AssetBackups/` before being 
 and whether BetterModel has built its pack yet. Auto-deploy on startup:
 `integrations.oraxen.auto-deploy: true|false`.
 
-## Notes
+## Important: flat textures can't wrap a mob
 
-- **Models are BlockBench (`.bbmodel`) and are rendered by BetterModel** — the Oraxen step only merges
-  BetterModel's generated assets into the shared texture pack.
-- The flat-texture (`textures/`) path renders via an `ItemDisplay` and is **experimental** — best for
-  simple looks; use a real BetterModel model for complex creatures.
-- Rendering falls back automatically: **BetterModel → Oraxen texture → vanilla**.
+A raw `.png` has no UV mapping onto a 3D mob, so it **cannot** be "painted" onto the mob's body — that
+is a Minecraft limitation. To put a texture *on the mob shape* you need a **BlockBench model**
+(`.bbmodel` via BetterModel), which maps the texture to the model.
+
+Because of this, the flat-texture path is **off by default**. If you enable
+`integrations.oraxen.flat-texture-display: true`, a boss without a model is shown as a flat **2D
+sprite** (a billboard that always faces the player) on an invisible mob — useful for simple
+2D-sprite enemies, but it is not a 3D textured mob.
+
+- **For a real textured mob → use a `.bbmodel` (BetterModel).** That is the recommended path.
+- Rendering falls back automatically: **BetterModel → (optional) Oraxen flat sprite → vanilla**.
