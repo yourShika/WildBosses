@@ -57,6 +57,14 @@ broadcast:
   army-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <difficulty> <white>is invading <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
   boss-death: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <white>has been slain!"
   boss-fled: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <gray>The <boss> <gray>grew tired of waiting and fled into the wild..."
+  # Placeholders: <boss> <difficulty> <player> (who found it) <item> (hover to preview) <amount>
+  boss-drop: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <yellow><player></yellow> <white>looted <item> <white>from the <boss><white>!"
+  # Announce notable item drops in chat when a boss dies.
+  drops:
+    enabled: true
+    # Auto-announce any drop whose chance is at or below this value (0.0-1.0). Rarer = announced.
+    # A drop can also set "announce: true" in its boss YAML to always be broadcast regardless.
+    announce-threshold: 0.5
 
 # Override the look of each difficulty tier. Bar colours: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE.
 difficulties:

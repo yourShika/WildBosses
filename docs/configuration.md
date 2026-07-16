@@ -40,6 +40,12 @@ broadcast:
   boss-spawn: "... <boss> <difficulty> ... <world> ... <x>, <z> ..."
   army-spawn: "..."
   boss-death: "..."
+  boss-fled: "..."
+  # Announce notable item drops. Placeholders: <player> <item> <amount> <boss> <difficulty>
+  boss-drop: "... <player> looted <item> from the <boss> ..."
+  drops:
+    enabled: true                 # master toggle for drop announcements
+    announce-threshold: 0.5       # auto-announce drops with chance <= this (0..1); rarer = louder
 
 difficulties:                     # per-tier label, gradient and boss-bar colour
   EASY:       { label: "Easy",       from: "#7CFC00", to: "#2E8B57", bar: GREEN }

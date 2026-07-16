@@ -52,10 +52,10 @@ public final class RewardManager implements BossDeathListener {
             for (java.util.UUID id : contributors.keySet()) {
                 Player p = Bukkit.getPlayer(id);
                 Location dropLoc = (p != null && p.getWorld().equals(world)) ? p.getLocation() : loc;
-                rollDrops(drops, dropLoc);
+                rollDrops(drops, dropLoc, boss, p);
             }
         } else {
-            rollDrops(drops, loc);
+            rollDrops(drops, loc, boss, killer);
         }
 
         if (drops.xp() > 0) {
@@ -70,7 +70,7 @@ public final class RewardManager implements BossDeathListener {
         }
     }
 
-    private void rollDrops(DropTable drops, Location loc) {
+    private void rollDrops(DropTable drops, Location loc, ActiveBoss boss, Player finder) {
         World world = loc.getWorld();
         if (world == null) {
             return;
@@ -79,8 +79,30 @@ public final class RewardManager implements BossDeathListener {
             if (ThreadLocalRandom.current().nextDouble() > entry.chance()) {
                 continue;
             }
-            world.dropItemNaturally(loc, build(entry));
+            ItemStack stack = build(entry);
+            world.dropItemNaturally(loc, stack);
+            maybeAnnounce(boss, entry, stack, finder);
         }
+    }
+
+    /** Broadcast the drop when it is flagged {@code announce} or rarer than the global threshold. */
+    private void maybeAnnounce(ActiveBoss boss, DropEntry entry, ItemStack stack, Player finder) {
+        if (!plugin.config().dropBroadcastEnabled()) {
+            return;
+        }
+        boolean rare = entry.announce() || entry.chance() <= plugin.config().dropBroadcastThreshold();
+        if (!rare) {
+            return;
+        }
+        Component base = (entry.name() != null && !entry.name().isBlank())
+                ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
+                : stack.effectiveName();
+        Component display = Component.text("[")
+                .append(base)
+                .append(Component.text("]"))
+                .hoverEvent(stack);
+        plugin.broadcaster().bossDrop(boss.def(), display, stack.getAmount(),
+                finder == null ? null : finder.getName());
     }
 
     private ItemStack build(DropEntry entry) {

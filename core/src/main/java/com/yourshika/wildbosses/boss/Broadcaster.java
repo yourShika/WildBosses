@@ -43,6 +43,27 @@ public final class Broadcaster {
         broadcastSimple(plugin.config().broadcastBossFled(), def);
     }
 
+    /**
+     * Announce a notable item drop server-wide. {@code display} is the (hoverable) item name and
+     * {@code amount} the stack size; {@code finderName} may be {@code null} (unknown killer).
+     */
+    public void bossDrop(BossDefinition def, net.kyori.adventure.text.Component display, int amount, String finderName) {
+        String fmt = plugin.config().broadcastBossDrop();
+        if (!plugin.config().dropBroadcastEnabled() || fmt == null || fmt.isBlank()) {
+            return;
+        }
+        Bukkit.broadcast(Text.mm(fmt,
+                Text.parsed("boss", def.name()),
+                Text.parsed("difficulty", def.difficulty().bracketedMini()),
+                Text.unparsed("player", finderName == null || finderName.isBlank() ? "Someone" : finderName),
+                Text.num("amount", amount),
+                Text.component("item", display)));
+        DiscordWebhook.send(plugin, ":gift: **" + Text.plain(def.name()) + "** dropped "
+                + Text.plain(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(display))
+                + (amount > 1 ? " x" + amount : "")
+                + (finderName == null || finderName.isBlank() ? "" : " for " + finderName));
+    }
+
     private void broadcastSimple(String fmt, BossDefinition def) {
         if (!plugin.config().broadcastEnabled() || fmt == null || fmt.isBlank()) {
             return;

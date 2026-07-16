@@ -16,6 +16,7 @@ import java.util.List;
  * @param enchants         raw enchant tokens like {@code "SHARPNESS:5"}
  * @param customModelData  optional custom model data (&lt;0 = none)
  * @param glow             force an enchantment glint
+ * @param announce         always broadcast this drop, regardless of the global rarity threshold
  */
 public record DropEntry(
         Material material,
@@ -25,6 +26,7 @@ public record DropEntry(
         List<String> lore,
         List<String> enchants,
         int customModelData,
-        boolean glow
+        boolean glow,
+        boolean announce
 ) {
 }

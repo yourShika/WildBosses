@@ -172,12 +172,23 @@ random-equipment:
 drops:
   items:
     - { item: DIAMOND, amount: "3-6", chance: 1.0 }
-    - { item: NETHERITE_SWORD, amount: 1, chance: 0.2, glow: true,
+    - { item: NETHERITE_SWORD, amount: 1, chance: 0.2, glow: true, announce: true,
         name: "<gold>Legendary Blade", lore: ["<gray>Dropped by a king."],
         enchants: ["SHARPNESS:6", "FIRE_ASPECT:2"], custom-model-data: 1001 }
   xp: 500
   commands: ["eco give %player% 1000"]
 ```
+
+Each item is rolled independently: `chance` is `0.0`–`1.0` (e.g. `0.2` = 20%). A successful roll
+drops the item (at each contributor's feet when `participation-loot` is on).
+
+**Drop announcements.** When a boss dies, notable drops are broadcast in chat with a hoverable item
+name. A drop is announced when either:
+- its `chance` is at or below `broadcast.drops.announce-threshold` in `config.yml` (default `0.5`), or
+- the drop sets `announce: true` (always broadcast, whatever its chance).
+
+Turn the whole feature off with `broadcast.drops.enabled: false`. Customise the message via
+`broadcast.boss-drop` (placeholders `<player> <item> <amount> <boss> <difficulty>`).
 
 ## Army
 

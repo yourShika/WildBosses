@@ -228,7 +228,8 @@ public final class BossLoader {
                     p.getStringList("lore"),
                     p.getStringList("enchants"),
                     p.getInt("custom-model-data", -1),
-                    p.getBoolean("glow", false)));
+                    p.getBoolean("glow", false),
+                    p.getBoolean("announce", false)));
         }
         return new DropTable(items, s.getInt("xp", 0), s.getStringList("commands"));
     }

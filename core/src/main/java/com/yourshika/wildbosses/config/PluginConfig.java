@@ -33,6 +33,10 @@ public final class PluginConfig {
     private String broadcastArmySpawn = "";
     private String broadcastBossDeath = "";
     private String broadcastBossFled = "";
+    private String broadcastBossDrop = "";
+
+    private boolean dropBroadcastEnabled = true;
+    private double dropBroadcastThreshold = 0.5;
 
     private boolean bossLifetimeEnabled = true;
     private int bossLifetimeMinMinutes = 30;
@@ -81,6 +85,10 @@ public final class PluginConfig {
         broadcastArmySpawn = c.getString("broadcast.army-spawn", "");
         broadcastBossDeath = c.getString("broadcast.boss-death", "");
         broadcastBossFled = c.getString("broadcast.boss-fled", "");
+        broadcastBossDrop = c.getString("broadcast.boss-drop", "");
+
+        dropBroadcastEnabled = c.getBoolean("broadcast.drops.enabled", true);
+        dropBroadcastThreshold = Math.max(0.0, Math.min(1.0, c.getDouble("broadcast.drops.announce-threshold", 0.5)));
 
         applyDifficultyOverrides(c.getConfigurationSection("difficulties"), logger);
     }
@@ -173,6 +181,19 @@ public final class PluginConfig {
 
     public String broadcastBossFled() {
         return broadcastBossFled;
+    }
+
+    public String broadcastBossDrop() {
+        return broadcastBossDrop;
+    }
+
+    public boolean dropBroadcastEnabled() {
+        return dropBroadcastEnabled;
+    }
+
+    /** Drops whose chance is at or below this value are auto-announced (0..1). */
+    public double dropBroadcastThreshold() {
+        return dropBroadcastThreshold;
     }
 
     public boolean bossLifetimeEnabled() {

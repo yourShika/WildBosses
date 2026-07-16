@@ -42,6 +42,11 @@ public final class Text {
         return Placeholder.unparsed(key, String.valueOf(value));
     }
 
+    /** A placeholder replaced by a ready-made component (e.g. an item name with a hover tooltip). */
+    public static TagResolver component(String key, Component value) {
+        return Placeholder.component(key, value == null ? Component.empty() : value);
+    }
+
     /** Render a MiniMessage string down to plain text (e.g. for logs or item display names). */
     public static String plain(String input) {
         return PlainTextComponentSerializer.plainText().serialize(mm(input));
