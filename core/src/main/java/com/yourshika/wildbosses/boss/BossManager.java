@@ -31,7 +31,6 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -49,7 +48,10 @@ public final class BossManager {
     private final BossRegistry registry;
     private final Broadcaster broadcaster;
 
-    private final Map<UUID, ActiveBoss> byEntity = new LinkedHashMap<>();
+    // ConcurrentHashMap: PlaceholderAPI (via TAB/scoreboard plugins) reads active()/count() off the
+    // main thread while the tick loop mutates this map; its weakly-consistent iterator avoids the
+    // ConcurrentModificationException a plain map would throw during that concurrent copy.
+    private final Map<UUID, ActiveBoss> byEntity = new java.util.concurrent.ConcurrentHashMap<>();
 
     private SkillEngine skillEngine = SkillEngine.NOOP;
     private EncounterHook encounterHook = EncounterHook.NOOP;
@@ -333,18 +335,23 @@ public final class BossManager {
         if (byEntity.isEmpty()) {
             return;
         }
-        var it = byEntity.entrySet().iterator();
-        while (it.hasNext()) {
-            ActiveBoss boss = it.next().getValue();
+        // Iterate a snapshot: a skill run this tick can synchronously kill a boss (explode/AoE),
+        // which fires EntityDeathEvent -> handleDeath -> byEntity.remove(). Mutating the live map
+        // while iterating it would throw ConcurrentModificationException.
+        for (ActiveBoss boss : new java.util.ArrayList<>(byEntity.values())) {
+            // The boss may already have been removed by an earlier iteration's side effect.
+            if (byEntity.get(boss.entity().getUniqueId()) != boss) {
+                continue;
+            }
             if (!boss.isValid()) {
                 encounterHook.onEnd(boss);
                 boss.cleanup(true);
-                it.remove();
+                byEntity.remove(boss.entity().getUniqueId());
                 continue;
             }
             if (boss.fleeAtTick() > 0 && tick >= boss.fleeAtTick()) {
                 fleeBoss(boss);
-                it.remove();
+                byEntity.remove(boss.entity().getUniqueId());
                 continue;
             }
             boss.updateBossBar();

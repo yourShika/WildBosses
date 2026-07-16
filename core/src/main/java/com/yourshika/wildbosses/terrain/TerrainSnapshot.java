@@ -52,6 +52,11 @@ public final class TerrainSnapshot {
      *
      * @return the number of blocks restored
      */
+    /** Whether the snapshot's target world is currently loaded (safe to restore now). */
+    public boolean worldAvailable() {
+        return Bukkit.getWorld(worldUid) != null;
+    }
+
     public int restore() {
         World world = Bukkit.getWorld(worldUid);
         if (world == null) {
@@ -95,7 +100,11 @@ public final class TerrainSnapshot {
     public static TerrainSnapshot load(File file) {
         YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
         String encounter = yml.getString("encounter", file.getName());
-        UUID world = UUID.fromString(yml.getString("world"));
+        String worldStr = yml.getString("world");
+        if (worldStr == null) {
+            throw new IllegalStateException("missing 'world' key");
+        }
+        UUID world = UUID.fromString(worldStr);
         TerrainSnapshot snapshot = new TerrainSnapshot(encounter, world);
         for (String line : yml.getStringList("changes")) {
             String[] parts = line.split(";", 5);

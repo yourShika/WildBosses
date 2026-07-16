@@ -65,11 +65,17 @@ public final class ArmyEncounter {
         this.anchor = anchor;
         this.id = id;
         this.bar = BossBar.bossBar(title(), 0f, def.difficulty().barColor(), BossBar.Overlay.NOTCHED_10);
-        long seconds = army.timeoutSeconds() > 0 ? army.timeoutSeconds()
-                : (plugin.config().bossLifetimeEnabled()
-                ? ThreadLocalRandom.current().nextInt(plugin.config().bossLifetimeMinMinutes() * 60,
-                plugin.config().bossLifetimeMaxMinutes() * 60 + 1)
-                : 0);
+        long seconds;
+        if (army.timeoutSeconds() > 0) {
+            seconds = army.timeoutSeconds();
+        } else if (plugin.config().bossLifetimeEnabled()) {
+            // Clamp so a misconfigured min > max never makes nextInt(origin, bound) throw.
+            int lo = Math.max(1, plugin.config().bossLifetimeMinMinutes()) * 60;
+            int hi = Math.max(1, plugin.config().bossLifetimeMaxMinutes()) * 60;
+            seconds = hi <= lo ? lo : ThreadLocalRandom.current().nextInt(lo, hi + 1);
+        } else {
+            seconds = 0;
+        }
         this.lifetimeTicks = seconds * 20L;
     }
 
@@ -116,7 +122,8 @@ public final class ArmyEncounter {
         }
         if (elapsedTicks >= nextReinforceTick) {
             spawnWave();
-            nextReinforceTick += army.reinforceIntervalTicks();
+            // Guard against a 0/negative interval that would re-spawn a wave every single tick.
+            nextReinforceTick += Math.max(20, army.reinforceIntervalTicks());
         }
     }
 

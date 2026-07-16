@@ -231,8 +231,9 @@ public final class SpawnScheduler {
         int radius = def.terrain().radius() + 8;
         for (int attempt = 0; attempt < cfg.frontierAttempts(); attempt++) {
             double angle = ThreadLocalRandom.current().nextDouble(Math.PI * 2);
+            double span = cfg.frontierMaxDistance() - cfg.frontierMinDistance();
             double dist = cfg.frontierMinDistance()
-                    + ThreadLocalRandom.current().nextDouble(cfg.frontierMaxDistance() - cfg.frontierMinDistance());
+                    + (span > 0 ? ThreadLocalRandom.current().nextDouble(span) : 0);
             int x = anchor.getLocation().getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getLocation().getBlockZ() + (int) (Math.sin(angle) * dist);
             if (!TerrainManager.footprintUngenerated(world, x, z, radius)) {

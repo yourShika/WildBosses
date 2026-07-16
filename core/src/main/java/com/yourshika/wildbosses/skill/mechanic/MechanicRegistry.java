@@ -139,7 +139,8 @@ public final class MechanicRegistry {
 
     private static void particle(SkillContext ctx, List<Target> targets, Params p) {
         Particle particle = enumOr(Particle.class, p.getString("particle", "CRIT"), Particle.CRIT);
-        int count = p.getInt("count", 20);
+        // Clamp so a typo/abuse in YAML (count: 50000000) can't stall the main thread.
+        int count = Math.max(0, Math.min(5000, p.getInt("count", 20)));
         double spread = p.getDouble("spread", 0.5);
         double speed = p.getDouble("speed", 0.0);
         double offsetY = p.getDouble("offset-y", 1.0);
@@ -395,7 +396,7 @@ public final class MechanicRegistry {
         LivingEntity self = ctx.self();
         Location eye = self.getEyeLocation();
         Vector dir = targets.isEmpty() ? eye.getDirection()
-                : targets.get(0).location().clone().add(0, -0.5, 0).toVector().subtract(eye.toVector()).normalize();
+                : aimDir(eye, targets.get(0).location().clone().add(0, -0.5, 0));
         ThrownPotion thrown = self.launchProjectile(ThrownPotion.class, dir.multiply(p.getDouble("velocity", 0.9)));
         thrown.setItem(potion);
         thrown.setShooter(self);
@@ -479,8 +480,7 @@ public final class MechanicRegistry {
         boolean fire = p.getBoolean("fire", false);
         LivingEntity self = ctx.self();
         Location eye = self.getEyeLocation();
-        Vector base = targets.isEmpty() ? eye.getDirection()
-                : targets.get(0).location().toVector().subtract(eye.toVector()).normalize();
+        Vector base = targets.isEmpty() ? eye.getDirection() : aimDir(eye, targets.get(0).location());
         for (int i = 0; i < count; i++) {
             Vector v = base.clone().add(new Vector(rand(spread), rand(spread), rand(spread))).normalize().multiply(velocity);
             Arrow arrow = self.launchProjectile(Arrow.class, v);
@@ -509,7 +509,7 @@ public final class MechanicRegistry {
             Location point = origin.clone();
             for (double d = 0; d < length; d += 0.5) {
                 point.add(step);
-                point.getWorld().spawnParticle(particle, point, 1, 0, 0, 0, 0);
+                emit(point.getWorld(), particle, point, 1, 0, 0);
             }
             t.entity().damage(dmg, ctx.self());
         }
@@ -571,8 +571,7 @@ public final class MechanicRegistry {
         double velocity = p.getDouble("velocity", 1.4);
         LivingEntity self = ctx.self();
         Location eye = self.getEyeLocation();
-        Vector dir = targets.isEmpty() ? eye.getDirection()
-                : targets.get(0).location().toVector().subtract(eye.toVector()).normalize();
+        Vector dir = targets.isEmpty() ? eye.getDirection() : aimDir(eye, targets.get(0).location());
         Vector v = dir.multiply(velocity);
         Class<? extends Projectile> clazz = switch (type) {
             case "SMALL_FIREBALL" -> SmallFireball.class;
@@ -710,7 +709,8 @@ public final class MechanicRegistry {
 
     private static void ring(Location center, double radius, Particle particle) {
         World w = center.getWorld();
-        int points = (int) Math.max(16, radius * 14);
+        // Cap the point count so a huge radius from YAML can't emit tens of thousands of particles.
+        int points = (int) Math.max(16, Math.min(360, radius * 14));
         for (int i = 0; i < points; i++) {
             double a = 2 * Math.PI * i / points;
             emit(w, particle, center.clone().add(Math.cos(a) * radius, 0.15, Math.sin(a) * radius), 1, 0, 0);
@@ -719,13 +719,25 @@ public final class MechanicRegistry {
 
     /** A filled disc of particles (concentric rings) - a clearly visible danger area on the ground. */
     private static void disc(Location center, double radius, Particle particle) {
-        for (double r = 0.8; r < radius; r += 0.9) {
+        // Bound the number of concentric rings (~40 max) regardless of radius.
+        double step = Math.max(0.9, radius / 40.0);
+        for (double r = step; r < radius; r += step) {
             ring(center, r, particle);
         }
         ring(center, radius, particle);
     }
 
     // ---- helpers --------------------------------------------------------------------------
+
+    /**
+     * A normalized direction from {@code eye} to {@code target}. Falls back to the eye's facing when
+     * the two points coincide, so {@code normalize()} never divides by zero (which would produce a
+     * NaN vector and make {@code launchProjectile} throw "non-finite velocity").
+     */
+    private static Vector aimDir(Location eye, Location target) {
+        Vector d = target.toVector().subtract(eye.toVector());
+        return d.lengthSquared() < 1.0e-4 ? eye.getDirection() : d.normalize();
+    }
 
     /** Spawn a particle, supplying sensible default data for particles that require it (Dust, etc.). */
     private static void emit(World world, Particle particle, Location loc, int count, double spread, double speed) {

@@ -13,6 +13,10 @@ import java.net.http.HttpResponse;
  */
 public final class DiscordWebhook {
 
+    // One shared client for the whole plugin. Allocating a new HttpClient per call leaks its
+    // selector + executor threads until GC, which piles up on servers that fire many boss events.
+    private static final HttpClient CLIENT = HttpClient.newHttpClient();
+
     private DiscordWebhook() {
     }
 
@@ -23,12 +27,11 @@ public final class DiscordWebhook {
         }
         String json = "{\"content\":\"" + escape(content) + "\"}";
         try {
-            HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
-            client.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+            CLIENT.sendAsync(request, HttpResponse.BodyHandlers.discarding())
                     .exceptionally(t -> {
                         plugin.getLogger().warning("Discord webhook failed: " + t.getMessage());
                         return null;

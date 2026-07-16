@@ -46,18 +46,31 @@ public final class TerrainManager implements EncounterHook {
             return;
         }
         int total = 0;
+        int deferred = 0;
         for (File file : files) {
+            boolean remove = true;
             try {
                 TerrainSnapshot snapshot = TerrainSnapshot.load(file);
-                total += snapshot.restore();
+                if (snapshot.worldAvailable()) {
+                    total += snapshot.restore();
+                } else {
+                    // The target world isn't loaded yet (e.g. a Multiverse/custom world loads after
+                    // us). Keep the snapshot so we can restore it on a later start instead of
+                    // deleting the only record and leaving the terrain corrupted forever.
+                    remove = false;
+                    deferred++;
+                }
             } catch (Exception ex) {
-                plugin.getLogger().warning("Failed to restore terrain snapshot " + file.getName() + ": " + ex.getMessage());
+                // Unparseable snapshot (e.g. half-written during a crash) - the block data is
+                // unrecoverable regardless, so drop the file rather than choke on it every start.
+                plugin.getLogger().warning("Discarding unreadable terrain snapshot " + file.getName() + ": " + ex.getMessage());
             }
-            if (!file.delete()) {
+            if (remove && !file.delete()) {
                 plugin.getLogger().warning("Could not delete terrain snapshot " + file.getName());
             }
         }
-        plugin.getLogger().info("Restored " + total + " terrain block(s) from " + files.length + " previous snapshot(s).");
+        plugin.getLogger().info("Restored " + total + " terrain block(s) from previous snapshot(s)"
+                + (deferred > 0 ? " (" + deferred + " deferred - world not loaded yet)." : "."));
     }
 
     @Override

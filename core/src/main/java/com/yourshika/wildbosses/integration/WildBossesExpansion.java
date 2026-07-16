@@ -45,21 +45,28 @@ public final class WildBossesExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, String params) {
-        return switch (params.toLowerCase(Locale.ROOT)) {
-            case "active" -> String.valueOf(plugin.bossManager().count());
-            case "active_armies" -> String.valueOf(plugin.armyManager().count());
-            case "total" -> String.valueOf(plugin.registry().ids().size());
-            case "nearest" -> {
-                ActiveBoss boss = nearest(player);
-                yield boss == null ? "none" : Text.plain(boss.def().name());
-            }
-            case "nearest_distance" -> {
-                ActiveBoss boss = nearest(player);
-                yield (boss == null || !(player instanceof Player p)) ? "-1"
-                        : String.valueOf((int) p.getLocation().distance(boss.location()));
-            }
-            default -> null;
-        };
+        // PlaceholderAPI is frequently resolved off the main thread by consumers (TAB, scoreboard
+        // plugins). Never let a transient off-thread read surface as a broken placeholder + stack
+        // trace - fall back to a neutral value instead.
+        try {
+            return switch (params.toLowerCase(Locale.ROOT)) {
+                case "active" -> String.valueOf(plugin.bossManager().count());
+                case "active_armies" -> String.valueOf(plugin.armyManager().count());
+                case "total" -> String.valueOf(plugin.registry().ids().size());
+                case "nearest" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield boss == null ? "none" : Text.plain(boss.def().name());
+                }
+                case "nearest_distance" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield (boss == null || !(player instanceof Player p)) ? "-1"
+                            : String.valueOf((int) p.getLocation().distance(boss.location()));
+                }
+                default -> null;
+            };
+        } catch (Exception ex) {
+            return "";
+        }
     }
 
     private ActiveBoss nearest(OfflinePlayer player) {
