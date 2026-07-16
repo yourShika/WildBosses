@@ -144,6 +144,7 @@ public final class ArmyEncounter {
             if (entity instanceof org.bukkit.entity.Zombie zombie) {
                 zombie.setShouldBurnInDay(false); // infected/army minions don't burn in the sun
             }
+            entity.setPersistent(false); // don't let minions survive a restart as untracked mobs
             if (entity instanceof LivingEntity le) {
                 le.setRemoveWhenFarAway(false);
                 if (template.health() > 0) {

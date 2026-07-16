@@ -97,7 +97,7 @@ public final class BossManager {
         }
         for (ActiveBoss boss : new ArrayList<>(byEntity.values())) {
             encounterHook.onEnd(boss);
-            boss.cleanup(false);
+            boss.cleanup(true); // remove the entity too, so a reload/disable leaves nothing behind
         }
         byEntity.clear();
     }
@@ -131,7 +131,9 @@ public final class BossManager {
         applyStats(le, def);
         applyEquipment(le, def);
         le.setRemoveWhenFarAway(false);
-        le.setPersistent(true);
+        // NOT persistent: a boss must never survive a server restart as an untracked strong mob.
+        // It stays while the fight's chunks are loaded; if it unloads/restarts, it's gone.
+        le.setPersistent(false);
         if (le instanceof Mob mob) {
             mob.setAware(true);
         }

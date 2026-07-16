@@ -73,6 +73,10 @@ public final class ArmyManager implements EncounterStarter {
         encounter.terminate();
     }
 
+    public boolean isTrackedMinion(UUID uuid) {
+        return minionOwner.containsKey(uuid);
+    }
+
     public int count() {
         return encounters.size();
     }

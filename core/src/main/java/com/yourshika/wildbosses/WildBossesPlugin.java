@@ -54,9 +54,13 @@ public final class WildBossesPlugin extends JavaPlugin {
 
         armyManager = new ArmyManager(this);
 
+        sweepLeftovers();
+
         getServer().getPluginManager().registerEvents(new BossListener(bossManager), this);
         getServer().getPluginManager().registerEvents(new ArmyListener(armyManager), this);
         getServer().getPluginManager().registerEvents(new GuiListener(), this);
+        getServer().getPluginManager().registerEvents(
+                new com.yourshika.wildbosses.listener.CleanupListener(this), this);
         bossManager.start();
 
         spawnScheduler = new SpawnScheduler(this);
@@ -96,6 +100,22 @@ public final class WildBossesPlugin extends JavaPlugin {
             bossManager.shutdown();
         }
         getLogger().info("WildBosses disabled.");
+    }
+
+    /** Remove any WildBosses entities left in loaded worlds by a previous session (no active event). */
+    private void sweepLeftovers() {
+        int removed = 0;
+        for (org.bukkit.World world : getServer().getWorlds()) {
+            for (org.bukkit.entity.Entity e : world.getEntities()) {
+                if (Keys.isWildBossesEntity(e)) {
+                    e.remove();
+                    removed++;
+                }
+            }
+        }
+        if (removed > 0) {
+            getLogger().info("Removed " + removed + " leftover WildBosses entity(ies) from a previous session.");
+        }
     }
 
     /** Reload config.yml, language and all boss definitions. Returns the number of bosses loaded. */
