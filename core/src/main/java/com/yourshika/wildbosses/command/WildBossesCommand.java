@@ -27,7 +27,7 @@ import java.util.StringJoiner;
 public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("spawn", "army", "list", "active", "info", "gui", "assets", "killall", "reload", "update", "help");
+            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -49,7 +49,6 @@ public final class WildBossesCommand implements TabExecutor {
             case "active" -> active(sender);
             case "info" -> info(sender, args);
             case "gui" -> gui(sender);
-            case "assets" -> assets(sender, args);
             case "update" -> update(sender);
             case "killall" -> killAll(sender);
             case "help" -> sendHelp(sender);
@@ -207,7 +206,6 @@ public final class WildBossesCommand implements TabExecutor {
                 + " <gray>| Weight: <white>" + def.spawn().weight()));
         sender.sendMessage(Text.mm("<gray>Phases: <white>" + def.phases().size()
                 + " <gray>| Skills: <white>" + def.skills().size()
-                + " <gray>| Model: <white>" + (def.hasModel() ? def.model() : "none")
                 + " <gray>| Terrain: <white>" + (def.hasTerrain() ? "yes" : "no")
                 + " <gray>| Army: <white>" + (def.isArmy() ? "yes" : "no")));
     }
@@ -221,71 +219,6 @@ public final class WildBossesCommand implements TabExecutor {
             return;
         }
         new MainMenu(plugin).open(player);
-    }
-
-    private void assets(CommandSender sender, String[] args) {
-        if (denied(sender, "wildbosses.admin")) {
-            return;
-        }
-        var oa = plugin.oraxenAssets();
-        String sub = args.length >= 2 ? args[1].toLowerCase(Locale.ROOT) : "status";
-        if (sub.equals("setup")) {
-            String err = oa.setupForOraxen();
-            if (err != null) {
-                sender.sendMessage(Text.mm("<red>Setup failed: <gray>" + err));
-                return;
-            }
-            sender.sendMessage(Text.mm("<green>Configured BetterModel to write its pack straight into Oraxen "
-                    + "(single pack). <gray>Backup: config.yml.wildbosses-backup"));
-            sender.sendMessage(Text.mm("<gold>Now run /bettermodel reload, then /oraxen reload."));
-            return;
-        }
-        if (sub.equals("redeploy")) {
-            var r = oa.deploy();
-            if (r.error() != null) {
-                sender.sendMessage(Text.mm("<red>Deploy failed: <gray>" + r.error()));
-                return;
-            }
-            if (!r.oraxen() && !r.betterModel()) {
-                sender.sendMessage(Text.mm("<red>Neither Oraxen nor BetterModel is installed - nothing to deploy."));
-                return;
-            }
-            sender.sendMessage(Text.mm("<green>Installed <yellow>" + r.bbmodels() + "<green> model(s) into BetterModel."));
-            if (r.packMerged()) {
-                sender.sendMessage(Text.mm("<green>Merged BetterModel's pack into Oraxen. <gold>Now run /oraxen reload."));
-            } else if (!r.packFound()) {
-                sender.sendMessage(Text.mm("<yellow>BetterModel's pack isn't built yet. Run <white>/bettermodel reload"
-                        + "<yellow>, then <white>/wb assets redeploy<yellow> again to merge it into Oraxen."));
-            } else {
-                sender.sendMessage(Text.mm("<yellow>Oraxen not installed - could not merge the pack."));
-            }
-        } else {
-            var st = oa.status();
-            sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses assets</bold></gradient>"));
-            boolean folder = oa.writesIntoOraxen();
-            sender.sendMessage(Text.mm("<gray>BetterModel: <white>" + (st.betterModel() ? "yes" : "no")
-                    + " <gray>Oraxen: <white>" + (st.oraxen() ? "yes" : "no")
-                    + " <gray>BetterModel pack built: <white>" + (st.packBuilt() ? "yes" : "no")));
-            sender.sendMessage(Text.mm("<gray>Pack mode: <white>" + (folder
-                    ? "folder → Oraxen (single pack) ✔"
-                    : "zip → uploads (merged: " + (oa.uploadsPresent() ? "yes" : "no")
-                            + ") - run <yellow>/wb assets setup<gray> for a single Oraxen pack")));
-
-            var files = oa.modelFileNames();
-            if (files.isEmpty()) {
-                sender.sendMessage(Text.mm("<gray>No .bbmodel in <yellow>plugins/WildBosses/models/<gray>."));
-            } else {
-                for (String f : files) {
-                    sender.sendMessage(Text.mm("<gray> - <white>" + f + " <gray>installed in BetterModel: <white>"
-                            + (oa.installedInBetterModel(f) ? "yes" : "no")));
-                }
-            }
-            var keys = oa.betterModelKeys();
-            sender.sendMessage(Text.mm("<gray>BetterModel loaded models: <white>"
-                    + (keys.isEmpty() ? "(none / BetterModel absent)" : String.join(", ", keys))));
-            sender.sendMessage(Text.mm("<gray>A boss uses the model whose name = its <yellow>id<gray> (or its <yellow>model:<gray> field). "
-                    + "The .bbmodel becomes JSON+PNG <italic>inside</italic> bettermodel.zip - it won't appear as a file in Oraxen."));
-        }
     }
 
     private void update(CommandSender sender) {
@@ -347,9 +280,6 @@ public final class WildBossesCommand implements TabExecutor {
             if (sub.equals("spawn") || sub.equals("info") || sub.equals("army")) {
                 return filter(new ArrayList<>(plugin.registry().ids()), args[1]);
             }
-        }
-        if (args.length == 2 && args[0].equalsIgnoreCase("assets")) {
-            return filter(List.of("status", "redeploy", "setup"), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
             List<String> opts = new ArrayList<>();

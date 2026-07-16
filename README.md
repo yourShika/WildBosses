@@ -5,9 +5,6 @@
 WildBosses spawns unique, configurable bosses at random across the Overworld, Nether and End,
 announces where they appear, and fights the players with phases, boss bars, custom abilities, AoEs,
 custom drops, and army encounters — a MythicMobs-style engine where every boss is defined in YAML.
-Optional **BetterModel** integration gives bosses custom 3D models and animations, with an automatic
-vanilla fallback when BetterModel isn't installed.
-
 > Everything (config keys, in-game messages, docs) is English-first.
 
 ---
@@ -27,8 +24,6 @@ vanilla fallback when BetterModel isn't installed.
   progress boss bar shows kills.
 - **Terrain theming ("world corruption")** — bosses can transform the ground around them (e.g. the
   Infected Army rots the earth). **Player builds are never destroyed** — see [Terrain safety](#terrain-safety).
-- **BetterModel integration** (optional) — custom BlockBench models + animations, loaded only when
-  the BetterModel plugin is present. Without it, bosses use their vanilla base entity automatically.
 - **In-game admin GUI** (`/wb gui`) — browse and spawn bosses, quick-edit common stats, manage active
   encounters, and toggle settings, all persisted back to the YAML/config.
 - **Fight design** — telegraphed danger zones, ground-slam shockwaves, meteor rain, enrage timers,
@@ -45,7 +40,7 @@ vanilla fallback when BetterModel isn't installed.
 |---|---|
 | Server | Paper (or a Paper fork: Purpur, Folia, etc.) for **Minecraft 26.1.2** |
 | Java | **25+** (required by MC 26.1) |
-| Optional | [BetterModel](https://modrinth.com/plugin/bettermodel) (custom models); Oraxen (merge the BetterModel pack into one resource pack); CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
+| Optional | CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
 
 ## Installation
 
@@ -53,7 +48,6 @@ vanilla fallback when BetterModel isn't installed.
 2. Drop it into your server's `plugins/` folder.
 3. Start the server. Default config, language file and the 8 example bosses are written to
    `plugins/WildBosses/`.
-4. (Optional) Install BetterModel and add a `warthoglin` model to see the custom-model boss.
 
 ## Commands & permissions
 
@@ -69,7 +63,6 @@ Base command: `/wildbosses` (alias `/wb`).
 | `/wb gui` | Open the admin GUI | `wildbosses.gui` |
 | `/wb killall` | Remove all active encounters | `wildbosses.admin` |
 | `/wb reload` | Reload config and bosses | `wildbosses.admin` |
-| `/wb assets status\|redeploy` | Sync custom textures/models into the Oraxen pack | `wildbosses.admin` |
 | `/wb update` | Download the latest release from GitHub (applied on restart) | `wildbosses.admin` |
 
 `wildbosses.admin` (default: op) grants everything.
@@ -87,7 +80,7 @@ Base command: `/wildbosses` (alias `/wb`).
 | `creeper_king` | Kaboomicus, the Sundering King | Hard | Overworld | Detonates & dies (block-safe) |
 | `enderman_queen` | Nyxara, Queen of the Void | Ultra Hard | End | Teleports, pulls, endermites |
 | `magical_unicorn` | Aurelith, the Prism Mare | Magical | Overworld | Flies, prism beam, summons |
-| `warthoglin` | Warthoglin, the Goldtusk King | Ultra Hard | Nether | Axe storm, **BetterModel** + fallback |
+| `warthoglin` | Warthoglin, the Goldtusk King | Ultra Hard | Nether | Axe storm, leaps, summons, meteors |
 | `walak` | Oberhexe Walak | Ultra Hard | Overworld | Dark magic, vexes, lightning |
 | `werewolf` | Fenrar, the Bloodmoon | Hard | Overworld | Fast, leaps, lifesteal, wolves |
 | `queen_bee` | Vespula, the Hive Queen | Hard | Overworld | Flies, swarms, poison sting |
@@ -95,9 +88,10 @@ Base command: `/wildbosses` (alias `/wb`).
 | `medusa` | Medusa of Bikini Bottom | Ultra Hard | Overworld | Petrifying gaze, serpents |
 | `harvester` | Mortarion, the Harvester | Ultra Hard | Overworld/Nether | Lifesteal, scythe, wither |
 
-Each boss taunts players with random dialogue, has ambient particles/sounds, and (if undefeated)
-eventually flees. Difficulty is shown only in the spawn broadcast — not on the boss bar or name tag.
-Full authoring reference: [docs/boss-authoring.md](docs/boss-authoring.md).
+Each boss taunts players with random dialogue, has ambient particles/sounds, telegraphed AoEs, and
+(if undefeated) eventually flees. Difficulty is shown only in the spawn broadcast — not on the boss
+bar or name tag. **Fight breakdown for every boss: [docs/boss-fights.md](docs/boss-fights.md).**
+Authoring reference: [docs/boss-authoring.md](docs/boss-authoring.md).
 
 ---
 
@@ -131,15 +125,6 @@ Configure per boss under `terrain:` (see [docs/configuration.md](docs/configurat
 
 Reload after edits with `/wb reload`.
 
-## Custom models & textures
-
-Give a boss a custom look with **BetterModel** (BlockBench model + animations). Drop a
-`<bossId>.bbmodel` in `plugins/WildBosses/models/`; `/wb assets redeploy` installs it into BetterModel
-and, if you run **Oraxen**, merges BetterModel's built pack into the Oraxen resource pack
-(`pack/uploads/`) so you serve a single pack. Flow: `/wb assets redeploy` → `/bettermodel reload` →
-`/wb assets redeploy` → `/oraxen reload`. See [docs/bettermodel.md](docs/bettermodel.md) and
-[docs/oraxen.md](docs/oraxen.md).
-
 ---
 
 ## Building from source
@@ -148,9 +133,8 @@ and, if you run **Oraxen**, merges BetterModel's built pack into the Oraxen reso
 ./gradlew build
 ```
 
-Requires JDK 25. The plugin jar is produced at `core/build/libs/WildBosses-<version>.jar` (a single
-shaded jar that bundles the optional BetterModel adapter — it activates only when BetterModel is
-installed). CI builds every push (see `.github/workflows/build.yml`).
+Requires JDK 25. The plugin jar is produced at `core/build/libs/WildBosses-<version>.jar`. CI builds
+every push (see `.github/workflows/build.yml`).
 
 ## License
 

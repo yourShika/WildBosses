@@ -10,7 +10,6 @@ import com.yourshika.wildbosses.config.PluginConfig;
 import com.yourshika.wildbosses.gui.GuiListener;
 import com.yourshika.wildbosses.listener.ArmyListener;
 import com.yourshika.wildbosses.listener.BossListener;
-import com.yourshika.wildbosses.model.ModelManager;
 import com.yourshika.wildbosses.reward.RewardManager;
 import com.yourshika.wildbosses.skill.DefaultSkillEngine;
 import com.yourshika.wildbosses.spawn.SpawnScheduler;
@@ -21,7 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * Entry point for the WildBosses plugin. Loads configuration, builds the managers, selects the model
- * adapter (BetterModel when present, vanilla fallback otherwise), registers listeners and commands,
+ * registers listeners and commands,
  * and starts the runtime tick loop. Everything is torn down cleanly on disable.
  */
 public final class WildBossesPlugin extends JavaPlugin {
@@ -29,13 +28,11 @@ public final class WildBossesPlugin extends JavaPlugin {
     private final PluginConfig pluginConfig = new PluginConfig();
     private Messages messages;
     private BossRegistry registry;
-    private ModelManager modelManager;
     private Broadcaster broadcaster;
     private BossManager bossManager;
     private TerrainManager terrainManager;
     private SpawnScheduler spawnScheduler;
     private ArmyManager armyManager;
-    private com.yourshika.wildbosses.integration.OraxenAssets oraxenAssets;
 
     @Override
     public void onEnable() {
@@ -45,22 +42,15 @@ public final class WildBossesPlugin extends JavaPlugin {
 
         messages = new Messages(this);
         registry = new BossRegistry(this);
-        modelManager = new ModelManager(this);
         broadcaster = new Broadcaster(this);
-        bossManager = new BossManager(this, registry, modelManager, broadcaster);
+        bossManager = new BossManager(this, registry, broadcaster);
         terrainManager = new TerrainManager(this);
 
-        modelManager.select();
-        oraxenAssets = new com.yourshika.wildbosses.integration.OraxenAssets(this);
         bossManager.setSkillEngine(new DefaultSkillEngine(this));
         bossManager.setDeathListener(new RewardManager(this));
         bossManager.setEncounterHook(terrainManager);
         terrainManager.restorePersisted();
         reloadAll();
-
-        if (pluginConfig.oraxenAutoDeploy() && (oraxenAssets.oraxenPresent() || oraxenAssets.betterModelPresent())) {
-            oraxenAssets.deploy();
-        }
 
         armyManager = new ArmyManager(this);
 
@@ -141,10 +131,6 @@ public final class WildBossesPlugin extends JavaPlugin {
         return bossManager;
     }
 
-    public ModelManager modelManager() {
-        return modelManager;
-    }
-
     public Broadcaster broadcaster() {
         return broadcaster;
     }
@@ -159,9 +145,5 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     public ArmyManager armyManager() {
         return armyManager;
-    }
-
-    public com.yourshika.wildbosses.integration.OraxenAssets oraxenAssets() {
-        return oraxenAssets;
     }
 }

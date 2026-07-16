@@ -1,13 +1,10 @@
 # Warthoglin, the Goldtusk King - ULTRA_HARD Nether boss.
-# Uses a BetterModel model named "warthoglin" if present; otherwise the vanilla Piglin Brute.
 # He is immune to lightning-transformation (never zombifies). Signature move: a radial storm of axes.
 id: warthoglin
 name: "<gradient:#f59e0b:#7c2d12>Warthoglin, the Goldtusk King</gradient>"
 title: "<gray>King of the Piglins"
 difficulty: ULTRA_HARD
 base-entity: PIGLIN_BRUTE
-model: "warthoglin"
-animations: { idle: idle, walk: walk, sprint: sprint, attack: attack, target: target, death: death }
 stats: { health: 720, armor: 16, armor-toughness: 8, knockback-resistance: 0.85, damage: 14, speed: 0.3, follow-range: 48, scale: 1.0 }
 equipment: { hand: GOLDEN_AXE, head: GOLDEN_HELMET }
 bossbar: { color: RED, style: NOTCHED_10 }

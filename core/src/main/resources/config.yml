@@ -37,13 +37,6 @@ integrations:
   discord-webhook: ""
   # GitHub repo (owner/name) used by "/wb update" to fetch the latest release jar.
   update-repo: "yourShika/WildBosses"
-  oraxen:
-    # On startup, install models/*.bbmodel into BetterModel and merge BetterModel's built pack into
-    # Oraxen. Run /bettermodel reload and /oraxen reload afterwards.
-    auto-deploy: true
-    # Path (relative to the BetterModel plugin folder) of BetterModel's generated pack zip. If it is
-    # not found there, WildBosses uses the newest .zip anywhere under the BetterModel folder.
-    bettermodel-pack: "pack/BetterModel-Pack.zip"
   # When placing a terrain-changing boss, it is only spawned on never-generated ("frontier")
   # chunks. These control how far out from a player the spawner searches for such a spot.
   frontier-search:

@@ -54,8 +54,7 @@ public final class BossListMenu extends Menu {
                 "<dark_gray>Health <gray>" + (int) def.stats().health()
                         + " <dark_gray>Armor <gray>" + (int) def.stats().armor(),
                 "<dark_gray>Weight <gray>" + def.spawn().weight()
-                        + " <dark_gray>Terrain <gray>" + (def.hasTerrain() ? "yes" : "no")
-                        + " <dark_gray>Model <gray>" + (def.hasModel() ? def.model() : "none"),
+                        + " <dark_gray>Terrain <gray>" + (def.hasTerrain() ? "yes" : "no"),
                 " ",
                 "<yellow>Left-click <gray>spawn here",
                 def.isArmy() ? "<yellow>Right-click <gray>start army" : "<dark_gray>(not an army)",

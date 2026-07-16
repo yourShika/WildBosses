@@ -4,8 +4,6 @@ name: "<gradient:#a3a3a3:#111827>Mortarion, the Harvester</gradient>"
 title: "<gray>Reaper of Souls"
 difficulty: ULTRA_HARD
 base-entity: WITHER_SKELETON
-model: ""
-animations: { idle: idle, walk: walk, attack: attack, death: death }
 stats: { health: 700, armor: 14, armor-toughness: 6, knockback-resistance: 0.8, damage: 13, speed: 0.3, follow-range: 50, scale: 1.6 }
 equipment: { hand: NETHERITE_HOE, head: WITHER_SKELETON_SKULL }
 bossbar: { color: WHITE, style: NOTCHED_10 }

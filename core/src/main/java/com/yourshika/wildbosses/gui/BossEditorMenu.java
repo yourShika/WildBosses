@@ -25,7 +25,6 @@ public final class BossEditorMenu extends Menu {
     private double damage;
     private int weight;
     private boolean terrainEnabled;
-    private String model;
     private boolean loaded;
 
     public BossEditorMenu(WildBossesPlugin plugin, String bossId) {
@@ -44,7 +43,6 @@ public final class BossEditorMenu extends Menu {
         damage = def.stats().attackDamage();
         weight = def.spawn().weight();
         terrainEnabled = def.hasTerrain();
-        model = def.hasModel() ? def.model() : "none";
         loaded = true;
     }
 
@@ -86,10 +84,6 @@ public final class BossEditorMenu extends Menu {
             terrainEnabled = !terrainEnabled;
             rebuild();
         });
-        set(24, icon(Material.ARMOR_STAND, "<light_purple>Model: <white>" + model,
-                "<gray>Edit the model name in the YAML file.",
-                "<gray>(BetterModel required for custom models)"), null);
-
         set(30, icon(Material.LIME_CONCRETE, "<green><bold>Save",
                 "<gray>Write changes to <yellow>bosses/" + bossId + ".yml",
                 "<gray>and reload."), e -> save((Player) e.getWhoClicked()));

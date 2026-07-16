@@ -15,4 +15,4 @@ dependencyResolutionManagement {
     }
 }
 
-include(":core", ":bettermodel")
+include(":core")

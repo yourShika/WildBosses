@@ -1,6 +1,5 @@
 package com.yourshika.wildbosses.boss;
 
-import com.yourshika.wildbosses.model.ModelHandle;
 import com.yourshika.wildbosses.util.Text;
 import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
@@ -18,8 +17,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Runtime state for a single spawned boss: its entity, boss bar, model handle, current phase and
- * per-skill timers. Also manages which nearby players see the boss bar.
+ * Runtime state for a single spawned boss: its entity, boss bar, current phase and per-skill timers.
+ * Also manages which nearby players see the boss bar.
  */
 public final class ActiveBoss {
 
@@ -29,7 +28,6 @@ public final class ActiveBoss {
     private final BossDefinition def;
     private final LivingEntity entity;
     private final BossBar bossBar;
-    private ModelHandle model;
     private final double maxHealth;
     private final long spawnTick;
     private final String encounterId;
@@ -42,8 +40,6 @@ public final class ActiveBoss {
     private boolean removed;
 
     private long fleeAtTick;
-    private String currentAnimState = "";
-    private long attackHoldUntil;
 
     private final Set<UUID> healers = new HashSet<>();
     private final Map<UUID, Double> damageByPlayer = new HashMap<>();
@@ -51,12 +47,11 @@ public final class ActiveBoss {
     private double healerHealPerTick;
     private long lastEnrageTick;
 
-    public ActiveBoss(BossDefinition def, LivingEntity entity, BossBar bossBar, ModelHandle model,
+    public ActiveBoss(BossDefinition def, LivingEntity entity, BossBar bossBar,
                       double maxHealth, long spawnTick, String encounterId) {
         this.def = def;
         this.entity = entity;
         this.bossBar = bossBar;
-        this.model = model;
         this.maxHealth = maxHealth;
         this.spawnTick = spawnTick;
         this.encounterId = encounterId;
@@ -72,14 +67,6 @@ public final class ActiveBoss {
 
     public BossBar bossBar() {
         return bossBar;
-    }
-
-    public ModelHandle model() {
-        return model;
-    }
-
-    public void setModel(ModelHandle model) {
-        this.model = model == null ? ModelHandle.NOOP : model;
     }
 
     public double maxHealth() {
@@ -131,22 +118,6 @@ public final class ActiveBoss {
 
     public void setFleeAtTick(long fleeAtTick) {
         this.fleeAtTick = fleeAtTick;
-    }
-
-    public String currentAnimState() {
-        return currentAnimState;
-    }
-
-    public void setCurrentAnimState(String currentAnimState) {
-        this.currentAnimState = currentAnimState;
-    }
-
-    public long attackHoldUntil() {
-        return attackHoldUntil;
-    }
-
-    public void setAttackHoldUntil(long attackHoldUntil) {
-        this.attackHoldUntil = attackHoldUntil;
     }
 
     public Set<UUID> healers() {
@@ -242,17 +213,13 @@ public final class ActiveBoss {
         viewers.clear();
     }
 
-    /** Remove the boss bar and model. Optionally removes the entity too. */
+    /** Remove the boss bar. Optionally removes the entity too. */
     public void cleanup(boolean removeEntity) {
         if (removed) {
             return;
         }
         removed = true;
         hideFromAll();
-        try {
-            model.remove();
-        } catch (Throwable ignored) {
-        }
         if (removeEntity && entity.isValid()) {
             entity.remove();
         }

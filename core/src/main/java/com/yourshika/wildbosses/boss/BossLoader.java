@@ -40,8 +40,6 @@ public final class BossLoader {
         String title = root.getString("title", null);
         Difficulty difficulty = Difficulty.fromString(root.getString("difficulty"), Difficulty.MEDIUM);
         EntityType baseEntity = parseEntityType(root.getString("base-entity", "ZOMBIE"), id);
-        String model = root.getString("model", "");
-        Map<String, String> animations = parseAnimations(root.getConfigurationSection("animations"));
 
         BossStats stats = parseStats(root.getConfigurationSection("stats"));
         EquipmentSet equipment = parseEquipment(root.getConfigurationSection("equipment"));
@@ -60,7 +58,7 @@ public final class BossLoader {
         }
         EnrageTimer enrage = parseEnrage(root.getConfigurationSection("enrage-timer"));
 
-        return new BossDefinition(id, name, title, difficulty, baseEntity, model, animations, stats,
+        return new BossDefinition(id, name, title, difficulty, baseEntity, stats,
                 equipment, bossBar, spawn, phases, skills, drops, terrain, army, randomEquipment,
                 immunities, enrage);
     }
@@ -299,16 +297,6 @@ public final class BossLoader {
                 ArmyDefinition.Outcome.fromString(s.getString("outcome"), ArmyDefinition.Outcome.CLEARED),
                 s.getString("end-boss", null),
                 Math.max(0, s.getInt("timeout-seconds", 0)));
-    }
-
-    private Map<String, String> parseAnimations(ConfigurationSection s) {
-        Map<String, String> out = new LinkedHashMap<>();
-        if (s != null) {
-            for (String key : s.getKeys(false)) {
-                out.put(key, s.getString(key));
-            }
-        }
-        return out;
     }
 
     // ---- helpers --------------------------------------------------------------------------

@@ -1,8 +1,6 @@
 package com.yourshika.wildbosses.boss;
 
 import com.yourshika.wildbosses.WildBossesPlugin;
-import com.yourshika.wildbosses.model.ModelHandle;
-import com.yourshika.wildbosses.model.ModelManager;
 import com.yourshika.wildbosses.skill.SkillEngine;
 import com.yourshika.wildbosses.util.Keys;
 import com.yourshika.wildbosses.util.Text;
@@ -49,7 +47,6 @@ public final class BossManager {
 
     private final WildBossesPlugin plugin;
     private final BossRegistry registry;
-    private final ModelManager modelManager;
     private final Broadcaster broadcaster;
 
     private final Map<UUID, ActiveBoss> byEntity = new LinkedHashMap<>();
@@ -61,11 +58,9 @@ public final class BossManager {
     private BukkitTask task;
     private long tick;
 
-    public BossManager(WildBossesPlugin plugin, BossRegistry registry, ModelManager modelManager,
-                       Broadcaster broadcaster) {
+    public BossManager(WildBossesPlugin plugin, BossRegistry registry, Broadcaster broadcaster) {
         this.plugin = plugin;
         this.registry = registry;
-        this.modelManager = modelManager;
         this.broadcaster = broadcaster;
     }
 
@@ -152,9 +147,9 @@ public final class BossManager {
         double maxHp = maxHealthOf(le, def);
         BossBar bar = BossBar.bossBar(displayName(def), 1f, barColor(def), def.bossBar().overlay());
         le.customName(displayName(def));
-        le.setCustomNameVisible(!def.hasModel()); // provisional; corrected once the model attaches
+        le.setCustomNameVisible(true);
 
-        ActiveBoss boss = new ActiveBoss(def, le, bar, ModelHandle.NOOP, maxHp, tick, encounterId);
+        ActiveBoss boss = new ActiveBoss(def, le, bar, maxHp, tick, encounterId);
         boss.setAddMultiplier(scale);
         spawnBurst(le.getLocation());
         if (plugin.config().bossLifetimeEnabled()) {
@@ -166,7 +161,6 @@ public final class BossManager {
         byEntity.put(le.getUniqueId(), boss);
 
         applyPhase(boss, computePhaseIndex(boss), true);
-        attachModelLater(boss, le, def);
         if (applyTerrain) {
             encounterHook.onStart(boss);
         }
@@ -356,7 +350,6 @@ public final class BossManager {
             if (newPhase > boss.phaseIndex()) {
                 applyPhase(boss, newPhase, false);
             }
-            updateAnimation(boss);
             processEnrage(boss);
             processHealers(boss);
             skillEngine.onTick(boss, tick);
@@ -399,9 +392,6 @@ public final class BossManager {
         if (phase.message() != null && !phase.message().isBlank()) {
             announceNearby(boss, Text.mm(phase.message()));
         }
-        if (phase.animation() != null && !phase.animation().isBlank()) {
-            playAnimation(boss, phase.animation(), false);
-        }
         skillEngine.onPhaseChange(boss, index);
     }
 
@@ -430,67 +420,6 @@ public final class BossManager {
         }
     }
 
-    /** Attach the model one tick after spawn (BetterModel needs the entity registered in its tracker). */
-    private void attachModelLater(ActiveBoss boss, LivingEntity le, BossDefinition def) {
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (!boss.isValid()) {
-                return;
-            }
-            ModelHandle handle = modelManager.attach(le, def);
-            boss.setModel(handle);
-            le.setCustomNameVisible(handle == ModelHandle.NOOP);
-            if (handle != ModelHandle.NOOP) {
-                playAnimationState(boss, "idle", true);
-            }
-        }, 1L);
-    }
-
-    private void playAnimationState(ActiveBoss boss, String state, boolean loop) {
-        String anim = boss.def().animation(state);
-        if (anim != null && !anim.isBlank()) {
-            boss.model().playAnimation(anim, loop);
-        }
-    }
-
-    private void playAnimation(ActiveBoss boss, String nameOrState, boolean loop) {
-        String mapped = boss.def().animation(nameOrState);
-        boss.model().playAnimation(mapped != null ? mapped : nameOrState, loop);
-    }
-
-    /** Drive BetterModel state animations (walk/sprint/idle/target/swim/fly) by the boss' state. */
-    private void updateAnimation(ActiveBoss boss) {
-        if (tick < boss.attackHoldUntil()) {
-            return; // let a transient attack animation play out
-        }
-        LivingEntity e = boss.entity();
-        String state;
-        if (e.isInWater()) {
-            state = "swim";
-        } else if (!e.hasGravity()) {
-            state = "fly";
-        } else {
-            double speedSq = e.getVelocity().clone().setY(0).lengthSquared();
-            if (speedSq > 0.09) {
-                state = "sprint";
-            } else if (speedSq > 0.0025) {
-                state = "walk";
-            } else if (boss.target() != null && boss.target().isValid()) {
-                state = "target";
-            } else {
-                state = "idle";
-            }
-        }
-        if (!state.equals(boss.currentAnimState())) {
-            boss.setCurrentAnimState(state);
-            boss.model().playAnimation(mappedState(boss, state), true);
-        }
-    }
-
-    private static String mappedState(ActiveBoss boss, String state) {
-        String mapped = boss.def().animation(state);
-        return mapped != null ? mapped : state;
-    }
-
     private void fleeBoss(ActiveBoss boss) {
         broadcaster.bossFled(boss.def());
         LivingEntity e = boss.entity();
@@ -504,9 +433,8 @@ public final class BossManager {
                 e.setVelocity(away.normalize().multiply(0.8).setY(0.3));
             }
         }
-        boss.model().playAnimation(mappedState(boss, "sprint"), true);
         encounterHook.onEnd(boss);
-        boss.cleanup(false); // remove bar + model, let the entity dash off
+        boss.cleanup(false); // remove bar, let the entity dash off
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (e.isValid()) {
                 e.remove();
@@ -630,9 +558,7 @@ public final class BossManager {
         broadcaster.bossDeath(boss.def());
         encounterHook.onEnd(boss);
         skillEngine.onDeath(boss);
-        // Play a death animation (if the model has one) before tearing the model down.
-        boss.model().playAnimation(mappedState(boss, "death"), false);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> boss.cleanup(false), 20L);
+        boss.cleanup(false);
     }
 
     /** Forward: the boss took damage from {@code damager}. */
@@ -660,9 +586,6 @@ public final class BossManager {
 
     /** Forward: the boss dealt damage to {@code victim}. */
     public void onBossDealtDamage(ActiveBoss boss, Entity victim, double amount) {
-        boss.setAttackHoldUntil(tick + 8);
-        boss.setCurrentAnimState("attack");
-        boss.model().playAnimation(mappedState(boss, "attack"), false);
         skillEngine.onDealDamage(boss, victim, amount);
     }
 

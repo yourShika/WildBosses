@@ -163,10 +163,11 @@ public final class MechanicRegistry {
         double knockback = p.getDouble("knockback", 0);
         String particleName = p.getString("particle", null);
         Location center = ctx.location();
-        if (particleName != null) {
-            Particle particle = enumOr(Particle.class, particleName, Particle.EXPLOSION);
-            emit(center.getWorld(), particle, center.clone().add(0, 1, 0), 40, radius / 2, 0.02);
-        }
+        // Always outline the blast radius so players can see how far it reaches.
+        Particle particle = enumOr(Particle.class, particleName == null ? "EXPLOSION" : particleName, Particle.EXPLOSION);
+        emit(center.getWorld(), particle, center.clone().add(0, 1, 0), 50, radius / 2, 0.03);
+        ring(center, radius, particle);
+        center.getWorld().playSound(center, "entity.generic.explode", 1.0f, 1.0f);
         double rSq = radius * radius;
         for (Player player : center.getWorld().getPlayers()) {
             if (player.getLocation().distanceSquared(center) <= rSq) {
@@ -601,12 +602,14 @@ public final class MechanicRegistry {
         }
         LivingEntity self = ctx.self();
         var plugin = ctx.plugin();
-        for (int t = 0; t < delay; t += 4) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> spots.forEach(loc -> ring(loc, radius, warn)), t);
+        // Pulse a filled warning disc so players clearly see (and can leave) the danger area.
+        for (int t = 0; t < delay; t += 3) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> spots.forEach(loc -> disc(loc, radius, warn)), t);
         }
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             for (Location loc : spots) {
-                emit(loc.getWorld(), hit, loc.clone().add(0, 0.5, 0), 30, radius / 2, 0.03);
+                emit(loc.getWorld(), hit, loc.clone().add(0, 0.5, 0), 40, radius / 2, 0.05);
+                loc.getWorld().playSound(loc, "entity.generic.explode", 1.0f, 1.2f);
                 double rSq = radius * radius;
                 for (Player pl : loc.getWorld().getPlayers()) {
                     if (pl.getLocation().distanceSquared(loc) <= rSq) {
@@ -659,8 +662,8 @@ public final class MechanicRegistry {
         var plugin = ctx.plugin();
         for (int i = 0; i < count; i++) {
             Location spot = base.clone().add(rand(radius), 0, rand(radius));
-            for (int t = 0; t < delay; t += 4) {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> ring(spot, 2.0, Particle.FLAME), t);
+            for (int t = 0; t < delay; t += 3) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> disc(spot, 2.5, Particle.FLAME), t);
             }
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 SmallFireball fb = w.spawn(spot.clone().add(0, height, 0), SmallFireball.class);
@@ -707,11 +710,19 @@ public final class MechanicRegistry {
 
     private static void ring(Location center, double radius, Particle particle) {
         World w = center.getWorld();
-        int points = (int) Math.max(8, radius * 8);
+        int points = (int) Math.max(16, radius * 14);
         for (int i = 0; i < points; i++) {
             double a = 2 * Math.PI * i / points;
-            emit(w, particle, center.clone().add(Math.cos(a) * radius, 0.2, Math.sin(a) * radius), 1, 0, 0);
+            emit(w, particle, center.clone().add(Math.cos(a) * radius, 0.15, Math.sin(a) * radius), 1, 0, 0);
         }
+    }
+
+    /** A filled disc of particles (concentric rings) - a clearly visible danger area on the ground. */
+    private static void disc(Location center, double radius, Particle particle) {
+        for (double r = 0.8; r < radius; r += 0.9) {
+            ring(center, r, particle);
+        }
+        ring(center, radius, particle);
     }
 
     // ---- helpers --------------------------------------------------------------------------

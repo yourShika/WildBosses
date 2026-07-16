@@ -6,12 +6,10 @@ author: yourShika
 description: Random custom world bosses with phases, abilities, AoEs, armies, custom drops, terrain theming and optional BetterModel custom models.
 website: https://github.com/yourShika/WildBosses
 softdepend:
-  - BetterModel
   - CoreProtect
   - WorldGuard
   - GriefPrevention
   - PlaceholderAPI
-  - Oraxen
 commands:
   wildbosses:
     description: WildBosses admin command.
