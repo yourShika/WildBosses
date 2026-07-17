@@ -1,35 +1,52 @@
-# Medusa of Bikini Bottom - ULTRA_HARD overworld boss. Her gaze petrifies; her hair bites.
+# Medusa of Bikini Bottom - ULTRA_HARD water boss. A monstrous, venomous pufferfish that fights in
+# the sea: poison ink, spiny bursts and a petrifying gaze. Best fought in/near water.
+# Pet reward uses a BetterPets id - adjust "pufferfish" to match your setup.
 id: medusa
 name: "<gradient:#34d399:#065f46>Medusa of Bikini Bottom</gradient>"
 title: "<gray>the Petrifying Gaze"
 difficulty: ULTRA_HARD
-base-entity: WITCH
-stats: { health: 580, armor: 8, knockback-resistance: 0.5, damage: 9, speed: 0.3, follow-range: 48, scale: 1.3 }
+base-entity: PUFFERFISH
+stats: { health: 600, armor: 10, knockback-resistance: 0.7, damage: 9, speed: 0.3, follow-range: 48, scale: 2.6 }
 bossbar: { color: GREEN, style: NOTCHED_10 }
+immunities: [DRYOUT, DROWNING, MAGIC]
 enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.05 }
 spawn:
   worlds: [OVERWORLD]
   weight: 11
   min-players-distance: 44
-  y: { min: 45, max: 110 }
+  y: { min: 40, max: 72 }
   cooldown-seconds: 3000
   max-concurrent: 1
+  near-water: true
+  biomes: [OCEAN, RIVER, BEACH, SWAMP]
 phases:
-  - { at-health-percent: 100, message: "<green>Medusa of Bikini Bottom slithers into view - don't look!" }
-  - { at-health-percent: 50, enrage: true, message: "<dark_green>Medusa's serpents hiss as one!" }
+  - { at-health-percent: 100, message: "<green>Medusa of Bikini Bottom surfaces - don't look into her eyes!" }
+  - { at-health-percent: 55, message: "<green>Medusa's spines bristle with venom!" }
+  - { at-health-percent: 30, enrage: true, message: "<dark_green>Medusa's serpents hiss as one!" }
 skills:
-  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Look at me. I insist.", "You'd make a lovely statue.", "My hairdresser is... to die for."] } }
-  - { trigger: onTimer, interval: 14, mechanic: particle, targeter: self_location, params: { particle: HAPPY_VILLAGER, count: 6, spread: 0.8, offset-y: 1.4 } }
-  - { trigger: onTimer, interval: 100, mechanic: petrify, targeter: players_in_radius, params: { radius: 10, duration: 90 } }
-  - { trigger: onTimer, interval: 80, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, velocity: 1.0 } }
-  - { trigger: onTimer, interval: 120, mechanic: summon, targeter: self_location, params: { type: SILVERFISH, amount: 5, radius: 5 } }
-  - { trigger: onTimer, interval: 190, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["GAZE UPON ME!", "Hold still now.", "Stone suits you."] } }
-  - { trigger: onTimer, interval: 150, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 4, damage: 8, delay: 30, warn-particle: HAPPY_VILLAGER, particle: SNEEZE } }
-  - { trigger: onHealthBelow, value: 50, mechanic: petrify, targeter: players_in_radius, params: { radius: 14, duration: 140 } }
-  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 7, damage: 10, knockback: 0.6, particle: SNEEZE } }
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Look at me. I insist.", "You'd make a lovely statue.", "The tide always wins."] } }
+  - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: BUBBLE, count: 8, spread: 0.9, offset-y: 1.0 } }
+  # Petrifying gaze: pins the target in place.
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: sound, targeter: self_location, params: { sound: "entity.elder_guardian.curse", volume: 1.4, pitch: 1.2 } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: petrify, targeter: players_in_radius, params: { radius: 10, duration: 80 } }
+  # Poison ink and venomous splash.
+  - { trigger: onTimer, interval: 80, interval-max: 130, mechanic: potion_cloud, targeter: players_in_radius, params: { type: POISON, duration: 140, amplifier: 1, radius: 3, cloud-duration: 160 } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, velocity: 1.0 } }
+  # Spine burst: a ring of venomous spikes.
+  - { trigger: onTimer, interval: 130, interval-max: 190, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 4, damage: 9, knockback: 0.8, delay: 28, warn-particle: BUBBLE_POP, particle: SNEEZE } }
+  - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: summon, targeter: self_location, params: { type: DROWNED, amount: 3, radius: 5 } }
+  - { trigger: onHealthBelow, value: 55, mechanic: petrify, targeter: players_in_radius, params: { radius: 14, duration: 120 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SNEEZE } }
 drops:
   items:
-    - { item: ENDER_EYE, amount: "2-4", chance: 0.8, name: "<gradient:#34d399:#065f46>Medusa's Gaze</gradient>" }
+    - { item: PUFFERFISH, amount: "3-6", chance: 1.0 }
     - { item: EMERALD, amount: "4-8", chance: 1.0 }
     - { item: DIAMOND, amount: "4-7", chance: 1.0 }
-  xp: 950
+    - { item: TRIDENT, amount: 1, chance: 0.25, glow: true, announce: true,
+        name: "<gradient:#34d399:#065f46>Gorgon's Fang</gradient>",
+        lore: ["<dark_gray>A spine torn from Medusa herself.", "<green>Weeps venom."],
+        enchants: ["IMPALING:5", "LOYALTY:3", "CHANNELING:1"] }
+    - { item: ENDER_EYE, amount: "2-4", chance: 0.5, announce: true, name: "<gradient:#34d399:#065f46>Medusa's Gaze</gradient>" }
+  command-rewards:
+    - { command: "pets give pufferfish 1 %player%", chance: 0.07, announce: "<gradient:#34d399:#065f46>reeled in a Pufferfish pet from Medusa!</gradient>" }
+  xp: 980

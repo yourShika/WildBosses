@@ -142,8 +142,22 @@ public final class BossManager {
         if (le instanceof org.bukkit.entity.Zombie zombie) {
             zombie.setShouldBurnInDay(false); // bosses shouldn't die to sunlight
         }
+        if (le instanceof org.bukkit.entity.AbstractSkeleton skeleton) {
+            skeleton.setShouldBurnInDay(false); // skeleton bosses shouldn't be whittled down by daylight
+        }
         if (le instanceof org.bukkit.entity.Creeper creeper) {
             creeper.setExplosionRadius(0); // no self-detonation; boss explodes only via its skills
+        }
+        if (le instanceof org.bukkit.entity.Wolf wolf) {
+            wolf.setAngry(true); // a boss wolf hunts on sight
+        }
+        if (le instanceof org.bukkit.entity.Horse horse) {
+            horse.setColor(org.bukkit.entity.Horse.Color.WHITE); // the unicorn is always a white steed
+            horse.setStyle(org.bukkit.entity.Horse.Style.NONE);
+            horse.setAdult();
+        }
+        if (le instanceof org.bukkit.entity.Bee bee) {
+            bee.setAnger(Integer.MAX_VALUE); // stays hostile for the whole fight
         }
         tag(le, def, encounterId);
 
@@ -361,7 +375,55 @@ public final class BossManager {
             }
             processEnrage(boss);
             processHealers(boss);
+            if (tick % 20 == 0) {
+                acquireTarget(boss); // keep every boss proactively hostile toward players
+            }
+            if (boss.entity() instanceof org.bukkit.entity.Bee bee) {
+                bee.setHasStung(false); // a boss bee must not die to its own sting
+            }
             skillEngine.onTick(boss, tick);
+        }
+    }
+
+    /** Keep the boss locked onto the nearest reachable player so it never sits passively idle. */
+    private void acquireTarget(ActiveBoss boss) {
+        LivingEntity self = boss.entity();
+        double range = Math.max(16, boss.def().stats().followRange());
+        double rangeSq = range * range;
+        LivingEntity current = boss.target();
+        boolean keep = current != null && current.isValid() && !current.isDead()
+                && current.getWorld() == self.getWorld()
+                && current.getLocation().distanceSquared(self.getLocation()) <= rangeSq
+                && !(current instanceof Player p
+                        && (p.getGameMode() == org.bukkit.GameMode.SPECTATOR
+                            || p.getGameMode() == org.bukkit.GameMode.CREATIVE));
+        if (keep) {
+            if (self instanceof Mob mob && mob.getTarget() != current) {
+                mob.setTarget(current);
+            }
+            return;
+        }
+        Player nearest = null;
+        double best = rangeSq;
+        World world = self.getWorld();
+        if (world != null) {
+            for (Player p : world.getPlayers()) {
+                if (p.getGameMode() == org.bukkit.GameMode.SPECTATOR
+                        || p.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                    continue;
+                }
+                double d = p.getLocation().distanceSquared(self.getLocation());
+                if (d <= best) {
+                    best = d;
+                    nearest = p;
+                }
+            }
+        }
+        if (nearest != null) {
+            boss.setTarget(nearest);
+            if (self instanceof Mob mob) {
+                mob.setTarget(nearest);
+            }
         }
     }
 
@@ -565,9 +627,22 @@ public final class BossManager {
             plugin.getLogger().warning("Reward handling failed for boss " + boss.def().id() + ": " + ex.getMessage());
         }
         broadcaster.bossDeath(boss.def());
+        playDeathSound();
         encounterHook.onEnd(boss);
         skillEngine.onDeath(boss);
         boss.cleanup(false);
+    }
+
+    /** Play the victory sound to every online player when a boss falls. */
+    private void playDeathSound() {
+        String sound = plugin.config().deathSound();
+        if (sound == null || sound.isBlank()) {
+            return;
+        }
+        String key = sound.toLowerCase(Locale.ROOT);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.playSound(p.getLocation(), key, 1.0f, 1.0f);
+        }
     }
 
     /** Forward: the boss took damage from {@code damager}. */
@@ -652,6 +727,15 @@ public final class BossManager {
             boss.cleanup(true);
         }
         byEntity.clear();
+        // Also sweep any summoned adds / army minions still tagged in loaded worlds.
+        for (World world : plugin.getServer().getWorlds()) {
+            for (Entity e : world.getEntities()) {
+                if (Keys.isWildBossesEntity(e)) {
+                    e.remove();
+                    n++;
+                }
+            }
+        }
         return n;
     }
 }

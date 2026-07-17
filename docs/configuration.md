@@ -46,6 +46,7 @@ broadcast:
   drops:
     enabled: true                 # master toggle for drop announcements
     announce-threshold: 0.5       # auto-announce drops with chance <= this (0..1); rarer = louder
+  death-sound: "ui.toast.challenge_complete"  # played to every online player on a boss kill (blank = off)
 
 difficulties:                     # per-tier label, gradient and boss-bar colour
   EASY:       { label: "Easy",       from: "#7CFC00", to: "#2E8B57", bar: GREEN }

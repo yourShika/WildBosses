@@ -1,11 +1,12 @@
 # Ossaria, the Bonelord - HARD overworld boss.
 # Signature ability: a rain of arrows from the sky. Spawns with randomised, enchanted gear.
+# (Boss skeletons no longer burn in daylight, so they can't be whittled down to a one-shot.)
 id: skeleton_king
 name: "<gradient:#e5e7eb:#6b7280>Ossaria, the Bonelord</gradient>"
 title: "<gray>Sovereign of the Bonewaste"
 difficulty: HARD
 base-entity: SKELETON
-stats: { health: 540, armor: 14, armor-toughness: 6, knockback-resistance: 0.7, damage: 8, speed: 0.27, follow-range: 50, scale: 1.5 }
+stats: { health: 560, armor: 16, armor-toughness: 6, knockback-resistance: 0.7, damage: 8, speed: 0.27, follow-range: 50, scale: 1.5 }
 bossbar: { color: WHITE, style: NOTCHED_10 }
 random-equipment:
   enabled: true
@@ -27,15 +28,19 @@ phases:
 skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["My aim never wavers.", "You will be a pincushion.", "The sky itself is my quiver."] } }
   - { trigger: onTimer, interval: 20, mechanic: particle, targeter: self_location, params: { particle: SOUL, count: 4, spread: 0.5, offset-y: 1.4 } }
-  - { trigger: onTimer, interval: 80, mechanic: arrow_volley, targeter: nearest_player, params: { radius: 40, count: 8, spread: 0.2, velocity: 2.0 } }
-  - { trigger: onTimer, interval: 140, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 12, count: 14, spread: 5, height: 20, damage: 6 } }
-  - { trigger: onTimer, interval: 160, mechanic: summon, targeter: self_location, params: { type: STRAY, amount: 3, radius: 5 } }
-  - { trigger: onTimer, interval: 210, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Look up.", "Nowhere to hide.", "Rain of bone!"] } }
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: arrow_volley, targeter: nearest_player, params: { radius: 40, count: 8, spread: 0.2, velocity: 2.0 } }
+  - { trigger: onTimer, interval: 130, interval-max: 190, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 12, count: 14, spread: 5, height: 20, damage: 6 } }
+  - { trigger: onTimer, interval: 160, interval-max: 240, mechanic: summon, targeter: self_location, params: { type: STRAY, amount: 3, radius: 5 } }
+  - { trigger: onTimer, interval: 190, interval-max: 260, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Look up.", "Nowhere to hide.", "Rain of bone!"] } }
   - { trigger: onHealthBelow, value: 60, mechanic: shield, targeter: self, params: { duration: 120, amplifier: 1 } }
   - { trigger: onHealthBelow, value: 30, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 16, count: 40, spread: 8, height: 22, damage: 7, fire: true } }
 drops:
   items:
     - { item: DIAMOND, amount: "4-7", chance: 1.0 }
-    - { item: BOW, amount: 1, chance: 0.5, glow: true, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Longbow</gradient>", enchants: ["POWER:5", "FLAME:1", "INFINITY:1"] }
-    - { item: NETHERITE_INGOT, amount: 1, chance: 0.15 }
+    - { item: BOW, amount: 1, chance: 0.5, glow: true, announce: true, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Longbow</gradient>",
+        lore: ["<dark_gray>Never misses.", "<white>Fires without end."], enchants: ["POWER:5", "FLAME:1", "INFINITY:1"] }
+    - { item: DIAMOND_LEGGINGS, amount: 1, chance: 0.28, glow: true, announce: true,
+        name: "<gradient:#e5e7eb:#9ca3af>Greaves of the Bonewaste</gradient>", enchants: ["PROTECTION:4", "PROJECTILE_PROTECTION:4"] }
+    - { item: ARROW, amount: "16-32", chance: 0.8, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Quiver</gradient>" }
+    - { item: NETHERITE_INGOT, amount: 1, chance: 0.15, announce: true, name: "<gradient:#e5e7eb:#6b7280>Marrow-forged Ingot</gradient>" }
   xp: 700

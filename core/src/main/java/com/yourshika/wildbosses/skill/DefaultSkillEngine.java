@@ -56,7 +56,13 @@ public final class DefaultSkillEngine implements SkillEngine {
                     if (tick >= boss.nextTick(i)) {
                         int interval = Math.max(1, s.triggerParams().getInt("interval", 100));
                         fire(boss, s, null, 0);
-                        boss.setNextTick(i, tick + interval);
+                        // Optional "interval-max" makes the skill fire at a random cadence in
+                        // [interval, interval-max] instead of a robotic fixed rhythm.
+                        int intervalMax = s.triggerParams().getInt("interval-max", interval);
+                        int next = intervalMax > interval
+                                ? interval + java.util.concurrent.ThreadLocalRandom.current().nextInt(intervalMax - interval + 1)
+                                : interval;
+                        boss.setNextTick(i, tick + next);
                     }
                 }
                 case ON_HEALTH_BELOW -> {

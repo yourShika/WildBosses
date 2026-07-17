@@ -1,10 +1,12 @@
-# Vespula, the Hive Queen - HARD overworld boss. Flies, summons bees, poisons with her sting.
+# Vespula, the Hive Queen - HARD overworld boss. Immediately hostile, flies, summons bees, stings.
+# (She stays angry for the whole fight and can't die to her own sting.)
+# Pet reward uses a BetterPets id - adjust "bee" to match your setup.
 id: queen_bee
 name: "<gradient:#fde047:#a16207>Vespula, the Hive Queen</gradient>"
 title: "<gray>Queen Bee"
 difficulty: HARD
 base-entity: BEE
-stats: { health: 460, armor: 6, knockback-resistance: 0.4, damage: 8, speed: 0.34, follow-range: 46, scale: 2.2 }
+stats: { health: 480, armor: 6, knockback-resistance: 0.4, damage: 9, speed: 0.36, follow-range: 48, scale: 2.3 }
 bossbar: { color: YELLOW, style: NOTCHED_10 }
 spawn:
   worlds: [OVERWORLD]
@@ -18,17 +20,28 @@ phases:
   - { at-health-percent: 50, enrage: true, message: "<gold>Vespula summons the swarm!" }
 skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["You disturbed the hive.", "My children are always hungry.", "Bzzz... you smell like a thief."] } }
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.bee.loop_aggressive", volume: 1.6, pitch: 0.7 } }
   - { trigger: onTimer, interval: 14, mechanic: particle, targeter: self_location, params: { particle: FALLING_DUST, count: 6, spread: 0.7, offset-y: 1.0 } }
-  - { trigger: onTimer, interval: 110, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 5, radius: 5 } }
-  - { trigger: onTimer, interval: 80, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 140, amplifier: 1 } }
-  - { trigger: onTimer, interval: 95, mechanic: projectile, targeter: nearest_player, params: { type: SMALL_FIREBALL, velocity: 1.2 } }
-  - { trigger: onTimer, interval: 130, mechanic: fly, targeter: nearest_player, params: { duration: 120, lift: 0.5 } }
-  - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 8, radius: 6 } }
-  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 0.8, particle: HEART } }
+  - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 4, radius: 5, health: 12 } }
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 140, amplifier: 1 } }
+  - { trigger: onTimer, interval: 80, interval-max: 130, mechanic: projectile, targeter: nearest_player, params: { type: SMALL_FIREBALL, velocity: 1.2 } }
+  - { trigger: onTimer, interval: 120, interval-max: 190, mechanic: fly, targeter: nearest_player, params: { duration: 120, lift: 0.5 } }
+  # Stinging dive: a telegraphed plunge onto the target.
+  - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 3, damage: 9, delay: 25, warn-particle: WAX_ON, particle: CRIT } }
+  - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 6, radius: 6, health: 12 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 10, knockback: 0.8, particle: HEART } }
 drops:
   items:
     - { item: HONEYCOMB, amount: "8-16", chance: 1.0 }
     - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9 }
     - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, name: "<gradient:#fde047:#a16207>Royal Jelly</gradient>" }
     - { item: DIAMOND, amount: "2-5", chance: 0.7 }
-  xp: 650
+    - { item: SHIELD, amount: 1, chance: 0.25, glow: true, announce: true,
+        name: "<gradient:#fde047:#a16207>Aegis of the Hive</gradient>",
+        lore: ["<dark_gray>Woven from royal wax."], enchants: ["UNBREAKING:3", "MENDING:1"] }
+    - { item: NETHERITE_SWORD, amount: 1, chance: 0.2, glow: true, announce: true,
+        name: "<gradient:#fde047:#a16207>Queen's Stinger</gradient>",
+        lore: ["<yellow>Drips with venom."], enchants: ["SHARPNESS:5", "BANE_OF_ARTHROPODS:5"] }
+  command-rewards:
+    - { command: "pets give bee 1 %player%", chance: 0.07, announce: "<gradient:#fde047:#a16207>was gifted a Bee pet by the Hive Queen!</gradient>" }
+  xp: 680

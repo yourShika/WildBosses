@@ -23,8 +23,8 @@ skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Sssssay goodbye.", "Tick... tick... tick...", "Let's make a big bang."] } }
   - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: FLAME, count: 6, spread: 0.7, offset-y: 0.8 } }
   - { trigger: onTargetInRange, radius: 5, cooldown: 100, mechanic: explode, targeter: self_location, params: { power: 3.0, fire: false } }
-  - { trigger: onTimer, interval: 140, mechanic: summon, targeter: self_location, params: { type: CREEPER, amount: 4, radius: 6 } }
-  - { trigger: onTimer, interval: 60, mechanic: knockback, targeter: players_in_radius, params: { radius: 5, strength: 1.4, vertical: 0.5 } }
+  - { trigger: onTimer, interval: 150, interval-max: 240, mechanic: summon, targeter: self_location, params: { type: CREEPER, amount: 3, radius: 6 } }
+  - { trigger: onTimer, interval: 60, interval-max: 100, mechanic: knockback, targeter: players_in_radius, params: { radius: 5, strength: 1.4, vertical: 0.5 } }
   - { trigger: onTimer, interval: 190, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Ka... BOOM!", "Feel the pressure?", "Hold still, this won't hurt... me."] } }
   - { trigger: onHealthBelow, value: 50, mechanic: explode, targeter: self_location, params: { power: 5.0, fire: false } }
   # Final detonation: a huge blast that also kills Kaboomicus (kill-caster). Still no block damage.
@@ -34,5 +34,9 @@ drops:
   items:
     - { item: DIAMOND, amount: "3-6", chance: 1.0 }
     - { item: TNT, amount: "8-16", chance: 0.8 }
-    - { item: CREEPER_HEAD, amount: 1, chance: 0.4, glow: true, name: "<gradient:#22c55e:#065f46>Crown of Kaboomicus</gradient>" }
+    - { item: CREEPER_HEAD, amount: 1, chance: 0.4, glow: true, announce: true, name: "<gradient:#22c55e:#065f46>Crown of Kaboomicus</gradient>" }
+    - { item: DIAMOND_CHESTPLATE, amount: 1, chance: 0.28, glow: true, announce: true,
+        name: "<gradient:#22c55e:#064e3b>Blastplate of Kaboomicus</gradient>",
+        lore: ["<dark_gray>Scorched but unbroken."], enchants: ["BLAST_PROTECTION:4", "PROTECTION:3", "UNBREAKING:3"] }
+    - { item: FIREWORK_ROCKET, amount: "8-16", chance: 0.5, name: "<gradient:#22c55e:#065f46>Sundering Charge</gradient>" }
   xp: 650

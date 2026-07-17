@@ -84,6 +84,11 @@ public final class BossEditorMenu extends Menu {
             terrainEnabled = !terrainEnabled;
             rebuild();
         });
+        set(24, icon(Material.CHEST, "<gold>Drops",
+                "<gray>Adjust each drop's chance and",
+                "<gray>toggle its chat announcement.",
+                "<yellow>Click <gray>to open"), e -> new DropEditorMenu(plugin, bossId).open((Player) e.getWhoClicked()));
+
         set(30, icon(Material.LIME_CONCRETE, "<green><bold>Save",
                 "<gray>Write changes to <yellow>bosses/" + bossId + ".yml",
                 "<gray>and reload."), e -> save((Player) e.getWhoClicked()));

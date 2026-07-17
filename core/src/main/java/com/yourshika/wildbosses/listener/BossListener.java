@@ -29,10 +29,20 @@ public final class BossListener implements Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onDamageCause(EntityDamageEvent event) {
         ActiveBoss boss = manager.get(event.getEntity());
-        if (boss == null || boss.def().immunities().isEmpty()) {
+        if (boss == null) {
             return;
         }
-        if (isImmune(boss.def(), event.getCause().name())) {
+        String cause = event.getCause().name();
+        // Environmental drying-out / suffocation is always blocked for any boss (even with no
+        // configured immunities) so a water boss on land or a boss nudged into a block can't just die.
+        if (cause.equals("DRYOUT") || cause.equals("SUFFOCATION")) {
+            event.setCancelled(true);
+            return;
+        }
+        if (boss.def().immunities().isEmpty()) {
+            return;
+        }
+        if (isImmune(boss.def(), cause)) {
             event.setCancelled(true);
         }
     }
@@ -47,6 +57,9 @@ public final class BossListener implements Listener {
             case "WITHER" -> def.immuneTo("WITHER");
             case "MAGIC" -> def.immuneTo("MAGIC");
             case "POISON" -> def.immuneTo("POISON");
+            // Bosses never die to environmental drying-out or suffocation - a water boss (pufferfish)
+            // brought onto land, or any boss nudged into a block, must not just expire.
+            case "DRYOUT", "SUFFOCATION" -> true;
             default -> false;
         };
     }

@@ -231,7 +231,17 @@ public final class BossLoader {
                     p.getBoolean("glow", false),
                     p.getBoolean("announce", false)));
         }
-        return new DropTable(items, s.getInt("xp", 0), s.getStringList("commands"));
+        List<CommandReward> commandRewards = new ArrayList<>();
+        for (Map<?, ?> m : s.getMapList("command-rewards")) {
+            Params cp = new Params(toStringMap(m));
+            String cmd = cp.getString("command", null);
+            if (cmd == null || cmd.isBlank()) {
+                continue;
+            }
+            commandRewards.add(new CommandReward(cmd, clamp01(cp.getDouble("chance", 1.0)),
+                    cp.getString("announce", null)));
+        }
+        return new DropTable(items, s.getInt("xp", 0), s.getStringList("commands"), commandRewards);
     }
 
     private TerrainSettings parseTerrain(ConfigurationSection s, String id) {

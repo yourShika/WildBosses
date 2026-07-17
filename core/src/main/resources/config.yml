@@ -65,6 +65,8 @@ broadcast:
     # Auto-announce any drop whose chance is at or below this value (0.0-1.0). Rarer = announced.
     # A drop can also set "announce: true" in its boss YAML to always be broadcast regardless.
     announce-threshold: 0.5
+  # Sound played to EVERY online player when a boss is slain (blank = off).
+  death-sound: "ui.toast.challenge_complete"
 
 # Override the look of each difficulty tier. Bar colours: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE.
 difficulties:

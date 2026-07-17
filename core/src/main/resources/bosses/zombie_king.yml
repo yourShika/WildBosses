@@ -28,8 +28,8 @@ skills:
   - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.zombie.death", volume: 1.4, pitch: 0.6 } }
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Your flesh will join my court.", "Rise, my children... feast!", "The grave has no king but me."] } }
   - { trigger: onTimer, interval: 15, mechanic: particle, targeter: self_location, params: { particle: SCULK_SOUL, count: 6, spread: 0.6, offset-y: 1.2 } }
-  - { trigger: onTimer, interval: 120, mechanic: summon, targeter: self_location, params: { type: ZOMBIE, amount: 3, radius: 4 } }
-  - { trigger: onTimer, interval: 90, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 120, amplifier: 0 } }
+  - { trigger: onTimer, interval: 130, interval-max: 210, mechanic: summon, targeter: self_location, params: { type: ZOMBIE, amount: 3, radius: 4 } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 120, amplifier: 0 } }
   - { trigger: onTimer, interval: 200, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Kneel before the King.", "Rot spreads... you cannot stop it.", "More! I need MORE!"] } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 1.2, particle: SCULK_CHARGE } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 4, radius: 5 } }
@@ -38,7 +38,13 @@ drops:
   items:
     - { item: DIAMOND, amount: "3-6", chance: 1.0 }
     - { item: EMERALD, amount: "4-8", chance: 0.8 }
-    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.25, glow: true, name: "<gradient:#ffd700:#fff3b0>Crown Apple of Mortis</gradient>" }
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.25, glow: true, announce: true, name: "<gradient:#ffd700:#fff3b0>Crown Apple of Mortis</gradient>" }
     - { item: NETHERITE_SCRAP, amount: "1-2", chance: 0.2 }
+    - { item: IRON_SWORD, amount: 1, chance: 0.3, glow: true, announce: true,
+        name: "<gradient:#4ade80:#14532d>Mortis' Royal Cleaver</gradient>",
+        lore: ["<dark_gray>Rusted, but it still bites.", "<green>Reeks of the grave."],
+        enchants: ["SHARPNESS:5", "UNBREAKING:3", "LOOTING:2"] }
+    - { item: GOLDEN_HELMET, amount: 1, chance: 0.3, glow: true, announce: true,
+        name: "<gradient:#4ade80:#14532d>Crown of the Rotting Throne</gradient>", enchants: ["PROTECTION:3"] }
   xp: 500
   commands: []

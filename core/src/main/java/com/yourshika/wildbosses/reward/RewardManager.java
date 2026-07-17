@@ -80,8 +80,31 @@ public final class RewardManager implements BossDeathListener {
                 continue;
             }
             ItemStack stack = build(entry);
-            world.dropItemNaturally(loc, stack);
+            org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), stack);
+            boolean notable = entry.announce() || entry.chance() <= plugin.config().dropBroadcastThreshold();
+            if (notable) {
+                dropped.setGlowing(true);      // visible through blocks so nobody misses rare loot
+                dropped.setWillAge(false);     // a notable drop won't quietly despawn
+            }
             maybeAnnounce(boss, entry, stack, finder);
+        }
+        rollCommandRewards(drops, boss, finder);
+    }
+
+    /** Roll chance-based console rewards (e.g. granting a pet), one roll per finder. */
+    private void rollCommandRewards(DropTable drops, ActiveBoss boss, Player finder) {
+        if (finder == null || drops.commandRewards().isEmpty()) {
+            return;
+        }
+        for (com.yourshika.wildbosses.boss.CommandReward cr : drops.commandRewards()) {
+            if (ThreadLocalRandom.current().nextDouble() > cr.chance()) {
+                continue;
+            }
+            String cmd = cr.command().replace("%player%", finder.getName()).replace("%boss%", boss.def().id());
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
+            if (cr.announce() != null && !cr.announce().isBlank() && plugin.config().dropBroadcastEnabled()) {
+                plugin.broadcaster().bossDrop(boss.def(), Text.mm(cr.announce()), 1, finder.getName());
+            }
         }
     }
 

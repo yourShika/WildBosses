@@ -1,10 +1,12 @@
-# Abyssos, the Leviathan - ULTRA_HARD deep-sea terror. Best fought in/near water.
+# Abyssos, the Leviathan - ULTRA_HARD deep-sea terror. Its attacks are now loudly telegraphed with
+# heavy, varied particles and distinct sounds. Best fought in/near water.
+# Pet reward uses a BetterPets id - adjust "axolotl" to match your setup.
 id: leviathan
 name: "<gradient:#38bdf8:#0c4a6e>Abyssos, the Leviathan</gradient>"
 title: "<gray>Terror of the Deep"
 difficulty: ULTRA_HARD
 base-entity: ELDER_GUARDIAN
-stats: { health: 780, armor: 14, knockback-resistance: 0.9, damage: 14, speed: 0.28, follow-range: 60, scale: 1.2 }
+stats: { health: 800, armor: 14, knockback-resistance: 0.9, damage: 14, speed: 0.28, follow-range: 60, scale: 1.2 }
 bossbar: { color: BLUE, style: NOTCHED_10 }
 immunities: [DROWNING, FIRE]
 enrage-timer: { enabled: true, after-seconds: 360, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.04 }
@@ -15,7 +17,7 @@ spawn:
   y: { min: 30, max: 70 }
   cooldown-seconds: 3000
   max-concurrent: 1
-  near-water: true          # only surfaces near water
+  near-water: true
   biomes: [OCEAN, RIVER, BEACH, SWAMP]
 phases:
   - { at-health-percent: 100, message: "<aqua>The water churns - Abyssos, the Leviathan, surfaces!" }
@@ -23,16 +25,33 @@ phases:
   - { at-health-percent: 30, enrage: true, message: "<blue>Abyssos unleashes the maelstrom!" }
 skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 55, lines: ["The deep claims all.", "You are so very small.", "Down... come down with me."] } }
-  - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: DRIPPING_DRIPSTONE_LAVA, count: 6, spread: 1.0, offset-y: 1.5 } }
-  - { trigger: onTimer, interval: 70, mechanic: pull, targeter: players_in_radius, params: { radius: 14, strength: 1.4 } }
-  - { trigger: onTimer, interval: 90, mechanic: beam, targeter: nearest_player, params: { radius: 40, damage: 14, particle: BUBBLE } }
-  - { trigger: onTimer, interval: 140, mechanic: summon, targeter: self_location, params: { type: GUARDIAN, amount: 4, radius: 6 } }
-  - { trigger: onTimer, interval: 100, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: MINING_FATIGUE, duration: 200, amplifier: 2 } }
-  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 13, knockback: 1.4, particle: SPLASH } }
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.elder_guardian.curse", volume: 2.0, pitch: 0.7 } }
+  - { trigger: onTimer, interval: 10, mechanic: particle, targeter: self_location, params: { particle: BUBBLE_COLUMN_UP, count: 12, spread: 1.2, offset-y: 1.2 } }
+  - { trigger: onTimer, interval: 22, mechanic: particle, targeter: self_location, params: { particle: DRIPPING_DRIPSTONE_WATER, count: 8, spread: 1.4, offset-y: 1.8 } }
+  # Whirlpool: a loud, particle-heavy pull toward the beast.
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: sound, targeter: self_location, params: { sound: "item.bucket.empty", volume: 2.0, pitch: 0.6 } }
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: particle, targeter: self_location, params: { particle: SPLASH, count: 60, spread: 3.0, offset-y: 0.5 } }
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: pull, targeter: players_in_radius, params: { radius: 14, strength: 1.4 } }
+  # Abyssal beam: bright, dense trail with its own sound.
+  - { trigger: onTimer, interval: 90, interval-max: 130, mechanic: sound, targeter: self_location, params: { sound: "entity.elder_guardian.attack", volume: 1.8, pitch: 1.0 } }
+  - { trigger: onTimer, interval: 90, interval-max: 130, mechanic: beam, targeter: nearest_player, params: { radius: 40, damage: 14, particle: SONIC_BOOM } }
+  # Tidal crash: a telegraphed slam with a big splash and thunder.
+  - { trigger: onTimer, interval: 140, interval-max: 200, mechanic: sound, targeter: players_in_radius, params: { sound: "entity.lightning_bolt.thunder", volume: 1.5, pitch: 1.3 } }
+  - { trigger: onTimer, interval: 140, interval-max: 200, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 5, damage: 14, knockback: 1.2, delay: 30, warn-particle: BUBBLE_POP, particle: SPLASH } }
+  - { trigger: onTimer, interval: 150, interval-max: 230, mechanic: summon, targeter: self_location, params: { type: GUARDIAN, amount: 3, radius: 6 } }
+  - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: MINING_FATIGUE, duration: 200, amplifier: 2 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: sound, targeter: self_location, params: { sound: "entity.warden.sonic_boom", volume: 2.0, pitch: 0.8 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 15, knockback: 1.5, particle: SPLASH } }
 drops:
   items:
     - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0 }
     - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0 }
-    - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.5, glow: true, name: "<gradient:#38bdf8:#0c4a6e>Leviathan's Core</gradient>" }
+    - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.5, glow: true, announce: true, name: "<gradient:#38bdf8:#0c4a6e>Leviathan's Core</gradient>" }
     - { item: DIAMOND, amount: "5-9", chance: 1.0 }
-  xp: 1100
+    - { item: TRIDENT, amount: 1, chance: 0.28, glow: true, announce: true,
+        name: "<gradient:#38bdf8:#0c4a6e>Tide-Render</gradient>",
+        lore: ["<dark_gray>Pulled from the abyss.", "<aqua>The sea obeys it."],
+        enchants: ["IMPALING:5", "RIPTIDE:3", "UNBREAKING:3"] }
+  command-rewards:
+    - { command: "pets give axolotl 1 %player%", chance: 0.07, announce: "<gradient:#38bdf8:#0c4a6e>surfaced with an Axolotl pet from the Leviathan!</gradient>" }
+  xp: 1150

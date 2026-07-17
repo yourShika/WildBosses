@@ -7,9 +7,10 @@ name: "<gradient:#65a30d:#4d7c0f>Pestis, the Plaguebearer</gradient>"
 title: "<gray>Herald of the Rotting Legion"
 difficulty: MEDIUM
 base-entity: ZOMBIE_VILLAGER
-stats: { health: 360, armor: 10, knockback-resistance: 0.5, damage: 8, speed: 0.29, follow-range: 42, scale: 1.4 }
+stats: { health: 420, armor: 12, knockback-resistance: 0.6, damage: 9, speed: 0.3, follow-range: 44, scale: 1.5 }
 equipment: { hand: IRON_SWORD }
 bossbar: { color: GREEN, style: NOTCHED_10 }
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.05 }
 spawn:
   worlds: [OVERWORLD]
   weight: 26
@@ -19,19 +20,28 @@ spawn:
   max-concurrent: 1
 phases:
   - { at-health-percent: 100, message: "<green>Pestis, the Plaguebearer, festers into being!" }
-  - { at-health-percent: 50, enrage: true, message: "<dark_green>Pestis exhales a cloud of pestilence!" }
+  - { at-health-percent: 65, message: "<green>Pestis splits open - the pestilence spreads!" }
+  - { at-health-percent: 35, message: "<dark_green>Pestis exhales a cloud of contagion!" }
+  - { at-health-percent: 15, enrage: true, message: "<dark_green>Pestis rots into a plague-storm!" }
 skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Breathe deep, it's already in you.", "The rot is a gift.", "Join the Legion... you have no choice."] } }
   - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: SNEEZE, count: 8, spread: 0.8, offset-y: 1.0 } }
-  - { trigger: onTimer, interval: 70, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, lingering: true, velocity: 0.9 } }
-  - { trigger: onTimer, interval: 90, mechanic: potion_cloud, targeter: self_location, params: { type: POISON, duration: 120, amplifier: 0, radius: 4, cloud-duration: 140 } }
-  - { trigger: onTimer, interval: 80, mechanic: poison, targeter: players_in_radius, params: { radius: 4, duration: 140, amplifier: 1 } }
-  - { trigger: onTimer, interval: 130, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 3, radius: 5, effects: ["POISON:200:0", "SPEED:99999:0"] } }
+  # Contagion: splash and lingering poison, and creeping bile pools.
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, lingering: true, velocity: 0.9 } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: potion_cloud, targeter: players_in_radius, params: { type: POISON, duration: 120, amplifier: 0, radius: 4, cloud-duration: 160 } }
+  - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 4, damage: 8, delay: 30, warn-particle: SNEEZE, particle: SCULK_CHARGE_POP } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: WEAKNESS, duration: 160, amplifier: 0 } }
+  # Plague-bloat: a bilious burst of rot.
+  - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 0.8, particle: SCULK_SOUL } }
+  - { trigger: onTimer, interval: 130, interval-max: 200, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 3, radius: 5, effects: ["POISON:200:0", "SPEED:99999:0"] } }
+  - { trigger: onHealthBelow, value: 65, mechanic: throw_potion, targeter: nearest_player, params: { type: WITHER, duration: 100, amplifier: 0, velocity: 0.9 } }
+  - { trigger: onHealthBelow, value: 35, mechanic: potion_cloud, targeter: self_location, params: { type: POISON, duration: 160, amplifier: 1, radius: 5, cloud-duration: 200 } }
+  - { trigger: onHealthBelow, value: 15, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SCULK_SOUL } }
 army:
   stages: [10, 16, 22, 28]
   wave-size: 6
   max-alive: 22
-  reinforce-interval-ticks: 110
+  reinforce-interval-ticks: 130
   radius: 12
   outcome: SPAWN_BOSS
   end-boss: infected_army
@@ -57,5 +67,8 @@ drops:
     - { item: ROTTEN_FLESH, amount: "12-24", chance: 1.0 }
     - { item: EMERALD, amount: "3-7", chance: 0.9 }
     - { item: DIAMOND, amount: "2-4", chance: 0.6 }
-    - { item: GOLDEN_APPLE, amount: 1, chance: 0.4, name: "<gradient:#65a30d:#365314>Plaguebearer's Boon</gradient>" }
-  xp: 550
+    - { item: GOLDEN_APPLE, amount: 1, chance: 0.45, name: "<gradient:#65a30d:#365314>Plaguebearer's Boon</gradient>" }
+    - { item: NETHERITE_LEGGINGS, amount: 1, chance: 0.2, glow: true, announce: true,
+        name: "<gradient:#65a30d:#365314>Rot-Plated Greaves</gradient>",
+        lore: ["<dark_gray>Immune to what killed their maker."], enchants: ["PROTECTION:4", "UNBREAKING:3"] }
+  xp: 600

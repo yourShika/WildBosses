@@ -1,11 +1,11 @@
-# Oberhexe Walak - ULTRA_HARD overworld dark-magic boss.
-# A model named "walak" (BetterModel) is used automatically if present.
+# Oberhexe Walak - ULTRA_HARD overworld dark-magic boss. A true witch: creeping ground-poison and
+# black-magic spells. (No more Vex swarm - she is a WITCH, not an evoker.)
 id: walak
 name: "<gradient:#7c3aed:#2e1065>Oberhexe Walak</gradient>"
 title: "<gray>the Blackmage"
 difficulty: ULTRA_HARD
-base-entity: EVOKER
-stats: { health: 600, armor: 8, knockback-resistance: 0.6, damage: 9, speed: 0.3, follow-range: 48, scale: 1.3 }
+base-entity: WITCH
+stats: { health: 620, armor: 8, knockback-resistance: 0.6, damage: 9, speed: 0.3, follow-range: 48, scale: 1.4 }
 bossbar: { color: PURPLE, style: NOTCHED_10 }
 immunities: [MAGIC]
 enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.12, speed-mult: 1.05 }
@@ -23,18 +23,26 @@ phases:
 skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Your soul makes fine reagent.", "Magic older than your gods.", "Let me show you true darkness."] } }
   - { trigger: onTimer, interval: 10, mechanic: particle, targeter: self_location, params: { particle: WITCH, count: 10, spread: 0.9, offset-y: 1.3 } }
-  - { trigger: onTimer, interval: 90, mechanic: summon, targeter: self_location, params: { type: VEX, amount: 4, radius: 5 } }
-  - { trigger: onTimer, interval: 100, mechanic: throw_potion, targeter: nearest_player, params: { type: INSTANT_DAMAGE, amplifier: 1, velocity: 1.0 } }
-  - { trigger: onTimer, interval: 80, mechanic: teleport, targeter: nearest_player, params: { radius: 4 } }
-  - { trigger: onTimer, interval: 200, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Burn in shadow.", "You cannot ward against me.", "Dance, puppet."] } }
-  - { trigger: onTimer, interval: 150, mechanic: meteor, targeter: players_in_radius, params: { count: 4, radius: 7, height: 20, damage: 10, delay: 25 } }
-  - { trigger: onHealthBelow, value: 50, mechanic: healer_adds, targeter: self, params: { type: VEX, amount: 3, radius: 4, heal-per-second: 14, name: "<dark_purple>Dark Attendant" } }
+  # Creeping venom: pools of lingering poison bloom under the players' feet.
+  - { trigger: onTimer, interval: 90, interval-max: 150, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["Rot from within.", "Breathe it in."] } }
+  - { trigger: onTimer, interval: 90, interval-max: 150, mechanic: potion_cloud, targeter: players_in_radius, params: { type: POISON, duration: 120, amplifier: 1, radius: 3, cloud-duration: 160 } }
+  - { trigger: onTimer, interval: 110, interval-max: 170, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 4, damage: 8, delay: 30, warn-particle: WITCH, particle: SNEEZE } }
+  # Black magic: a bolt of harming, a dark hex, and a blink.
+  - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: throw_potion, targeter: nearest_player, params: { type: INSTANT_DAMAGE, amplifier: 1, velocity: 1.0 } }
+  - { trigger: onTimer, interval: 140, interval-max: 210, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: WITHER, duration: 120, amplifier: 1 } }
+  - { trigger: onTimer, interval: 80, interval-max: 140, mechanic: teleport, targeter: nearest_player, params: { radius: 4 } }
+  - { trigger: onTimer, interval: 160, interval-max: 240, mechanic: meteor, targeter: players_in_radius, params: { count: 4, radius: 7, height: 22, damage: 10, delay: 28 } }
   - { trigger: onHealthBelow, value: 60, mechanic: lightning, targeter: players_in_radius, params: { damage: true } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.2, particle: SOUL_FIRE_FLAME } }
   - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: RESISTANCE, duration: 200, amplifier: 1 } }
 drops:
   items:
-    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.5, glow: true, name: "<gradient:#7c3aed:#2e1065>Walak's Phylactery</gradient>" }
+    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.5, glow: true, announce: true, name: "<gradient:#7c3aed:#2e1065>Walak's Phylactery</gradient>" }
     - { item: DIAMOND, amount: "5-9", chance: 1.0 }
-    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.4 }
-  xp: 1000
+    - { item: NETHERITE_HOE, amount: 1, chance: 0.25, glow: true, announce: true,
+        name: "<gradient:#7c3aed:#2e1065>Hexstaff of the Blackmage</gradient>",
+        lore: ["<dark_gray>Whispers of the coven cling to it.", "<dark_purple>Bane of the living."],
+        enchants: ["UNBREAKING:3", "MENDING:1"] }
+    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.45, name: "<gradient:#7c3aed:#2e1065>Grimoire Page</gradient>", enchants: ["CURSE_OF_VANISHING:1"] }
+    - { item: GLASS_BOTTLE, amount: "2-4", chance: 0.6, name: "<gradient:#7c3aed:#2e1065>Vial of Nightshade</gradient>" }
+  xp: 1050

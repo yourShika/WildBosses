@@ -82,7 +82,7 @@ skills:
 | Trigger | Params | Fires |
 |---|---|---|
 | `onSpawn` | | once, on spawn |
-| `onTimer` | `interval` (ticks) | every interval |
+| `onTimer` | `interval` (ticks), optional `interval-max` | every interval; with `interval-max` it fires at a random cadence in `[interval, interval-max]` so summons/attacks aren't robotic |
 | `onDamaged` | | when the boss takes damage |
 | `onDealDamage` | | when the boss deals melee damage |
 | `onPhaseChange` | `phase` (optional) | on phase change (matching `phase` index) |
@@ -189,6 +189,29 @@ name. A drop is announced when either:
 
 Turn the whole feature off with `broadcast.drops.enabled: false`. Customise the message via
 `broadcast.boss-drop` (placeholders `<player> <item> <amount> <boss> <difficulty>`).
+
+**Chance-based command rewards (e.g. pets).** Alongside `items`, a `command-rewards` list runs
+console commands as loot, each rolled independently. `%player%` is the receiver, `%boss%` the boss id.
+An optional `announce` line is broadcast (with `<player>`) when it drops. Great for granting a pet
+from another plugin such as [BetterPets](https://github.com/yourShika/betterpets-paper)
+(`/pets give <pet> [level] [player]`):
+
+```yaml
+drops:
+  command-rewards:
+    - { command: "pets give phoenix 1 %player%", chance: 0.06,
+        announce: "<gold>claimed a Phoenix pet from the boss!</gold>" }
+```
+
+Adjust the pet id (`phoenix`, `bee`, `pufferfish`, `axolotl`, …) to match your BetterPets setup.
+
+**Aerial AoE.** `danger_zone` takes an optional `offset-y` that lifts the telegraph off the ground,
+so the danger area forms in the air above the target instead of on the floor (used by the Harvester).
+
+**Safe placement.** Summoned minions, `healer_adds`, and all teleports snap to a safe standing spot,
+so nothing ever spawns or teleports inside a block. **Drop chances** are set per item with `chance`
+(`0.0`–`1.0`); notable drops glow and are announced. Editing chances and announce flags is also
+possible in-game via `/wb gui` → Bosses → (shift-click a boss) → **Drops**.
 
 ## Army
 

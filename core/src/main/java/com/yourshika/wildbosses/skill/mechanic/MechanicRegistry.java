@@ -190,7 +190,11 @@ public final class MechanicRegistry {
         Location base = targets.isEmpty() ? ctx.location() : targets.get(0).location();
         World world = base.getWorld();
         for (int i = 0; i < amount; i++) {
-            Location loc = base.clone().add(rand(radius), 0, rand(radius));
+            // Land minions on top of the ground, never inside a wall/floor where they'd suffocate.
+            Location loc = safeGround(base.clone().add(rand(radius), 0, rand(radius)));
+            if (loc == null) {
+                loc = base;
+            }
             Entity e = world.spawnEntity(loc, type);
             e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
             if (e instanceof LivingEntity le) {
@@ -300,6 +304,10 @@ public final class MechanicRegistry {
         Location dest = targets.isEmpty() ? ctx.location() : targets.get(0).location().clone();
         if (radius > 0) {
             dest.add(rand(radius), 0, rand(radius));
+            Location safe = safeGround(dest);
+            if (safe != null) {
+                dest = safe;
+            }
         }
         ctx.self().teleport(dest);
     }
@@ -308,8 +316,11 @@ public final class MechanicRegistry {
         double radius = p.getDouble("radius", 2);
         for (Target t : targets) {
             if (t.entity() != null && t.entity() != ctx.self()) {
-                Location dest = ctx.location().clone().add(rand(radius), 0, rand(radius));
-                t.entity().teleport(dest);
+                // Only relocate the player to a verified safe spot - never into solid blocks.
+                Location dest = safeGround(ctx.location().clone().add(rand(radius), 0, rand(radius)));
+                if (dest != null) {
+                    t.entity().teleport(dest);
+                }
                 break;
             }
         }
@@ -593,11 +604,13 @@ public final class MechanicRegistry {
         double damage = p.getDouble("damage", 8);
         double knockback = p.getDouble("knockback", 0);
         int delay = Math.max(5, p.getInt("delay", 30));
+        double offsetY = p.getDouble("offset-y", 0);
         Particle warn = enumOr(Particle.class, p.getString("warn-particle", "FLAME"), Particle.FLAME);
         Particle hit = enumOr(Particle.class, p.getString("particle", "EXPLOSION_EMITTER"), Particle.EXPLOSION_EMITTER);
         java.util.List<Location> spots = new java.util.ArrayList<>();
         for (Location l : locations(ctx, targets)) {
-            spots.add(l.clone());
+            // offset-y lifts the telegraph off the ground (e.g. an aerial AoE that forms in the air).
+            spots.add(l.clone().add(0, offsetY, 0));
         }
         LivingEntity self = ctx.self();
         var plugin = ctx.plugin();
@@ -696,7 +709,10 @@ public final class MechanicRegistry {
         Location base = ctx.location();
         World w = base.getWorld();
         for (int i = 0; i < amount; i++) {
-            Location loc = base.clone().add(rand(radius), 0, rand(radius));
+            Location loc = safeGround(base.clone().add(rand(radius), 0, rand(radius)));
+            if (loc == null) {
+                loc = base;
+            }
             Entity e = w.spawnEntity(loc, type);
             e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
             if (e instanceof LivingEntity le) {
@@ -728,6 +744,32 @@ public final class MechanicRegistry {
     }
 
     // ---- helpers --------------------------------------------------------------------------
+
+    /**
+     * Find a safe standing spot at {@code desired}'s column: a solid, non-liquid floor with two
+     * passable blocks above. Searches a few blocks up and down from the desired Y so summoned mobs
+     * and teleports land ON the ground, never embedded in blocks. Returns {@code null} if no safe
+     * spot is nearby (the caller decides whether to skip or fall back).
+     */
+    private static Location safeGround(Location desired) {
+        World w = desired.getWorld();
+        if (w == null) {
+            return null;
+        }
+        int x = desired.getBlockX();
+        int z = desired.getBlockZ();
+        int top = Math.min(w.getMaxHeight() - 3, desired.getBlockY() + 6);
+        int bottom = Math.max(w.getMinHeight() + 1, desired.getBlockY() - 10);
+        for (int y = top; y >= bottom; y--) {
+            org.bukkit.block.Block floor = w.getBlockAt(x, y, z);
+            org.bukkit.block.Block feet = w.getBlockAt(x, y + 1, z);
+            org.bukkit.block.Block head = w.getBlockAt(x, y + 2, z);
+            if (floor.getType().isSolid() && !floor.isLiquid() && feet.isPassable() && head.isPassable()) {
+                return new Location(w, x + 0.5, y + 1, z + 0.5, desired.getYaw(), desired.getPitch());
+            }
+        }
+        return null;
+    }
 
     /**
      * A normalized direction from {@code eye} to {@code target}. Falls back to the eye's facing when

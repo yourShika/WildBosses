@@ -21,9 +21,9 @@ phases:
   - { at-health-percent: 40, enrage: true, message: "<dark_green>Grizznak flies into a plundering rage!" }
 skills:
   - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["The King has arrived, worms!", "You beat my warband? Now beat ME!", "Shinies! Give me your shinies!"] } }
-  - { trigger: onTimer, interval: 100, mechanic: leap, targeter: nearest_player, params: { power: 1.2, vertical: 0.5 } }
-  - { trigger: onTimer, interval: 140, mechanic: summon, targeter: self_location, params: { type: VINDICATOR, amount: 3, radius: 5 } }
-  - { trigger: onTimer, interval: 70, mechanic: knockback, targeter: players_in_radius, params: { radius: 4, strength: 1.0, vertical: 0.35 } }
+  - { trigger: onTimer, interval: 100, interval-max: 160, mechanic: leap, targeter: nearest_player, params: { power: 1.2, vertical: 0.5 } }
+  - { trigger: onTimer, interval: 150, interval-max: 240, mechanic: summon, targeter: self_location, params: { type: VINDICATOR, amount: 3, radius: 5 } }
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: knockback, targeter: players_in_radius, params: { radius: 4, strength: 1.0, vertical: 0.35 } }
 army:
   # Kill counts per wave (increasing). After the last wave, the outcome resolves.
   stages: [8, 12, 16, 20, 24]
@@ -41,5 +41,11 @@ drops:
   items:
     - { item: EMERALD, amount: "6-12", chance: 1.0 }
     - { item: IRON_INGOT, amount: "4-8", chance: 0.9 }
-    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
+    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, announce: true, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
+    - { item: DIAMOND_AXE, amount: 1, chance: 0.3, glow: true, announce: true,
+        name: "<gradient:#84cc16:#3f6212>Grizznak's Plunder-Axe</gradient>",
+        lore: ["<dark_gray>Notched from a hundred raids.", "<green>Loves shiny things."],
+        enchants: ["SHARPNESS:5", "LOOTING:3", "UNBREAKING:3"] }
+    - { item: LEATHER_CHESTPLATE, amount: 1, chance: 0.35, glow: true, announce: true,
+        name: "<gradient:#84cc16:#3f6212>Warlord's Hide</gradient>", enchants: ["PROTECTION:3", "THORNS:2"] }
   xp: 450

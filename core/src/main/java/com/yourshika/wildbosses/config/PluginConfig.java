@@ -37,6 +37,7 @@ public final class PluginConfig {
 
     private boolean dropBroadcastEnabled = true;
     private double dropBroadcastThreshold = 0.5;
+    private String deathSound = "ui.toast.challenge_complete";
 
     private boolean bossLifetimeEnabled = true;
     private int bossLifetimeMinMinutes = 30;
@@ -89,6 +90,7 @@ public final class PluginConfig {
 
         dropBroadcastEnabled = c.getBoolean("broadcast.drops.enabled", true);
         dropBroadcastThreshold = Math.max(0.0, Math.min(1.0, c.getDouble("broadcast.drops.announce-threshold", 0.5)));
+        deathSound = c.getString("broadcast.death-sound", "ui.toast.challenge_complete");
 
         applyDifficultyOverrides(c.getConfigurationSection("difficulties"), logger);
     }
@@ -194,6 +196,11 @@ public final class PluginConfig {
     /** Drops whose chance is at or below this value are auto-announced (0..1). */
     public double dropBroadcastThreshold() {
         return dropBroadcastThreshold;
+    }
+
+    /** Sound key played to every online player when a boss is slain (blank = none). */
+    public String deathSound() {
+        return deathSound;
     }
 
     public boolean bossLifetimeEnabled() {
