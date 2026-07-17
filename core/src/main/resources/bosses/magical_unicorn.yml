@@ -50,7 +50,7 @@ drops:
     # Mythical
     - { item: ELYTRA, amount: 1, chance: 0.04, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Prismwing</gradient>", lore: ["<dark_gray>Wings of pure, impossible colour."],
-        enchants: ["UNBREAKING:10", "MENDING:1"] }
+        enchants: ["UNBREAKING:5", "MENDING:1"] }
   command-rewards:
     # Mythical
     - { command: "pets give pixie 1 %player%", chance: 0.07, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#f9a8d4:#93c5fd>a Pixie pet from Aurelith!</gradient>" }

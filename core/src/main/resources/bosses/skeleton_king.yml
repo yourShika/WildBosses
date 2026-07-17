@@ -46,11 +46,11 @@ drops:
     - { item: TIPPED_ARROW, amount: "8-16", chance: 0.45, rarity: UNCOMMON, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Quiver</gradient>" }
     # Rare
     - { item: DIAMOND_LEGGINGS, amount: 1, chance: 0.35, rarity: RARE,
-        name: "<gradient:#e5e7eb:#9ca3af>Greaves of the Bonewaste</gradient>", enchants: ["PROTECTION:6", "PROJECTILE_PROTECTION:6", "UNBREAKING:5"] }
+        name: "<gradient:#e5e7eb:#9ca3af>Greaves of the Bonewaste</gradient>", enchants: ["PROTECTION:5", "PROJECTILE_PROTECTION:5", "UNBREAKING:4"] }
     - { item: NETHERITE_INGOT, amount: 1, chance: 0.3, rarity: RARE, name: "<gradient:#e5e7eb:#6b7280>Marrow-forged Ingot</gradient>" }
     # Legendary
     - { item: BOW, amount: 1, chance: 0.2, rarity: LEGENDARY, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Longbow</gradient>",
-        lore: ["<dark_gray>Never misses.", "<white>Fires without end."], enchants: ["POWER:8", "PUNCH:5", "FLAME:1", "INFINITY:1", "UNBREAKING:6"] }
+        lore: ["<dark_gray>Never misses.", "<white>Fires without end."], enchants: ["POWER:6", "PUNCH:3", "FLAME:1", "INFINITY:1", "UNBREAKING:5"] }
     # Mythical
     - { item: WITHER_SKELETON_SKULL, amount: 1, chance: 0.05, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Skull of the Bonelord</gradient>", lore: ["<dark_gray>The crown never left his head."] }

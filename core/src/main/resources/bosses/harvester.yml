@@ -54,7 +54,7 @@ drops:
     - { item: NETHERITE_HOE, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#a3a3a3:#111827>Soul-Scythe of Mortarion</gradient>",
         lore: ["<dark_gray>It has reaped a thousand souls.", "<gray>It hungers for more."],
-        enchants: ["SHARPNESS:10", "SWEEPING_EDGE:5", "LOOTING:5", "UNBREAKING:8", "MENDING:1"] }
+        enchants: ["SHARPNESS:7", "SWEEPING_EDGE:4", "LOOTING:4", "UNBREAKING:5", "MENDING:1"] }
     # Mythical
     - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.04, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Stolen Soul</gradient>", lore: ["<dark_gray>One life the Harvester failed to claim."] }

@@ -50,12 +50,12 @@ drops:
     - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.55, rarity: UNCOMMON, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
     # Rare
     - { item: LEATHER_CHESTPLATE, amount: 1, chance: 0.35, rarity: RARE,
-        name: "<gradient:#84cc16:#3f6212>Warlord's Hide</gradient>", enchants: ["PROTECTION:6", "THORNS:4", "UNBREAKING:5"] }
+        name: "<gradient:#84cc16:#3f6212>Warlord's Hide</gradient>", enchants: ["PROTECTION:5", "THORNS:4", "UNBREAKING:4"] }
     # Legendary
     - { item: DIAMOND_AXE, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#84cc16:#3f6212>Grizznak's Plunder-Axe</gradient>",
         lore: ["<dark_gray>Notched from a hundred raids.", "<green>Loves shiny things."],
-        enchants: ["SHARPNESS:8", "LOOTING:5", "UNBREAKING:6"] }
+        enchants: ["SHARPNESS:6", "LOOTING:4", "UNBREAKING:5"] }
     # Mythical
     - { item: BELL, amount: 1, chance: 0.05, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Grizznak's Plunder-Bell</gradient>", lore: ["<dark_gray>Rung over every stolen hoard."] }

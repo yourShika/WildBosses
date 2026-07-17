@@ -78,7 +78,7 @@ drops:
     # Legendary
     - { item: NETHERITE_LEGGINGS, amount: 1, chance: 0.18, rarity: LEGENDARY,
         name: "<gradient:#65a30d:#365314>Rot-Plated Greaves</gradient>",
-        lore: ["<dark_gray>Immune to what killed their maker."], enchants: ["PROTECTION:7", "THORNS:4", "UNBREAKING:8"] }
+        lore: ["<dark_gray>Immune to what killed their maker."], enchants: ["PROTECTION:5", "THORNS:4", "UNBREAKING:5"] }
     # Mythical
     - { item: DRAGON_BREATH, amount: 1, chance: 0.05, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Vial of Patient Zero</gradient>", lore: ["<dark_gray>Where the whole plague began."] }

@@ -45,11 +45,11 @@ drops:
     # Rare
     - { item: SHIELD, amount: 1, chance: 0.3, rarity: RARE,
         name: "<gradient:#fde047:#a16207>Aegis of the Hive</gradient>",
-        lore: ["<dark_gray>Woven from royal wax."], enchants: ["UNBREAKING:10", "MENDING:1"] }
+        lore: ["<dark_gray>Woven from royal wax."], enchants: ["UNBREAKING:5", "MENDING:1"] }
     # Legendary
     - { item: NETHERITE_SWORD, amount: 1, chance: 0.16, rarity: LEGENDARY,
         name: "<gradient:#fde047:#a16207>Queen's Stinger</gradient>",
-        lore: ["<yellow>Drips with venom."], enchants: ["SHARPNESS:8", "BANE_OF_ARTHROPODS:8", "UNBREAKING:6", "MENDING:1"] }
+        lore: ["<yellow>Drips with venom."], enchants: ["SHARPNESS:7", "BANE_OF_ARTHROPODS:6", "UNBREAKING:5", "MENDING:1"] }
   command-rewards:
     # Mythical
     - { command: "pets give bee 1 %player%", chance: 0.06, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#fde047:#a16207>a Bee pet from the Hive Queen!</gradient>" }
