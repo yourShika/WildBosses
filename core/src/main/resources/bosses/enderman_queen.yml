@@ -48,10 +48,11 @@ drops:
     - { item: NETHERITE_SWORD, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#a855f7:#312e81>Edge of the Endless Dark</gradient>",
         lore: ["<dark_gray>Cut from the space between stars.", "<dark_purple>It phases through armour."],
-        enchants: ["SHARPNESS:6", "UNBREAKING:3", "MENDING:1"] }
+        enchants: ["SHARPNESS:10", "SWEEPING_EDGE:5", "LOOTING:5", "UNBREAKING:8", "MENDING:1"] }
     # Mythical
     - { item: ELYTRA, amount: 1, chance: 0.06, rarity: MYTHICAL, name: "<gradient:#ff6bd6:#c86bff>Voidwing of Nyxara</gradient>",
-        lore: ["<dark_gray>Torn from the fabric of the End."] }
+        lore: ["<dark_gray>Torn from the fabric of the End."],
+        enchants: ["UNBREAKING:10", "MENDING:1"] }
   command-rewards:
     # Mythical
     - { command: "pets give shadow_dragon 1 %player%", chance: 0.05, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#a855f7:#312e81>a Shadow Dragon pet from the Void Queen!</gradient>" }

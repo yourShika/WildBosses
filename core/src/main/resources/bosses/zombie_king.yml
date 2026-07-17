@@ -48,12 +48,12 @@ drops:
     # Rare
     - { item: NETHERITE_SCRAP, amount: "1-2", chance: 0.35, rarity: RARE }
     - { item: GOLDEN_HELMET, amount: 1, chance: 0.4, rarity: RARE,
-        name: "<gradient:#4ade80:#14532d>Crown of the Rotting Throne</gradient>", enchants: ["PROTECTION:3"] }
+        name: "<gradient:#4ade80:#14532d>Crown of the Rotting Throne</gradient>", enchants: ["PROTECTION:5", "UNBREAKING:5"] }
     # Legendary
     - { item: IRON_SWORD, amount: 1, chance: 0.18, rarity: LEGENDARY,
         name: "<gradient:#4ade80:#14532d>Mortis' Royal Cleaver</gradient>",
         lore: ["<dark_gray>Rusted, but it still bites.", "<green>Reeks of the grave."],
-        enchants: ["SHARPNESS:5", "UNBREAKING:3", "LOOTING:2"] }
+        enchants: ["SHARPNESS:8", "FIRE_ASPECT:3", "LOOTING:4", "UNBREAKING:6"] }
     # Mythical
     - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.06, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Crown Apple of Mortis</gradient>",

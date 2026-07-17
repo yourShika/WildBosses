@@ -45,12 +45,12 @@ drops:
     # Rare
     - { item: DIAMOND_CHESTPLATE, amount: 1, chance: 0.35, rarity: RARE,
         name: "<gradient:#9ca3af:#450a0a>Pelt of Fenrar</gradient>",
-        lore: ["<dark_gray>Still warm."], enchants: ["PROTECTION:4", "THORNS:3"] }
+        lore: ["<dark_gray>Still warm."], enchants: ["PROTECTION:6", "THORNS:5", "UNBREAKING:5"] }
     # Legendary
     - { item: NETHERITE_SWORD, amount: 1, chance: 0.18, rarity: LEGENDARY,
         name: "<gradient:#9ca3af:#450a0a>Bloodfang</gradient>",
         lore: ["<dark_gray>Torn from the Bloodmoon itself.", "<red>Thirsts for the hunt."],
-        enchants: ["SHARPNESS:6", "SWEEPING_EDGE:3", "FIRE_ASPECT:2"] }
+        enchants: ["SHARPNESS:10", "SWEEPING_EDGE:5", "FIRE_ASPECT:4", "LOOTING:5", "UNBREAKING:8"] }
     # Mythical
     - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.05, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Heart of the Bloodmoon</gradient>", lore: ["<dark_gray>It still beats under the full moon."] }

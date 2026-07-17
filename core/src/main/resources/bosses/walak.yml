@@ -46,12 +46,13 @@ drops:
     - { item: GLASS_BOTTLE, amount: "2-4", chance: 0.7, rarity: COMMON, name: "<gradient:#7c3aed:#2e1065>Vial of Nightshade</gradient>" }
     # Uncommon
     - { item: FERMENTED_SPIDER_EYE, amount: "1-3", chance: 0.5, rarity: UNCOMMON }
-    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.5, rarity: UNCOMMON, name: "<gradient:#7c3aed:#2e1065>Grimoire Page</gradient>", enchants: ["CURSE_OF_VANISHING:1"] }
+    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.5, rarity: UNCOMMON, name: "<gradient:#7c3aed:#2e1065>Grimoire Page</gradient>",
+        lore: ["<dark_gray>Forbidden knowledge, bound in skin."], enchants: ["SHARPNESS:10", "CURSE_OF_VANISHING:1"] }
     # Rare
     - { item: NETHERITE_HOE, amount: 1, chance: 0.3, rarity: RARE,
         name: "<gradient:#7c3aed:#2e1065>Hexstaff of the Blackmage</gradient>",
         lore: ["<dark_gray>Whispers of the coven cling to it.", "<dark_purple>Bane of the living."],
-        enchants: ["UNBREAKING:3", "MENDING:1"] }
+        enchants: ["SHARPNESS:7", "FIRE_ASPECT:3", "UNBREAKING:8", "MENDING:1"] }
     # Legendary
     - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.22, rarity: LEGENDARY, name: "<gradient:#7c3aed:#2e1065>Walak's Phylactery</gradient>" }
     # Mythical

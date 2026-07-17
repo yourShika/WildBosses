@@ -54,7 +54,7 @@ drops:
     - { item: TRIDENT, amount: 1, chance: 0.22, rarity: LEGENDARY,
         name: "<gradient:#34d399:#065f46>Gorgon's Fang</gradient>",
         lore: ["<dark_gray>A spine torn from Medusa herself.", "<green>Weeps venom."],
-        enchants: ["IMPALING:5", "LOYALTY:3", "CHANNELING:1"] }
+        enchants: ["IMPALING:10", "LOYALTY:5", "CHANNELING:1", "UNBREAKING:6"] }
   command-rewards:
     # Mythical
     - { command: "pets give pufferfish 1 %player%", chance: 0.06, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#34d399:#065f46>a Pufferfish pet from Medusa!</gradient>" }

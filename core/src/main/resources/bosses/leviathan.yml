@@ -59,7 +59,7 @@ drops:
     - { item: TRIDENT, amount: 1, chance: 0.22, rarity: LEGENDARY,
         name: "<gradient:#38bdf8:#0c4a6e>Tide-Render</gradient>",
         lore: ["<dark_gray>Pulled from the abyss.", "<aqua>The sea obeys it."],
-        enchants: ["IMPALING:5", "RIPTIDE:3", "UNBREAKING:3"] }
+        enchants: ["IMPALING:10", "RIPTIDE:5", "UNBREAKING:8", "MENDING:1"] }
     # Mythical
     - { item: NAUTILUS_SHELL, amount: "1-2", chance: 0.05, rarity: MYTHICAL,
         name: "<gradient:#ff6bd6:#c86bff>Abyssal Pearl</gradient>", lore: ["<dark_gray>The heartbeat of the deep."] }
