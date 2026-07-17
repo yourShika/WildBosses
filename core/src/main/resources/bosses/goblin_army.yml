@@ -39,13 +39,17 @@ army:
     - { type: PILLAGER, weight: 1, health: 22, name: "<green>Goblin Slinger" }
 drops:
   items:
-    - { item: EMERALD, amount: "6-12", chance: 1.0 }
-    - { item: IRON_INGOT, amount: "4-8", chance: 0.9 }
-    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, announce: true, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
-    - { item: DIAMOND_AXE, amount: 1, chance: 0.3, glow: true, announce: true,
+    # Common
+    - { item: EMERALD, amount: "6-12", chance: 1.0, rarity: COMMON }
+    - { item: IRON_INGOT, amount: "4-8", chance: 0.9, rarity: COMMON }
+    # Uncommon
+    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.55, rarity: UNCOMMON, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
+    # Rare
+    - { item: LEATHER_CHESTPLATE, amount: 1, chance: 0.35, rarity: RARE,
+        name: "<gradient:#84cc16:#3f6212>Warlord's Hide</gradient>", enchants: ["PROTECTION:3", "THORNS:2"] }
+    # Legendary
+    - { item: DIAMOND_AXE, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#84cc16:#3f6212>Grizznak's Plunder-Axe</gradient>",
         lore: ["<dark_gray>Notched from a hundred raids.", "<green>Loves shiny things."],
         enchants: ["SHARPNESS:5", "LOOTING:3", "UNBREAKING:3"] }
-    - { item: LEATHER_CHESTPLATE, amount: 1, chance: 0.35, glow: true, announce: true,
-        name: "<gradient:#84cc16:#3f6212>Warlord's Hide</gradient>", enchants: ["PROTECTION:3", "THORNS:2"] }
   xp: 450

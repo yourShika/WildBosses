@@ -64,11 +64,15 @@ terrain:
     STONE: COBBLESTONE
 drops:
   items:
-    - { item: ROTTEN_FLESH, amount: "12-24", chance: 1.0 }
-    - { item: EMERALD, amount: "3-7", chance: 0.9 }
-    - { item: DIAMOND, amount: "2-4", chance: 0.6 }
-    - { item: GOLDEN_APPLE, amount: 1, chance: 0.45, name: "<gradient:#65a30d:#365314>Plaguebearer's Boon</gradient>" }
-    - { item: NETHERITE_LEGGINGS, amount: 1, chance: 0.2, glow: true, announce: true,
+    # Common
+    - { item: ROTTEN_FLESH, amount: "12-24", chance: 1.0, rarity: COMMON }
+    - { item: EMERALD, amount: "3-7", chance: 0.9, rarity: COMMON }
+    # Uncommon
+    - { item: DIAMOND, amount: "2-4", chance: 0.6, rarity: UNCOMMON }
+    # Rare
+    - { item: GOLDEN_APPLE, amount: 1, chance: 0.45, rarity: RARE, name: "<gradient:#65a30d:#365314>Plaguebearer's Boon</gradient>" }
+    # Legendary
+    - { item: NETHERITE_LEGGINGS, amount: 1, chance: 0.18, rarity: LEGENDARY,
         name: "<gradient:#65a30d:#365314>Rot-Plated Greaves</gradient>",
         lore: ["<dark_gray>Immune to what killed their maker."], enchants: ["PROTECTION:4", "UNBREAKING:3"] }
   xp: 600

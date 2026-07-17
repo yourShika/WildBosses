@@ -37,12 +37,19 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: RESISTANCE, duration: 200, amplifier: 1 } }
 drops:
   items:
-    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.5, glow: true, announce: true, name: "<gradient:#7c3aed:#2e1065>Walak's Phylactery</gradient>" }
-    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
-    - { item: NETHERITE_HOE, amount: 1, chance: 0.25, glow: true, announce: true,
+    # Common
+    - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    - { item: GLASS_BOTTLE, amount: "2-4", chance: 0.7, rarity: COMMON, name: "<gradient:#7c3aed:#2e1065>Vial of Nightshade</gradient>" }
+    # Uncommon
+    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.5, rarity: UNCOMMON, name: "<gradient:#7c3aed:#2e1065>Grimoire Page</gradient>", enchants: ["CURSE_OF_VANISHING:1"] }
+    # Rare
+    - { item: NETHERITE_HOE, amount: 1, chance: 0.3, rarity: RARE,
         name: "<gradient:#7c3aed:#2e1065>Hexstaff of the Blackmage</gradient>",
         lore: ["<dark_gray>Whispers of the coven cling to it.", "<dark_purple>Bane of the living."],
         enchants: ["UNBREAKING:3", "MENDING:1"] }
-    - { item: ENCHANTED_BOOK, amount: 1, chance: 0.45, name: "<gradient:#7c3aed:#2e1065>Grimoire Page</gradient>", enchants: ["CURSE_OF_VANISHING:1"] }
-    - { item: GLASS_BOTTLE, amount: "2-4", chance: 0.6, name: "<gradient:#7c3aed:#2e1065>Vial of Nightshade</gradient>" }
+    # Legendary
+    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.22, rarity: LEGENDARY, name: "<gradient:#7c3aed:#2e1065>Walak's Phylactery</gradient>" }
+    # Mythical
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Heart of the Coven</gradient>", lore: ["<dark_gray>Pulsing with stolen souls."] }
   xp: 1050

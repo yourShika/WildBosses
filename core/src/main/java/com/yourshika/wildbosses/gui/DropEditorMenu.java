@@ -47,21 +47,32 @@ public final class DropEditorMenu extends Menu {
         }
         for (int i = 0; i < items.size() && i < 45; i++) {
             final int index = i;
-            Map<String, Object> item = items.get(i);
+            Map<String, Object> item = items.get(index);
             Material mat = matOf(item.get("item"));
             double chance = toDouble(item.get("chance"), 1.0);
             boolean announce = Boolean.TRUE.equals(item.get("announce"));
+            com.yourshika.wildbosses.boss.Rarity rarity =
+                    com.yourshika.wildbosses.boss.Rarity.fromString(str(item.get("rarity")),
+                            com.yourshika.wildbosses.boss.Rarity.COMMON);
             String name = item.get("name") != null ? String.valueOf(item.get("name")) : "<white>" + mat.name();
             set(i, icon(mat, name,
+                            rarity.loreLine(),
                             "<gray>Chance: <yellow>" + Math.round(chance * 100) + "%",
                             "<gray>Announce: " + (announce ? "<green>on" : "<red>off"),
                             " ",
                             "<gray>Left-click <green>+5% <gray>chance",
                             "<gray>Right-click <red>-5% <gray>chance",
+                            "<gray>Middle-click <light_purple>cycle rarity",
                             "<gray>Shift-click <aqua>toggle announce"),
                     e -> {
                         Map<String, Object> it = items.get(index);
-                        if (e.isShiftClick()) {
+                        if (e.getClick() == org.bukkit.event.inventory.ClickType.MIDDLE) {
+                            com.yourshika.wildbosses.boss.Rarity cur =
+                                    com.yourshika.wildbosses.boss.Rarity.fromString(str(it.get("rarity")),
+                                            com.yourshika.wildbosses.boss.Rarity.COMMON);
+                            com.yourshika.wildbosses.boss.Rarity[] all = com.yourshika.wildbosses.boss.Rarity.values();
+                            it.put("rarity", all[(cur.ordinal() + 1) % all.length].name());
+                        } else if (e.isShiftClick()) {
                             it.put("announce", !Boolean.TRUE.equals(it.get("announce")));
                         } else if (e.isRightClick()) {
                             it.put("chance", round2(Math.max(0.0, toDouble(it.get("chance"), 1.0) - 0.05)));
@@ -91,6 +102,10 @@ public final class DropEditorMenu extends Menu {
         } catch (IOException ex) {
             player.sendMessage(Text.mm("<red>Failed to save: " + ex.getMessage()));
         }
+    }
+
+    private static String str(Object raw) {
+        return raw == null ? null : String.valueOf(raw);
     }
 
     private static Material matOf(Object raw) {

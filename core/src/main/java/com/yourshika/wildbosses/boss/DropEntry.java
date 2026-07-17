@@ -17,6 +17,7 @@ import java.util.List;
  * @param customModelData  optional custom model data (&lt;0 = none)
  * @param glow             force an enchantment glint
  * @param announce         always broadcast this drop, regardless of the global rarity threshold
+ * @param rarity           loot tier (colours the lore + broadcast; drives glow/announce defaults)
  */
 public record DropEntry(
         Material material,
@@ -27,6 +28,7 @@ public record DropEntry(
         List<String> enchants,
         int customModelData,
         boolean glow,
-        boolean announce
+        boolean announce,
+        Rarity rarity
 ) {
 }

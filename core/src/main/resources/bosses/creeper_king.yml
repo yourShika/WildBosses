@@ -32,11 +32,17 @@ skills:
   - { trigger: onHealthBelow, value: 15, mechanic: explode, targeter: self_location, params: { power: 8.0, fire: false, kill-caster: true } }
 drops:
   items:
-    - { item: DIAMOND, amount: "3-6", chance: 1.0 }
-    - { item: TNT, amount: "8-16", chance: 0.8 }
-    - { item: CREEPER_HEAD, amount: 1, chance: 0.4, glow: true, announce: true, name: "<gradient:#22c55e:#065f46>Crown of Kaboomicus</gradient>" }
-    - { item: DIAMOND_CHESTPLATE, amount: 1, chance: 0.28, glow: true, announce: true,
+    # Common
+    - { item: GUNPOWDER, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: DIAMOND, amount: "3-6", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: TNT, amount: "8-16", chance: 0.8, rarity: UNCOMMON }
+    - { item: FIREWORK_ROCKET, amount: "8-16", chance: 0.6, rarity: UNCOMMON, name: "<gradient:#22c55e:#065f46>Sundering Charge</gradient>" }
+    # Rare
+    - { item: CREEPER_HEAD, amount: 1, chance: 0.4, rarity: RARE, name: "<gradient:#22c55e:#065f46>Crown of Kaboomicus</gradient>" }
+    # Legendary
+    - { item: DIAMOND_CHESTPLATE, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#22c55e:#064e3b>Blastplate of Kaboomicus</gradient>",
-        lore: ["<dark_gray>Scorched but unbroken."], enchants: ["BLAST_PROTECTION:4", "PROTECTION:3", "UNBREAKING:3"] }
-    - { item: FIREWORK_ROCKET, amount: "8-16", chance: 0.5, name: "<gradient:#22c55e:#065f46>Sundering Charge</gradient>" }
+        lore: ["<dark_gray>Scorched but unbroken.", "<green>Laughs at explosions."],
+        enchants: ["BLAST_PROTECTION:4", "PROTECTION:3", "UNBREAKING:3"] }
   xp: 650

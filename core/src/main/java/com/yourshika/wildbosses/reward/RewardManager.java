@@ -81,14 +81,23 @@ public final class RewardManager implements BossDeathListener {
             }
             ItemStack stack = build(entry);
             org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), stack);
-            boolean notable = entry.announce() || entry.chance() <= plugin.config().dropBroadcastThreshold();
-            if (notable) {
-                dropped.setGlowing(true);      // visible through blocks so nobody misses rare loot
-                dropped.setWillAge(false);     // a notable drop won't quietly despawn
+            boolean notable = isNotable(entry);
+            if (notable || entry.rarity().glow()) {
+                dropped.setGlowing(true);      // visible through blocks so nobody misses good loot
             }
-            maybeAnnounce(boss, entry, stack, finder);
+            if (notable) {
+                dropped.setWillAge(false);     // a notable drop won't quietly despawn
+                announceDrop(boss, entry, stack, finder);
+            }
         }
         rollCommandRewards(drops, boss, finder);
+    }
+
+    /** A drop is "notable" when flagged announce, its rarity forces it, or it's rarer than the threshold. */
+    private boolean isNotable(DropEntry entry) {
+        return entry.announce()
+                || entry.rarity().alwaysAnnounce()
+                || entry.chance() <= plugin.config().dropBroadcastThreshold();
     }
 
     /** Roll chance-based console rewards (e.g. granting a pet), one roll per finder. */
@@ -108,19 +117,17 @@ public final class RewardManager implements BossDeathListener {
         }
     }
 
-    /** Broadcast the drop when it is flagged {@code announce} or rarer than the global threshold. */
-    private void maybeAnnounce(ActiveBoss boss, DropEntry entry, ItemStack stack, Player finder) {
+    /** Broadcast a notable drop, tagged with its rarity and a hoverable item preview. */
+    private void announceDrop(ActiveBoss boss, DropEntry entry, ItemStack stack, Player finder) {
         if (!plugin.config().dropBroadcastEnabled()) {
-            return;
-        }
-        boolean rare = entry.announce() || entry.chance() <= plugin.config().dropBroadcastThreshold();
-        if (!rare) {
             return;
         }
         Component base = (entry.name() != null && !entry.name().isBlank())
                 ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
                 : stack.effectiveName();
-        Component display = Component.text("[")
+        Component display = Text.mm(entry.rarity().inline())
+                .append(Component.text(" "))
+                .append(Component.text("["))
                 .append(base)
                 .append(Component.text("]"))
                 .hoverEvent(stack);
@@ -137,17 +144,16 @@ public final class RewardManager implements BossDeathListener {
         if (entry.name() != null && !entry.name().isBlank()) {
             meta.displayName(Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false));
         }
-        if (!entry.lore().isEmpty()) {
-            List<Component> lore = new ArrayList<>();
-            for (String line : entry.lore()) {
-                lore.add(Text.mm(line).decoration(TextDecoration.ITALIC, false));
-            }
-            meta.lore(lore);
+        List<Component> lore = new ArrayList<>();
+        lore.add(Text.mm(entry.rarity().loreLine()).decoration(TextDecoration.ITALIC, false));
+        for (String line : entry.lore()) {
+            lore.add(Text.mm(line).decoration(TextDecoration.ITALIC, false));
         }
+        meta.lore(lore);
         for (String token : entry.enchants()) {
             applyEnchant(meta, token);
         }
-        if (entry.glow()) {
+        if (entry.glow() || entry.rarity().glow()) {
             meta.setEnchantmentGlintOverride(true);
         }
         if (entry.customModelData() >= 0) {

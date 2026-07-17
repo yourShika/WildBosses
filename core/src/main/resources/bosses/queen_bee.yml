@@ -32,16 +32,21 @@ skills:
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 10, knockback: 0.8, particle: HEART } }
 drops:
   items:
-    - { item: HONEYCOMB, amount: "8-16", chance: 1.0 }
-    - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9 }
-    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.5, name: "<gradient:#fde047:#a16207>Royal Jelly</gradient>" }
-    - { item: DIAMOND, amount: "2-5", chance: 0.7 }
-    - { item: SHIELD, amount: 1, chance: 0.25, glow: true, announce: true,
+    # Common
+    - { item: HONEYCOMB, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9, rarity: COMMON }
+    # Uncommon
+    - { item: DIAMOND, amount: "2-5", chance: 0.7, rarity: UNCOMMON }
+    - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.55, rarity: UNCOMMON, name: "<gradient:#fde047:#a16207>Royal Jelly</gradient>" }
+    # Rare
+    - { item: SHIELD, amount: 1, chance: 0.3, rarity: RARE,
         name: "<gradient:#fde047:#a16207>Aegis of the Hive</gradient>",
         lore: ["<dark_gray>Woven from royal wax."], enchants: ["UNBREAKING:3", "MENDING:1"] }
-    - { item: NETHERITE_SWORD, amount: 1, chance: 0.2, glow: true, announce: true,
+    # Legendary
+    - { item: NETHERITE_SWORD, amount: 1, chance: 0.16, rarity: LEGENDARY,
         name: "<gradient:#fde047:#a16207>Queen's Stinger</gradient>",
         lore: ["<yellow>Drips with venom."], enchants: ["SHARPNESS:5", "BANE_OF_ARTHROPODS:5"] }
   command-rewards:
-    - { command: "pets give bee 1 %player%", chance: 0.07, announce: "<gradient:#fde047:#a16207>was gifted a Bee pet by the Hive Queen!</gradient>" }
+    # Mythical
+    - { command: "pets give bee 1 %player%", chance: 0.06, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#fde047:#a16207>a Bee pet from the Hive Queen!</gradient>" }
   xp: 680

@@ -34,14 +34,20 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.0, particle: DRAGON_BREATH } }
 drops:
   items:
-    - { item: ENDER_PEARL, amount: "6-12", chance: 1.0 }
-    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
-    - { item: ELYTRA, amount: 1, chance: 0.2, glow: true, announce: true, name: "<gradient:#a855f7:#4338ca>Voidwing of Nyxara</gradient>" }
-    - { item: NETHERITE_SWORD, amount: 1, chance: 0.25, glow: true, announce: true,
+    # Common
+    - { item: ENDER_PEARL, amount: "6-12", chance: 1.0, rarity: COMMON }
+    - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    # Rare
+    - { item: NETHER_STAR, amount: 1, chance: 0.3, rarity: RARE, name: "<gradient:#a855f7:#312e81>Heart of the Void</gradient>" }
+    # Legendary
+    - { item: NETHERITE_SWORD, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#a855f7:#312e81>Edge of the Endless Dark</gradient>",
         lore: ["<dark_gray>Cut from the space between stars.", "<dark_purple>It phases through armour."],
         enchants: ["SHARPNESS:6", "UNBREAKING:3", "MENDING:1"] }
-    - { item: NETHER_STAR, amount: 1, chance: 0.15, announce: true, name: "<gradient:#a855f7:#312e81>Heart of the Void</gradient>" }
+    # Mythical
+    - { item: ELYTRA, amount: 1, chance: 0.06, rarity: MYTHICAL, name: "<gradient:#ff6bd6:#c86bff>Voidwing of Nyxara</gradient>",
+        lore: ["<dark_gray>Torn from the fabric of the End."] }
   command-rewards:
-    - { command: "pets give shadow_dragon 1 %player%", chance: 0.05, announce: "<gradient:#a855f7:#312e81>bound a Shadow Dragon pet from the Void Queen!</gradient>" }
+    # Mythical
+    - { command: "pets give shadow_dragon 1 %player%", chance: 0.05, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#a855f7:#312e81>a Shadow Dragon pet from the Void Queen!</gradient>" }
   xp: 1050

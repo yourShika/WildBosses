@@ -44,14 +44,21 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 15, knockback: 1.5, particle: SPLASH } }
 drops:
   items:
-    - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0 }
-    - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0 }
-    - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.5, glow: true, announce: true, name: "<gradient:#38bdf8:#0c4a6e>Leviathan's Core</gradient>" }
-    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
-    - { item: TRIDENT, amount: 1, chance: 0.28, glow: true, announce: true,
+    # Common
+    - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    # Rare
+    - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.45, rarity: RARE, name: "<gradient:#38bdf8:#0c4a6e>Leviathan's Core</gradient>" }
+    # Legendary
+    - { item: TRIDENT, amount: 1, chance: 0.22, rarity: LEGENDARY,
         name: "<gradient:#38bdf8:#0c4a6e>Tide-Render</gradient>",
         lore: ["<dark_gray>Pulled from the abyss.", "<aqua>The sea obeys it."],
         enchants: ["IMPALING:5", "RIPTIDE:3", "UNBREAKING:3"] }
+    # Mythical
+    - { item: NAUTILUS_SHELL, amount: "1-2", chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Abyssal Pearl</gradient>", lore: ["<dark_gray>The heartbeat of the deep."] }
   command-rewards:
-    - { command: "pets give axolotl 1 %player%", chance: 0.07, announce: "<gradient:#38bdf8:#0c4a6e>surfaced with an Axolotl pet from the Leviathan!</gradient>" }
+    # Mythical
+    - { command: "pets give axolotl 1 %player%", chance: 0.06, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#38bdf8:#0c4a6e>an Axolotl pet from the Leviathan!</gradient>" }
   xp: 1150

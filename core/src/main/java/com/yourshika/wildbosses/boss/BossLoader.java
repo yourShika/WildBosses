@@ -229,7 +229,8 @@ public final class BossLoader {
                     p.getStringList("enchants"),
                     p.getInt("custom-model-data", -1),
                     p.getBoolean("glow", false),
-                    p.getBoolean("announce", false)));
+                    p.getBoolean("announce", false),
+                    Rarity.fromString(p.getString("rarity", null), Rarity.COMMON)));
         }
         List<CommandReward> commandRewards = new ArrayList<>();
         for (Map<?, ?> m : s.getMapList("command-rewards")) {

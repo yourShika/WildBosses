@@ -38,13 +38,19 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 13, knockback: 1.0, particle: SCULK_SOUL } }
 drops:
   items:
-    - { item: WITHER_SKELETON_SKULL, amount: "1-2", chance: 0.5, glow: true, announce: true, name: "<gradient:#a3a3a3:#111827>Harvested Skull</gradient>" }
-    - { item: NETHERITE_SCRAP, amount: "2-3", chance: 0.5 }
-    - { item: DIAMOND, amount: "5-9", chance: 1.0 }
-    - { item: NETHERITE_HOE, amount: 1, chance: 0.25, glow: true, announce: true,
+    # Common
+    - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    - { item: NETHERITE_SCRAP, amount: "2-3", chance: 0.6, rarity: COMMON }
+    # Rare
+    - { item: WITHER_SKELETON_SKULL, amount: "1-2", chance: 0.5, rarity: RARE, name: "<gradient:#a3a3a3:#111827>Harvested Skull</gradient>" }
+    - { item: CARVED_PUMPKIN, amount: 1, chance: 0.35, rarity: RARE,
+        name: "<gradient:#a3a3a3:#111827>Reaper's Lantern</gradient>", lore: ["<gray>Its light never dies."] }
+    # Legendary
+    - { item: NETHERITE_HOE, amount: 1, chance: 0.2, rarity: LEGENDARY,
         name: "<gradient:#a3a3a3:#111827>Soul-Scythe of Mortarion</gradient>",
         lore: ["<dark_gray>It has reaped a thousand souls.", "<gray>It hungers for more."],
         enchants: ["SHARPNESS:6", "SWEEPING_EDGE:3", "UNBREAKING:3", "MENDING:1"] }
-    - { item: CARVED_PUMPKIN, amount: 1, chance: 0.3, glow: true, announce: true,
-        name: "<gradient:#a3a3a3:#111827>Reaper's Lantern</gradient>", lore: ["<gray>Its light never dies."] }
+    # Mythical
+    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.04, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Stolen Soul</gradient>", lore: ["<dark_gray>One life the Harvester failed to claim."] }
   xp: 1150

@@ -182,6 +182,13 @@ drops:
 Each item is rolled independently: `chance` is `0.0`–`1.0` (e.g. `0.2` = 20%). A successful roll
 drops the item (at each contributor's feet when `participation-loot` is on).
 
+**Rarity tiers.** Give a drop a `rarity:` — `COMMON`, `UNCOMMON`, `RARE`, `LEGENDARY`, or `MYTHICAL`.
+It colours a line in the item's lore and in the drop broadcast, and sets sensible defaults:
+`RARE`+ **glow** on the ground, `LEGENDARY`+ are **always announced**. Suggested chances per tier:
+Common `1.0`, Uncommon `~0.6–0.85`, Rare `~0.3–0.5`, Legendary `~0.15–0.25`, Mythical `~0.03–0.06`.
+You can still override glow/announce explicitly per drop. Rarity is also editable in-game
+(`/wb gui` → Bosses → shift-click → Drops → **middle-click** cycles the tier).
+
 **Drop announcements.** When a boss dies, notable drops are broadcast in chat with a hoverable item
 name. A drop is announced when either:
 - its `chance` is at or below `broadcast.drops.announce-threshold` in `config.yml` (default `0.5`), or

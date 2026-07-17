@@ -33,12 +33,19 @@ skills:
   - { trigger: onPhaseChange, phase: 2, mechanic: buff, targeter: self, params: { type: SPEED, duration: 400, amplifier: 1 } }
 drops:
   items:
-    - { item: NETHER_STAR, amount: 1, chance: 0.6, glow: true, announce: true, name: "<gradient:#f9a8d4:#93c5fd>Heart of Aurelith</gradient>" }
-    - { item: GOLDEN_APPLE, amount: "3-6", chance: 1.0 }
-    - { item: DIAMOND, amount: "4-8", chance: 1.0 }
-    - { item: DIAMOND_HORSE_ARMOR, amount: 1, chance: 0.3, glow: true, announce: true,
+    # Common
+    - { item: GOLDEN_APPLE, amount: "3-6", chance: 1.0, rarity: COMMON }
+    - { item: DIAMOND, amount: "4-8", chance: 1.0, rarity: COMMON }
+    # Rare
+    - { item: DIAMOND_HORSE_ARMOR, amount: 1, chance: 0.35, rarity: RARE,
         name: "<gradient:#f9a8d4:#93c5fd>Prism Barding</gradient>", lore: ["<gray>Woven from impossible colours."] }
-    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.2, announce: true, name: "<gradient:#f9a8d4:#93c5fd>Aurelith's Blessing</gradient>" }
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.3, rarity: RARE, name: "<gradient:#f9a8d4:#93c5fd>Aurelith's Blessing</gradient>" }
+    # Legendary
+    - { item: NETHER_STAR, amount: 1, chance: 0.2, rarity: LEGENDARY, name: "<gradient:#f9a8d4:#93c5fd>Heart of Aurelith</gradient>" }
+    # Mythical
+    - { item: ELYTRA, amount: 1, chance: 0.04, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Prismwing</gradient>", lore: ["<dark_gray>Wings of pure, impossible colour."] }
   command-rewards:
-    - { command: "pets give pixie 1 %player%", chance: 0.08, announce: "<gradient:#f9a8d4:#93c5fd>was blessed with a Pixie pet by Aurelith!</gradient>" }
+    # Mythical
+    - { command: "pets give pixie 1 %player%", chance: 0.07, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#f9a8d4:#93c5fd>a Pixie pet from Aurelith!</gradient>" }
   xp: 950

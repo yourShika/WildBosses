@@ -39,14 +39,18 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SNEEZE } }
 drops:
   items:
-    - { item: PUFFERFISH, amount: "3-6", chance: 1.0 }
-    - { item: EMERALD, amount: "4-8", chance: 1.0 }
-    - { item: DIAMOND, amount: "4-7", chance: 1.0 }
-    - { item: TRIDENT, amount: 1, chance: 0.25, glow: true, announce: true,
+    # Common
+    - { item: PUFFERFISH, amount: "3-6", chance: 1.0, rarity: COMMON }
+    - { item: EMERALD, amount: "4-8", chance: 1.0, rarity: COMMON }
+    - { item: DIAMOND, amount: "4-7", chance: 1.0, rarity: COMMON }
+    # Rare
+    - { item: ENDER_EYE, amount: "2-4", chance: 0.5, rarity: RARE, name: "<gradient:#34d399:#065f46>Medusa's Gaze</gradient>" }
+    # Legendary
+    - { item: TRIDENT, amount: 1, chance: 0.22, rarity: LEGENDARY,
         name: "<gradient:#34d399:#065f46>Gorgon's Fang</gradient>",
         lore: ["<dark_gray>A spine torn from Medusa herself.", "<green>Weeps venom."],
         enchants: ["IMPALING:5", "LOYALTY:3", "CHANNELING:1"] }
-    - { item: ENDER_EYE, amount: "2-4", chance: 0.5, announce: true, name: "<gradient:#34d399:#065f46>Medusa's Gaze</gradient>" }
   command-rewards:
-    - { command: "pets give pufferfish 1 %player%", chance: 0.07, announce: "<gradient:#34d399:#065f46>reeled in a Pufferfish pet from Medusa!</gradient>" }
+    # Mythical
+    - { command: "pets give pufferfish 1 %player%", chance: 0.06, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#34d399:#065f46>a Pufferfish pet from Medusa!</gradient>" }
   xp: 980

@@ -36,15 +36,21 @@ skills:
   - { trigger: onHealthBelow, value: 25, mechanic: shockwave, targeter: self, params: { radius: 8, damage: 12, knockup: 0.9, particle: EXPLOSION } }
 drops:
   items:
-    - { item: DIAMOND, amount: "3-6", chance: 1.0 }
-    - { item: EMERALD, amount: "4-8", chance: 0.8 }
-    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.25, glow: true, announce: true, name: "<gradient:#ffd700:#fff3b0>Crown Apple of Mortis</gradient>" }
-    - { item: NETHERITE_SCRAP, amount: "1-2", chance: 0.2 }
-    - { item: IRON_SWORD, amount: 1, chance: 0.3, glow: true, announce: true,
+    # Common
+    - { item: ROTTEN_FLESH, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: DIAMOND, amount: "3-6", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: EMERALD, amount: "4-8", chance: 0.8, rarity: UNCOMMON }
+    # Rare
+    - { item: NETHERITE_SCRAP, amount: "1-2", chance: 0.35, rarity: RARE }
+    - { item: GOLDEN_HELMET, amount: 1, chance: 0.4, rarity: RARE,
+        name: "<gradient:#4ade80:#14532d>Crown of the Rotting Throne</gradient>", enchants: ["PROTECTION:3"] }
+    # Legendary
+    - { item: IRON_SWORD, amount: 1, chance: 0.18, rarity: LEGENDARY,
         name: "<gradient:#4ade80:#14532d>Mortis' Royal Cleaver</gradient>",
         lore: ["<dark_gray>Rusted, but it still bites.", "<green>Reeks of the grave."],
         enchants: ["SHARPNESS:5", "UNBREAKING:3", "LOOTING:2"] }
-    - { item: GOLDEN_HELMET, amount: 1, chance: 0.3, glow: true, announce: true,
-        name: "<gradient:#4ade80:#14532d>Crown of the Rotting Throne</gradient>", enchants: ["PROTECTION:3"] }
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.15, rarity: LEGENDARY,
+        name: "<gradient:#ffd700:#fff3b0>Crown Apple of Mortis</gradient>" }
   xp: 500
   commands: []
