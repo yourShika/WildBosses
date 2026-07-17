@@ -5,7 +5,10 @@ All message strings are [MiniMessage](https://docs.advntr.dev/minimessage/) and 
 ```yaml
 settings:
   random-spawns: true             # master switch for automatic spawning
-  spawn-interval-seconds: 600     # how often a spawn cycle runs
+  spawn-interval:                 # each cycle waits a RANDOM time in [min, max] minutes (1 to 60+)
+    min-minutes: 10
+    max-minutes: 30
+  spawn-interval-seconds: 600     # legacy fixed interval, used only if spawn-interval is removed
   spawn-attempts-per-cycle: 1     # attempts each cycle (each still checks a boss' rules)
   max-active-bosses: 5            # global cap on active bosses (armies count as one)
   min-distance-between-bosses: 200

@@ -10,9 +10,9 @@ import java.util.List;
  * @param commands console commands run on death ({@code %player%} = top damager)
  */
 public record DropTable(List<DropEntry> items, int xp, List<String> commands,
-                        List<CommandReward> commandRewards) {
+                        List<CommandReward> commandRewards, List<RawDrop> rawDrops) {
 
     public static DropTable empty() {
-        return new DropTable(List.of(), 0, List.of(), List.of());
+        return new DropTable(List.of(), 0, List.of(), List.of(), List.of());
     }
 }

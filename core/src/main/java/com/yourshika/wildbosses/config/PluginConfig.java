@@ -18,6 +18,8 @@ public final class PluginConfig {
 
     private boolean randomSpawns = true;
     private int spawnIntervalSeconds = 600;
+    private int spawnIntervalMinSeconds = 600;
+    private int spawnIntervalMaxSeconds = 1800;
     private int spawnAttemptsPerCycle = 1;
     private int maxActiveBosses = 5;
     private double minDistanceBetweenBosses = 200;
@@ -55,6 +57,13 @@ public final class PluginConfig {
     public void load(FileConfiguration c, Logger logger) {
         randomSpawns = c.getBoolean("settings.random-spawns", true);
         spawnIntervalSeconds = Math.max(5, c.getInt("settings.spawn-interval-seconds", 600));
+        // Random interval range (minutes). Falls back to the legacy single value if not configured,
+        // so each spawn cycle waits a random time in [min, max] instead of a fixed cadence.
+        int minM = c.getInt("settings.spawn-interval.min-minutes", -1);
+        int maxM = c.getInt("settings.spawn-interval.max-minutes", -1);
+        spawnIntervalMinSeconds = minM > 0 ? Math.max(5, minM * 60) : spawnIntervalSeconds;
+        spawnIntervalMaxSeconds = maxM > 0 ? Math.max(spawnIntervalMinSeconds, maxM * 60)
+                : Math.max(spawnIntervalMinSeconds, spawnIntervalSeconds);
         spawnAttemptsPerCycle = Math.max(1, c.getInt("settings.spawn-attempts-per-cycle", 1));
         maxActiveBosses = Math.max(1, c.getInt("settings.max-active-bosses", 5));
         minDistanceBetweenBosses = Math.max(0, c.getDouble("settings.min-distance-between-bosses", 200));
@@ -135,6 +144,14 @@ public final class PluginConfig {
 
     public int spawnIntervalSeconds() {
         return spawnIntervalSeconds;
+    }
+
+    public int spawnIntervalMinSeconds() {
+        return spawnIntervalMinSeconds;
+    }
+
+    public int spawnIntervalMaxSeconds() {
+        return spawnIntervalMaxSeconds;
     }
 
     public int spawnAttemptsPerCycle() {

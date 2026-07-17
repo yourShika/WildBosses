@@ -25,9 +25,15 @@ public final class SettingsMenu extends Menu {
         set(14, toggle("End spawns", c.getBoolean("worlds.THE_END", true)),
                 e -> toggle("worlds.THE_END"));
 
-        set(16, icon(Material.CLOCK, "<yellow>Spawn interval: <white>" + c.getInt("settings.spawn-interval-seconds", 600) + "s",
-                "<gray>Left-click <green>+60s", "<gray>Right-click <red>-60s"),
-                e -> adjustInt("settings.spawn-interval-seconds", e.isLeftClick() ? 60 : -60, 20));
+        int minM = c.getInt("settings.spawn-interval.min-minutes", 10);
+        int maxM = c.getInt("settings.spawn-interval.max-minutes", 30);
+        set(15, icon(Material.CLOCK, "<yellow>Spawn interval min: <white>" + minM + "m",
+                "<gray>Random wait each cycle is between min and max.",
+                "<gray>Left-click <green>+1m", "<gray>Right-click <red>-1m"),
+                e -> adjustInt("settings.spawn-interval.min-minutes", e.isLeftClick() ? 1 : -1, 1));
+        set(16, icon(Material.CLOCK, "<yellow>Spawn interval max: <white>" + maxM + "m",
+                "<gray>Left-click <green>+1m", "<gray>Right-click <red>-1m"),
+                e -> adjustInt("settings.spawn-interval.max-minutes", e.isLeftClick() ? 1 : -1, 1));
 
         set(22, icon(Material.DRAGON_EGG, "<yellow>Max active bosses: <white>" + c.getInt("settings.max-active-bosses", 5),
                 "<gray>Left-click <green>+1", "<gray>Right-click <red>-1"),

@@ -17,6 +17,8 @@ import java.util.List;
  * @param outcome              what happens once the threshold is reached
  * @param endBossId            boss id to spawn when {@code outcome == SPAWN_BOSS} (nullable)
  * @param timeoutSeconds       encounter time limit (0 = none)
+ * @param bossChance           chance (0..1) the end-boss actually spawns on the final wave; on a
+ *                             miss the horde is simply cleared. Only used with {@code SPAWN_BOSS}.
  */
 public record ArmyDefinition(
         List<ArmyMinion> minions,
@@ -28,7 +30,8 @@ public record ArmyDefinition(
         double radius,
         Outcome outcome,
         String endBossId,
-        int timeoutSeconds
+        int timeoutSeconds,
+        double bossChance
 ) {
     /** Kill target for stage {@code index} (0-based). */
     public int stageTarget(int index) {

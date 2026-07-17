@@ -7,7 +7,12 @@
 settings:
   # Master switch for automatic random boss spawning.
   random-spawns: true
-  # How often (seconds) the scheduler runs a spawn cycle.
+  # Time between spawn cycles. Each cycle waits a RANDOM duration between min and max minutes
+  # (set them equal for a fixed interval). Supports anything from 1 minute to 60+.
+  spawn-interval:
+    min-minutes: 10
+    max-minutes: 30
+  # Legacy fixed interval (seconds) - only used if spawn-interval above is removed.
   spawn-interval-seconds: 600
   # How many spawn attempts to make each cycle (each still has to satisfy a boss' spawn rules).
   spawn-attempts-per-cycle: 1

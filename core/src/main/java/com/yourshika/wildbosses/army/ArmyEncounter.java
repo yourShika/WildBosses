@@ -230,6 +230,13 @@ public final class ArmyEncounter {
         }
         switch (outcome) {
             case SPAWN_BOSS -> {
+                // Roll the configured chance for a leader to emerge from the final wave.
+                if (army.bossChance() < 1.0
+                        && java.util.concurrent.ThreadLocalRandom.current().nextDouble() > army.bossChance()) {
+                    announceNearby("<green>The horde is broken - no leader dared to show itself.");
+                    despawnMinions();
+                    break;
+                }
                 BossDefinition endBoss = plugin.registry().get(army.endBossId());
                 if (endBoss != null) {
                     // applyTerrain=false: the army already themed the ground; don't double up.

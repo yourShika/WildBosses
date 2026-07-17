@@ -45,6 +45,7 @@ army:
   radius: 12
   outcome: SPAWN_BOSS
   end-boss: infected_army
+  boss-chance: 0.65           # 65% chance the Plaguebearer emerges from the final wave (else cleared)
   minions:
     - { type: ZOMBIE, weight: 3, health: 22, name: "<green>Infected", effects: ["POISON:100:0", "SPEED:99999:0"] }
     - { type: HUSK, weight: 2, health: 24, name: "<green>Plagued Husk", effects: ["POISON:100:0", "SPEED:99999:0"] }

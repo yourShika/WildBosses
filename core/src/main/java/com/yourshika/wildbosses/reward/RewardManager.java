@@ -87,7 +87,26 @@ public final class RewardManager implements BossDeathListener {
             }
             if (notable) {
                 dropped.setWillAge(false);     // a notable drop won't quietly despawn
-                announceDrop(boss, entry, stack, finder);
+                Component base = (entry.name() != null && !entry.name().isBlank())
+                        ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
+                        : stack.effectiveName();
+                announceItem(boss, base, stack, entry.rarity(), finder);
+            }
+        }
+        for (com.yourshika.wildbosses.boss.RawDrop raw : drops.rawDrops()) {
+            if (ThreadLocalRandom.current().nextDouble() > raw.chance()) {
+                continue;
+            }
+            ItemStack stack = raw.stack().clone();
+            org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), stack);
+            boolean notable = raw.announce() || raw.rarity().alwaysAnnounce()
+                    || raw.chance() <= plugin.config().dropBroadcastThreshold();
+            if (notable || raw.rarity().glow()) {
+                dropped.setGlowing(true);
+            }
+            if (notable) {
+                dropped.setWillAge(false);
+                announceItem(boss, stack.effectiveName(), stack, raw.rarity(), finder);
             }
         }
         rollCommandRewards(drops, boss, finder);
@@ -118,14 +137,12 @@ public final class RewardManager implements BossDeathListener {
     }
 
     /** Broadcast a notable drop, tagged with its rarity and a hoverable item preview. */
-    private void announceDrop(ActiveBoss boss, DropEntry entry, ItemStack stack, Player finder) {
+    private void announceItem(ActiveBoss boss, Component base, ItemStack stack,
+                              com.yourshika.wildbosses.boss.Rarity rarity, Player finder) {
         if (!plugin.config().dropBroadcastEnabled()) {
             return;
         }
-        Component base = (entry.name() != null && !entry.name().isBlank())
-                ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
-                : stack.effectiveName();
-        Component display = Text.mm(entry.rarity().inline())
+        Component display = Text.mm(rarity.inline())
                 .append(Component.text(" "))
                 .append(Component.text("["))
                 .append(base)

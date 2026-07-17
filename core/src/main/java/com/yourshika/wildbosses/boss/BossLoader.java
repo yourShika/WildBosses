@@ -242,7 +242,24 @@ public final class BossLoader {
             commandRewards.add(new CommandReward(cmd, clamp01(cp.getDouble("chance", 1.0)),
                     cp.getString("announce", null)));
         }
-        return new DropTable(items, s.getInt("xp", 0), s.getStringList("commands"), commandRewards);
+        List<RawDrop> rawDrops = new ArrayList<>();
+        for (Map<?, ?> m : s.getMapList("raw-items")) {
+            Params rp = new Params(toStringMap(m));
+            String data = rp.getString("data", null);
+            if (data == null || data.isBlank()) {
+                continue;
+            }
+            try {
+                org.bukkit.inventory.ItemStack stack =
+                        org.bukkit.inventory.ItemStack.deserializeBytes(java.util.Base64.getDecoder().decode(data));
+                rawDrops.add(new RawDrop(stack, clamp01(rp.getDouble("chance", 1.0)),
+                        rp.getBoolean("announce", false),
+                        Rarity.fromString(rp.getString("rarity", null), Rarity.RARE)));
+            } catch (Exception ex) {
+                logger.warning("Skipping unreadable raw-item drop: " + ex.getMessage());
+            }
+        }
+        return new DropTable(items, s.getInt("xp", 0), s.getStringList("commands"), commandRewards, rawDrops);
     }
 
     private TerrainSettings parseTerrain(ConfigurationSection s, String id) {
@@ -308,7 +325,8 @@ public final class BossLoader {
                 Math.max(4, s.getDouble("radius", 12)),
                 ArmyDefinition.Outcome.fromString(s.getString("outcome"), ArmyDefinition.Outcome.CLEARED),
                 s.getString("end-boss", null),
-                Math.max(0, s.getInt("timeout-seconds", 0)));
+                Math.max(0, s.getInt("timeout-seconds", 0)),
+                clamp01(s.getDouble("boss-chance", 1.0)));
     }
 
     // ---- helpers --------------------------------------------------------------------------

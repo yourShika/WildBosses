@@ -42,8 +42,7 @@ public final class SpawnScheduler {
 
     public void start() {
         stop();
-        long periodTicks = Math.max(20L, plugin.config().spawnIntervalSeconds() * 20L);
-        task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::cycle, periodTicks, periodTicks);
+        scheduleNext();
     }
 
     public void stop() {
@@ -53,14 +52,24 @@ public final class SpawnScheduler {
         }
     }
 
+    /** Schedule the next spawn cycle after a random delay in [min, max] (a fixed value if equal). */
+    private void scheduleNext() {
+        PluginConfig cfg = plugin.config();
+        int lo = cfg.spawnIntervalMinSeconds();
+        int hi = cfg.spawnIntervalMaxSeconds();
+        int seconds = hi > lo ? ThreadLocalRandom.current().nextInt(lo, hi + 1) : lo;
+        long delay = Math.max(20L, seconds * 20L);
+        task = plugin.getServer().getScheduler().runTaskLater(plugin, this::cycle, delay);
+    }
+
     private void cycle() {
         PluginConfig cfg = plugin.config();
-        if (!cfg.randomSpawns()) {
-            return;
+        if (cfg.randomSpawns()) {
+            for (int i = 0; i < cfg.spawnAttemptsPerCycle(); i++) {
+                attemptSpawn();
+            }
         }
-        for (int i = 0; i < cfg.spawnAttemptsPerCycle(); i++) {
-            attemptSpawn();
-        }
+        scheduleNext(); // keep the loop going with a fresh random delay
     }
 
     /** One spawn attempt. Returns true if a boss/army was started. */

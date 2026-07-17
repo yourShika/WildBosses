@@ -217,8 +217,20 @@ so the danger area forms in the air above the target instead of on the floor (us
 
 **Safe placement.** Summoned minions, `healer_adds`, and all teleports snap to a safe standing spot,
 so nothing ever spawns or teleports inside a block. **Drop chances** are set per item with `chance`
-(`0.0`–`1.0`); notable drops glow and are announced. Editing chances and announce flags is also
-possible in-game via `/wb gui` → Bosses → (shift-click a boss) → **Drops**.
+(`0.0`–`1.0`); notable drops glow and are announced.
+
+**In-game drop editor** — `/wb gui` → Bosses → (shift-click a boss) → **Drops**:
+- Left / right-click a drop to adjust its chance, middle-click to cycle rarity, shift-click to toggle
+  its announcement, and **drop key (Q)** to delete it. Enchants are shown in each drop's tooltip.
+- **Add item from hand** captures the item you're holding **1:1** (name, enchants — including
+  over-cap/illegal ones — and all NBT) as a new drop. These are stored under `drops.raw-items` as a
+  serialized item, so nothing is lost:
+
+```yaml
+drops:
+  raw-items:
+    - { data: "<base64 ItemStack>", chance: 0.5, rarity: RARE, announce: false }
+```
 
 ## Army
 
@@ -232,6 +244,7 @@ army:
   radius: 12
   outcome: SPAWN_BOSS           # SPAWN_BOSS | FLEE | CLEARED (after the final wave)
   end-boss: my_boss             # boss id spawned on SPAWN_BOSS (often this same file)
+  boss-chance: 0.6              # chance (0..1) the end-boss actually emerges; else the horde is cleared
   timeout-seconds: 0            # 0 = use the global boss-lifetime; otherwise a fixed limit
   minions:
     - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Raider", effects: ["POISON:100:0", "SPEED:99999:0"] }

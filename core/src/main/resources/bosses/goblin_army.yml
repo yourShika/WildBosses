@@ -33,6 +33,7 @@ army:
   radius: 12
   outcome: SPAWN_BOSS
   end-boss: goblin_army
+  boss-chance: 0.6            # 60% chance the Goblin King emerges from the final wave (else cleared)
   minions:
     - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Goblin Raider" }
     - { type: ZOMBIE, weight: 2, health: 20, name: "<green>Goblin Grunt" }
