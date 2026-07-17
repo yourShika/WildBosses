@@ -40,7 +40,12 @@ drops:
   items:
     # Common
     - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    - { item: BONE, amount: "6-12", chance: 0.85, rarity: COMMON }
+    - { item: COAL, amount: "6-12", chance: 0.8, rarity: COMMON }
+    - { item: SOUL_SAND, amount: "4-9", chance: 0.7, rarity: COMMON }
     - { item: NETHERITE_SCRAP, amount: "2-3", chance: 0.6, rarity: COMMON }
+    # Uncommon
+    - { item: WITHER_ROSE, amount: "1-3", chance: 0.4, rarity: UNCOMMON }
     # Rare
     - { item: WITHER_SKELETON_SKULL, amount: "1-2", chance: 0.5, rarity: RARE, name: "<gradient:#a3a3a3:#111827>Harvested Skull</gradient>" }
     - { item: CARVED_PUMPKIN, amount: 1, chance: 0.35, rarity: RARE,

@@ -34,6 +34,9 @@ drops:
   items:
     # Common
     - { item: GUNPOWDER, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: COAL, amount: "6-12", chance: 0.85, rarity: COMMON }
+    - { item: REDSTONE, amount: "4-10", chance: 0.8, rarity: COMMON }
+    - { item: SAND, amount: "8-16", chance: 0.7, rarity: COMMON }
     - { item: DIAMOND, amount: "3-6", chance: 1.0, rarity: COMMON }
     # Uncommon
     - { item: TNT, amount: "8-16", chance: 0.8, rarity: UNCOMMON }

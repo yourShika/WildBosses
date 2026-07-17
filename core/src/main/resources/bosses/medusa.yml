@@ -41,8 +41,13 @@ drops:
   items:
     # Common
     - { item: PUFFERFISH, amount: "3-6", chance: 1.0, rarity: COMMON }
+    - { item: INK_SAC, amount: "4-9", chance: 0.85, rarity: COMMON }
+    - { item: PRISMARINE_SHARD, amount: "4-9", chance: 0.8, rarity: COMMON }
+    - { item: KELP, amount: "6-12", chance: 0.7, rarity: COMMON }
     - { item: EMERALD, amount: "4-8", chance: 1.0, rarity: COMMON }
     - { item: DIAMOND, amount: "4-7", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: SPONGE, amount: "1-2", chance: 0.4, rarity: UNCOMMON }
     # Rare
     - { item: ENDER_EYE, amount: "2-4", chance: 0.5, rarity: RARE, name: "<gradient:#34d399:#065f46>Medusa's Gaze</gradient>" }
     # Legendary

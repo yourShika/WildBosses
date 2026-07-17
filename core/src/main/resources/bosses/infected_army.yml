@@ -66,8 +66,12 @@ drops:
   items:
     # Common
     - { item: ROTTEN_FLESH, amount: "12-24", chance: 1.0, rarity: COMMON }
+    - { item: POISONOUS_POTATO, amount: "2-5", chance: 0.85, rarity: COMMON }
+    - { item: SPIDER_EYE, amount: "2-5", chance: 0.75, rarity: COMMON }
+    - { item: BROWN_MUSHROOM, amount: "3-7", chance: 0.6, rarity: COMMON }
     - { item: EMERALD, amount: "3-7", chance: 0.9, rarity: COMMON }
     # Uncommon
+    - { item: FERMENTED_SPIDER_EYE, amount: "1-2", chance: 0.4, rarity: UNCOMMON }
     - { item: DIAMOND, amount: "2-4", chance: 0.6, rarity: UNCOMMON }
     # Rare
     - { item: GOLDEN_APPLE, amount: 1, chance: 0.45, rarity: RARE, name: "<gradient:#65a30d:#365314>Plaguebearer's Boon</gradient>" }

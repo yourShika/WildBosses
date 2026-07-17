@@ -47,7 +47,12 @@ drops:
     # Common
     - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: COD, amount: "4-9", chance: 0.85, rarity: COMMON }
+    - { item: KELP, amount: "6-12", chance: 0.75, rarity: COMMON }
+    - { item: SEA_PICKLE, amount: "2-5", chance: 0.6, rarity: COMMON }
     - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: WET_SPONGE, amount: "1-3", chance: 0.5, rarity: UNCOMMON }
     # Rare
     - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.45, rarity: RARE, name: "<gradient:#38bdf8:#0c4a6e>Leviathan's Core</gradient>" }
     # Legendary

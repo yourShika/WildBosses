@@ -42,7 +42,11 @@ drops:
     # Common
     - { item: EMERALD, amount: "6-12", chance: 1.0, rarity: COMMON }
     - { item: IRON_INGOT, amount: "4-8", chance: 0.9, rarity: COMMON }
+    - { item: GOLD_NUGGET, amount: "6-14", chance: 0.85, rarity: COMMON }
+    - { item: BREAD, amount: "3-7", chance: 0.7, rarity: COMMON }
+    - { item: LEATHER, amount: "3-8", chance: 0.7, rarity: COMMON }
     # Uncommon
+    - { item: GOLD_INGOT, amount: "2-5", chance: 0.5, rarity: UNCOMMON }
     - { item: GOLDEN_APPLE, amount: "1-2", chance: 0.55, rarity: UNCOMMON, name: "<gradient:#84cc16:#3f6212>Plunderer's Prize</gradient>" }
     # Rare
     - { item: LEATHER_CHESTPLATE, amount: 1, chance: 0.35, rarity: RARE,

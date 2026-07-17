@@ -36,6 +36,9 @@ drops:
   items:
     # Common
     - { item: LEATHER, amount: "6-12", chance: 1.0, rarity: COMMON }
+    - { item: BEEF, amount: "4-9", chance: 0.85, rarity: COMMON }
+    - { item: BONE, amount: "4-9", chance: 0.8, rarity: COMMON }
+    - { item: STRING, amount: "2-6", chance: 0.6, rarity: COMMON }
     - { item: DIAMOND, amount: "3-6", chance: 1.0, rarity: COMMON }
     # Uncommon
     - { item: GOLDEN_APPLE, amount: "1-3", chance: 0.65, rarity: UNCOMMON, name: "<gradient:#9ca3af:#450a0a>Bloodmoon Heart</gradient>" }

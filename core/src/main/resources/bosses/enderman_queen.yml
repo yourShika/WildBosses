@@ -36,7 +36,12 @@ drops:
   items:
     # Common
     - { item: ENDER_PEARL, amount: "6-12", chance: 1.0, rarity: COMMON }
+    - { item: END_STONE, amount: "8-16", chance: 0.85, rarity: COMMON }
+    - { item: CHORUS_FRUIT, amount: "4-9", chance: 0.8, rarity: COMMON }
+    - { item: OBSIDIAN, amount: "2-5", chance: 0.65, rarity: COMMON }
     - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: ENDER_CHEST, amount: 1, chance: 0.4, rarity: UNCOMMON }
     # Rare
     - { item: NETHER_STAR, amount: 1, chance: 0.3, rarity: RARE, name: "<gradient:#a855f7:#312e81>Heart of the Void</gradient>" }
     # Legendary

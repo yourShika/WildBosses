@@ -38,9 +38,12 @@ drops:
   items:
     # Common
     - { item: BONE, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: BONE_MEAL, amount: "4-9", chance: 0.85, rarity: COMMON }
+    - { item: ARROW, amount: "8-16", chance: 0.9, rarity: COMMON }
+    - { item: STRING, amount: "2-5", chance: 0.7, rarity: COMMON }
     - { item: DIAMOND, amount: "4-7", chance: 1.0, rarity: COMMON }
     # Uncommon
-    - { item: ARROW, amount: "16-32", chance: 0.8, rarity: UNCOMMON, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Quiver</gradient>" }
+    - { item: TIPPED_ARROW, amount: "8-16", chance: 0.45, rarity: UNCOMMON, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Quiver</gradient>" }
     # Rare
     - { item: DIAMOND_LEGGINGS, amount: 1, chance: 0.35, rarity: RARE,
         name: "<gradient:#e5e7eb:#9ca3af>Greaves of the Bonewaste</gradient>", enchants: ["PROTECTION:4", "PROJECTILE_PROTECTION:4"] }

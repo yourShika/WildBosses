@@ -35,7 +35,12 @@ drops:
   items:
     # Common
     - { item: GOLDEN_APPLE, amount: "3-6", chance: 1.0, rarity: COMMON }
+    - { item: SUGAR, amount: "4-9", chance: 0.85, rarity: COMMON }
+    - { item: GOLD_NUGGET, amount: "6-12", chance: 0.8, rarity: COMMON }
+    - { item: GLOW_INK_SAC, amount: "2-5", chance: 0.6, rarity: COMMON }
     - { item: DIAMOND, amount: "4-8", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: GLISTERING_MELON_SLICE, amount: "2-4", chance: 0.5, rarity: UNCOMMON }
     # Rare
     - { item: DIAMOND_HORSE_ARMOR, amount: 1, chance: 0.35, rarity: RARE,
         name: "<gradient:#f9a8d4:#93c5fd>Prism Barding</gradient>", lore: ["<gray>Woven from impossible colours."] }
