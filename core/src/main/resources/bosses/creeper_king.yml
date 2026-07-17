@@ -48,4 +48,7 @@ drops:
         name: "<gradient:#22c55e:#064e3b>Blastplate of Kaboomicus</gradient>",
         lore: ["<dark_gray>Scorched but unbroken.", "<green>Laughs at explosions."],
         enchants: ["BLAST_PROTECTION:4", "PROTECTION:3", "UNBREAKING:3"] }
+    # Mythical
+    - { item: TNT_MINECART, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>The Big One</gradient>", lore: ["<dark_gray>Kaboomicus' final, favourite word."] }
   xp: 650

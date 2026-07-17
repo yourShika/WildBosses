@@ -54,7 +54,9 @@ drops:
         name: "<gradient:#4ade80:#14532d>Mortis' Royal Cleaver</gradient>",
         lore: ["<dark_gray>Rusted, but it still bites.", "<green>Reeks of the grave."],
         enchants: ["SHARPNESS:5", "UNBREAKING:3", "LOOTING:2"] }
-    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.15, rarity: LEGENDARY,
-        name: "<gradient:#ffd700:#fff3b0>Crown Apple of Mortis</gradient>" }
+    # Mythical
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.06, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Crown Apple of Mortis</gradient>",
+        lore: ["<dark_gray>A king's last, undying bite."] }
   xp: 500
   commands: []

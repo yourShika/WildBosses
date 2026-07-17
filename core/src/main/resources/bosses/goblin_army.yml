@@ -56,4 +56,7 @@ drops:
         name: "<gradient:#84cc16:#3f6212>Grizznak's Plunder-Axe</gradient>",
         lore: ["<dark_gray>Notched from a hundred raids.", "<green>Loves shiny things."],
         enchants: ["SHARPNESS:5", "LOOTING:3", "UNBREAKING:3"] }
+    # Mythical
+    - { item: BELL, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Grizznak's Plunder-Bell</gradient>", lore: ["<dark_gray>Rung over every stolen hoard."] }
   xp: 450

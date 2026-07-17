@@ -51,4 +51,7 @@ drops:
         name: "<gradient:#9ca3af:#450a0a>Bloodfang</gradient>",
         lore: ["<dark_gray>Torn from the Bloodmoon itself.", "<red>Thirsts for the hunt."],
         enchants: ["SHARPNESS:6", "SWEEPING_EDGE:3", "FIRE_ASPECT:2"] }
+    # Mythical
+    - { item: ENCHANTED_GOLDEN_APPLE, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Heart of the Bloodmoon</gradient>", lore: ["<dark_gray>It still beats under the full moon."] }
   xp: 700

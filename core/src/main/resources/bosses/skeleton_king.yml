@@ -51,4 +51,7 @@ drops:
     # Legendary
     - { item: BOW, amount: 1, chance: 0.2, rarity: LEGENDARY, name: "<gradient:#e5e7eb:#9ca3af>Bonelord's Longbow</gradient>",
         lore: ["<dark_gray>Never misses.", "<white>Fires without end."], enchants: ["POWER:5", "FLAME:1", "INFINITY:1"] }
+    # Mythical
+    - { item: WITHER_SKELETON_SKULL, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Skull of the Bonelord</gradient>", lore: ["<dark_gray>The crown never left his head."] }
   xp: 700
