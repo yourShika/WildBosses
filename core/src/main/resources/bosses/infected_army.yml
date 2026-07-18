@@ -47,9 +47,15 @@ army:
   end-boss: infected_army
   boss-chance: 0.65           # 65% chance the Plaguebearer emerges from the final wave (else cleared)
   minions:
-    - { type: ZOMBIE, weight: 3, health: 22, name: "<green>Infected", effects: ["POISON:100:0", "SPEED:99999:0"] }
-    - { type: HUSK, weight: 2, health: 24, name: "<green>Plagued Husk", effects: ["POISON:100:0", "SPEED:99999:0"] }
-    - { type: ZOMBIE_VILLAGER, weight: 1, health: 26, name: "<green>Rotting Zealot", effects: ["POISON:100:0", "SPEED:99999:0"] }
+    # Minions drop their own low-tier loot (capped at UNCOMMON) - freely configurable per minion.
+    - { type: ZOMBIE, weight: 3, health: 22, name: "<green>Infected", effects: ["POISON:100:0", "SPEED:99999:0"],
+        drops: [ { item: ROTTEN_FLESH, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: EMERALD, amount: 1, chance: 0.15, rarity: UNCOMMON } ] }
+    - { type: HUSK, weight: 2, health: 24, name: "<green>Plagued Husk", effects: ["POISON:100:0", "SPEED:99999:0"],
+        drops: [ { item: ROTTEN_FLESH, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: SPIDER_EYE, amount: 1, chance: 0.25, rarity: COMMON } ] }
+    - { type: ZOMBIE_VILLAGER, weight: 1, health: 26, name: "<green>Rotting Zealot", effects: ["POISON:100:0", "SPEED:99999:0"],
+        drops: [ { item: EMERALD, amount: "1-2", chance: 0.3, rarity: UNCOMMON } ] }
 terrain:
   enabled: true
   radius: 7

@@ -36,18 +36,7 @@ public final class BossRegistry {
     public int reload() {
         bosses.clear();
         File dir = new File(plugin.getDataFolder(), "bosses");
-        if (!dir.exists()) {
-            if (!dir.mkdirs()) {
-                logger.warning("Could not create bosses/ directory.");
-            }
-            for (String name : DEFAULTS) {
-                try {
-                    plugin.saveResource("bosses/" + name + ".yml", false);
-                } catch (IllegalArgumentException ex) {
-                    logger.warning("Bundled boss resource missing: bosses/" + name + ".yml");
-                }
-            }
-        }
+        restoreMissing();
 
         File[] files = dir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".yml"));
         if (files == null) {
@@ -65,6 +54,41 @@ public final class BossRegistry {
         }
         logger.info("Loaded " + bosses.size() + " boss definition(s).");
         return bosses.size();
+    }
+
+    /** Write out any bundled default boss file that is missing from the data folder (never overwrites). */
+    public void restoreMissing() {
+        File dir = new File(plugin.getDataFolder(), "bosses");
+        if (!dir.exists() && !dir.mkdirs()) {
+            logger.warning("Could not create bosses/ directory.");
+        }
+        for (String name : DEFAULTS) {
+            if (!new File(dir, name + ".yml").exists()) {
+                try {
+                    plugin.saveResource("bosses/" + name + ".yml", false);
+                } catch (IllegalArgumentException ex) {
+                    logger.warning("Bundled boss resource missing: bosses/" + name + ".yml");
+                }
+            }
+        }
+    }
+
+    /** (Re)write every bundled default boss file, overwriting any local edits. Returns the count. */
+    public int restoreDefaults() {
+        File dir = new File(plugin.getDataFolder(), "bosses");
+        if (!dir.exists() && !dir.mkdirs()) {
+            logger.warning("Could not create bosses/ directory.");
+        }
+        int n = 0;
+        for (String name : DEFAULTS) {
+            try {
+                plugin.saveResource("bosses/" + name + ".yml", true);
+                n++;
+            } catch (IllegalArgumentException ex) {
+                logger.warning("Bundled boss resource missing: bosses/" + name + ".yml");
+            }
+        }
+        return n;
     }
 
     public BossDefinition get(String id) {

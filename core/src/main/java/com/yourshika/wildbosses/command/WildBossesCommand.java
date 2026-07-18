@@ -4,6 +4,7 @@ import com.yourshika.wildbosses.WildBossesPlugin;
 import com.yourshika.wildbosses.army.ArmyEncounter;
 import com.yourshika.wildbosses.boss.ActiveBoss;
 import com.yourshika.wildbosses.boss.BossDefinition;
+import com.yourshika.wildbosses.gui.BestiaryMenu;
 import com.yourshika.wildbosses.gui.MainMenu;
 import com.yourshika.wildbosses.integration.Updater;
 import com.yourshika.wildbosses.util.Text;
@@ -20,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.StringJoiner;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Handles {@code /wildbosses} (alias {@code /wb}).
@@ -27,7 +29,7 @@ import java.util.StringJoiner;
 public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "update", "help");
+            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "restore", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -43,6 +45,7 @@ public final class WildBossesCommand implements TabExecutor {
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> reload(sender);
+            case "restore" -> restore(sender);
             case "spawn" -> spawn(sender, args);
             case "army" -> army(sender, args);
             case "list" -> list(sender);
@@ -70,16 +73,50 @@ public final class WildBossesCommand implements TabExecutor {
         }
     }
 
+    private void restore(CommandSender sender) {
+        if (denied(sender, "wildbosses.admin")) {
+            return;
+        }
+        int n = plugin.registry().restoreDefaults();   // overwrite every bundled boss file
+        try {
+            plugin.saveResource("config.yml", true);     // and reset the main config
+        } catch (IllegalArgumentException ignored) {
+            // no bundled config.yml (shouldn't happen)
+        }
+        int loaded = plugin.reloadAll();
+        sender.sendMessage(Text.mm("<green>Restored <yellow>" + n + "<green> default boss files + config, "
+                + "reloaded <yellow>" + loaded + "<green> bosses."));
+    }
+
+    private BossDefinition randomBoss(boolean armyOnly) {
+        List<BossDefinition> pool = new ArrayList<>();
+        for (BossDefinition d : plugin.registry().all()) {
+            if (armyOnly == d.isArmy()) {
+                pool.add(d);
+            }
+        }
+        if (pool.isEmpty()) {
+            pool = new ArrayList<>(plugin.registry().all());
+        }
+        return pool.isEmpty() ? null : pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+    }
+
+    private static String fmtDuration(long seconds) {
+        long m = seconds / 60;
+        long s = seconds % 60;
+        return m > 0 ? m + "m " + s + "s" : s + "s";
+    }
+
     private void spawn(CommandSender sender, String[] args) {
         if (denied(sender, "wildbosses.spawn")) {
             return;
         }
         if (args.length < 2) {
             plugin.messages().send(sender, "spawn-failed", Text.unparsed("id", "?"),
-                    Text.unparsed("reason", "usage: /wb spawn <id> [here|player]"));
+                    Text.unparsed("reason", "usage: /wb spawn <id|random> [here|player]"));
             return;
         }
-        BossDefinition def = plugin.registry().get(args[1]);
+        BossDefinition def = args[1].equalsIgnoreCase("random") ? randomBoss(false) : plugin.registry().get(args[1]);
         if (def == null) {
             plugin.messages().send(sender, "unknown-boss", Text.unparsed("id", args[1]));
             return;
@@ -121,10 +158,10 @@ public final class WildBossesCommand implements TabExecutor {
         }
         if (args.length < 2) {
             plugin.messages().send(sender, "spawn-failed", Text.unparsed("id", "?"),
-                    Text.unparsed("reason", "usage: /wb army <id> [here|player]"));
+                    Text.unparsed("reason", "usage: /wb army <id|random> [here|player]"));
             return;
         }
-        BossDefinition def = plugin.registry().get(args[1]);
+        BossDefinition def = args[1].equalsIgnoreCase("random") ? randomBoss(true) : plugin.registry().get(args[1]);
         if (def == null) {
             plugin.messages().send(sender, "unknown-boss", Text.unparsed("id", args[1]));
             return;
@@ -150,6 +187,11 @@ public final class WildBossesCommand implements TabExecutor {
     }
 
     private void list(CommandSender sender) {
+        // Players get the visual bestiary (drops + chances); console gets a plain list.
+        if (sender instanceof Player player && sender.hasPermission("wildbosses.list")) {
+            new BestiaryMenu(plugin).open(player);
+            return;
+        }
         var registry = plugin.registry();
         plugin.messages().send(sender, "list-header", Text.num("count", registry.ids().size()));
         for (BossDefinition def : registry.all()) {
@@ -168,15 +210,22 @@ public final class WildBossesCommand implements TabExecutor {
             return;
         }
         plugin.messages().send(sender, "active-header", Text.num("count", bosses.size() + armies.size()));
+        long now = plugin.bossManager().currentTick();
         for (ActiveBoss boss : bosses) {
             Location loc = boss.location();
-            sender.sendMessage(plugin.messages().plainMessage("active-entry",
+            Component line = plugin.messages().plainMessage("active-entry",
                     Text.parsed("boss", boss.def().name()),
                     Text.unparsed("world", worldName(loc)),
                     Text.num("x", loc.getBlockX()),
                     Text.num("y", loc.getBlockY()),
                     Text.num("z", loc.getBlockZ()),
-                    Text.num("health", (int) Math.ceil(boss.entity().getHealth()))));
+                    Text.num("health", (int) Math.ceil(boss.entity().getHealth())));
+            long remain = boss.fleeAtTick() - now;
+            if (boss.fleeAtTick() > 0 && remain > 0) {
+                line = line.append(Text.mm(" <dark_gray>(<gray>flees in <yellow>"
+                        + fmtDuration(remain / 20) + "</yellow>)</dark_gray>"));
+            }
+            sender.sendMessage(line);
         }
         for (ArmyEncounter army : armies) {
             Location loc = army.anchor();
@@ -277,8 +326,17 @@ public final class WildBossesCommand implements TabExecutor {
         }
         if (args.length == 2) {
             String sub = args[0].toLowerCase(Locale.ROOT);
-            if (sub.equals("spawn") || sub.equals("info") || sub.equals("army")) {
+            if (sub.equals("spawn") || sub.equals("army")) {
+                List<String> opts = new ArrayList<>();
+                opts.add("random");
+                opts.addAll(plugin.registry().ids());
+                return filter(opts, args[1]);
+            }
+            if (sub.equals("info")) {
                 return filter(new ArrayList<>(plugin.registry().ids()), args[1]);
+            }
+            if (sub.equals("restore")) {
+                return filter(List.of("default"), args[1]);
             }
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {

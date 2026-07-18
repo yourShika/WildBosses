@@ -298,12 +298,32 @@ public final class BossLoader {
         for (Map<?, ?> m : s.getMapList("minions")) {
             Params p = new Params(toStringMap(m));
             EntityType type = parseEntityType(p.getString("type", "ZOMBIE"), "army");
+            List<MinionDrop> mdrops = new ArrayList<>();
+            if (m.get("drops") instanceof List<?> dl) {
+                for (Object o : dl) {
+                    if (!(o instanceof Map<?, ?> dm)) {
+                        continue;
+                    }
+                    Params dp = new Params(toStringMap(dm));
+                    Material dmat = material(dp.getString("item", null));
+                    if (dmat == null) {
+                        continue;
+                    }
+                    Rarity r = Rarity.fromString(dp.getString("rarity", "COMMON"), Rarity.COMMON);
+                    if (r.ordinal() > Rarity.UNCOMMON.ordinal()) {
+                        r = Rarity.UNCOMMON; // minions never drop above uncommon
+                    }
+                    mdrops.add(new MinionDrop(dmat, dp.getRange("amount", new NumberRange(1, 1)),
+                            clamp01(dp.getDouble("chance", 1.0)), r));
+                }
+            }
             minions.add(new ArmyMinion(
                     type,
                     Math.max(1, p.getInt("weight", 1)),
                     p.getDouble("health", 0),
                     p.getString("name", null),
-                    p.getStringList("effects")));
+                    p.getStringList("effects"),
+                    mdrops));
         }
         int killThreshold = Math.max(1, s.getInt("kill-threshold", 30));
         List<Integer> stages = new ArrayList<>();

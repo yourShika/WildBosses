@@ -59,13 +59,24 @@ public final class ActiveMenu extends Menu {
     private org.bukkit.inventory.ItemStack bossIcon(ActiveBoss boss) {
         Material egg = Material.matchMaterial(boss.def().baseEntity().name().toUpperCase(Locale.ROOT) + "_SPAWN_EGG");
         Location loc = boss.location();
+        long remain = boss.fleeAtTick() - plugin.bossManager().currentTick();
+        String flee = (boss.fleeAtTick() > 0 && remain > 0)
+                ? "<gray>Flees in <yellow>" + fmtDuration(remain / 20)
+                : "<dark_gray>No flee timer";
         return icon(egg != null ? egg : Material.NETHER_STAR,
                 boss.def().name() + " " + boss.def().difficulty().bracketedMini(),
                 "<gray>Health <white>" + (int) Math.ceil(boss.entity().getHealth()) + "<gray>/<white>" + (int) boss.maxHealth(),
                 "<gray>At <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
+                flee,
                 " ",
                 "<yellow>Left-click <gray>teleport",
                 "<yellow>Right-click <gray>remove");
+    }
+
+    private static String fmtDuration(long seconds) {
+        long m = seconds / 60;
+        long s = seconds % 60;
+        return m > 0 ? m + "m " + s + "s" : s + "s";
     }
 
     private org.bukkit.inventory.ItemStack armyIcon(ArmyEncounter army) {

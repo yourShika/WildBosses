@@ -35,9 +35,17 @@ army:
   end-boss: goblin_army
   boss-chance: 0.6            # 60% chance the Goblin King emerges from the final wave (else cleared)
   minions:
-    - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Goblin Raider" }
-    - { type: ZOMBIE, weight: 2, health: 20, name: "<green>Goblin Grunt" }
-    - { type: PILLAGER, weight: 1, health: 22, name: "<green>Goblin Slinger" }
+    # Minions drop their own low-tier loot (capped at UNCOMMON) - freely configurable per minion.
+    - { type: VINDICATOR, weight: 3, health: 24, name: "<green>Goblin Raider",
+        drops: [ { item: EMERALD, amount: "1-2", chance: 0.4, rarity: COMMON },
+                 { item: IRON_NUGGET, amount: "1-4", chance: 0.6, rarity: COMMON },
+                 { item: GOLD_INGOT, amount: 1, chance: 0.1, rarity: UNCOMMON } ] }
+    - { type: ZOMBIE, weight: 2, health: 20, name: "<green>Goblin Grunt",
+        drops: [ { item: ROTTEN_FLESH, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: IRON_INGOT, amount: 1, chance: 0.15, rarity: UNCOMMON } ] }
+    - { type: PILLAGER, weight: 1, health: 22, name: "<green>Goblin Slinger",
+        drops: [ { item: ARROW, amount: "2-5", chance: 0.5, rarity: COMMON },
+                 { item: EMERALD, amount: 1, chance: 0.2, rarity: UNCOMMON } ] }
 drops:
   items:
     # Common

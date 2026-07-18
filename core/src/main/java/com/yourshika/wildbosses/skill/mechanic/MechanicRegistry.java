@@ -197,6 +197,7 @@ public final class MechanicRegistry {
             }
             Entity e = world.spawnEntity(loc, type);
             e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
+            e.addScoreboardTag("wildbosses");
             if (e instanceof LivingEntity le) {
                 if (health > 0) {
                     AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
@@ -715,6 +716,7 @@ public final class MechanicRegistry {
             }
             Entity e = w.spawnEntity(loc, type);
             e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
+            e.addScoreboardTag("wildbosses");
             if (e instanceof LivingEntity le) {
                 le.customName(Text.mm(name));
                 le.setCustomNameVisible(true);

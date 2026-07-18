@@ -23,6 +23,7 @@ public final class PluginConfig {
     private int spawnAttemptsPerCycle = 1;
     private int maxActiveBosses = 5;
     private double minDistanceBetweenBosses = 200;
+    private double minPlayerDistance = 500;
 
     private int frontierMinDistance = 200;
     private int frontierMaxDistance = 3000;
@@ -47,8 +48,8 @@ public final class PluginConfig {
 
     private boolean scalingEnabled = true;
     private double scalingRadius = 48;
-    private double scalingHealthPerPlayer = 0.25;
-    private double scalingMaxMultiplier = 4.0;
+    private double scalingPerPlayer = 1.5;
+    private double scalingMaxMultiplier = 8.0;
 
     private boolean participationLoot = true;
     private String discordWebhook = "";
@@ -67,6 +68,7 @@ public final class PluginConfig {
         spawnAttemptsPerCycle = Math.max(1, c.getInt("settings.spawn-attempts-per-cycle", 1));
         maxActiveBosses = Math.max(1, c.getInt("settings.max-active-bosses", 5));
         minDistanceBetweenBosses = Math.max(0, c.getDouble("settings.min-distance-between-bosses", 200));
+        minPlayerDistance = Math.max(0, c.getDouble("settings.min-player-distance", 500));
 
         bossLifetimeEnabled = c.getBoolean("settings.boss-lifetime.enabled", true);
         bossLifetimeMinMinutes = Math.max(1, c.getInt("settings.boss-lifetime.min-minutes", 30));
@@ -74,8 +76,9 @@ public final class PluginConfig {
 
         scalingEnabled = c.getBoolean("settings.scaling.enabled", true);
         scalingRadius = Math.max(8, c.getDouble("settings.scaling.radius", 48));
-        scalingHealthPerPlayer = Math.max(0, c.getDouble("settings.scaling.health-per-player", 0.25));
-        scalingMaxMultiplier = Math.max(1, c.getDouble("settings.scaling.max-multiplier", 4.0));
+        // Each nearby player beyond the first multiplies the boss' combat stats by this factor.
+        scalingPerPlayer = Math.max(1.0, c.getDouble("settings.scaling.per-player-multiplier", 1.5));
+        scalingMaxMultiplier = Math.max(1, c.getDouble("settings.scaling.max-multiplier", 8.0));
 
         participationLoot = c.getBoolean("rewards.participation-loot", true);
         discordWebhook = c.getString("integrations.discord-webhook", "");
@@ -240,8 +243,12 @@ public final class PluginConfig {
         return scalingRadius;
     }
 
-    public double scalingHealthPerPlayer() {
-        return scalingHealthPerPlayer;
+    public double scalingPerPlayer() {
+        return scalingPerPlayer;
+    }
+
+    public double minPlayerDistance() {
+        return minPlayerDistance;
     }
 
     public double scalingMaxMultiplier() {

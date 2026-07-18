@@ -18,8 +18,11 @@ commands:
     permission: wildbosses.command
 permissions:
   wildbosses.command:
-    description: Access to the base /wildbosses command.
-    default: op
+    description: Access to the base /wildbosses command (read-only subcommands like list/active/info).
+    default: true
+  wildbosses.list:
+    description: Open the read-only bestiary (/wb list) showing every boss and its drops.
+    default: true
   wildbosses.admin:
     description: Full administrative access (reload, killall, editing).
     default: op

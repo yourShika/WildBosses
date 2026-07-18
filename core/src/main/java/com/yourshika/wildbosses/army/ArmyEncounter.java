@@ -47,6 +47,7 @@ public final class ArmyEncounter {
 
     private final Set<UUID> alive = new HashSet<>();
     private final Set<UUID> viewers = new HashSet<>();
+    private final java.util.Map<UUID, ArmyMinion> templateOf = new java.util.HashMap<>();
 
     private BukkitTask task;
     private long elapsedTicks;
@@ -148,6 +149,7 @@ public final class ArmyEncounter {
                 continue;
             }
             entity.getPersistentDataContainer().set(Keys.ARMY_ID, PersistentDataType.STRING, id);
+            entity.addScoreboardTag("wildbosses"); // lag-clearer whitelist tag
             if (entity instanceof org.bukkit.entity.Zombie zombie) {
                 zombie.setShouldBurnInDay(false); // infected/army minions don't burn in the sun
             }
@@ -179,6 +181,7 @@ public final class ArmyEncounter {
                 }
             }
             alive.add(entity.getUniqueId());
+            templateOf.put(entity.getUniqueId(), template);
             manager.registerMinion(entity.getUniqueId(), id);
         }
         updateBar();
@@ -189,11 +192,38 @@ public final class ArmyEncounter {
         if (ended || !alive.remove(entity.getUniqueId())) {
             return;
         }
+        ArmyMinion template = templateOf.remove(entity.getUniqueId());
+        if (template != null) {
+            dropMinionLoot(entity, template);
+        }
         stageKills++;
         totalKills++;
         updateBar();
         if (stageKills >= army.stageTarget(currentStage)) {
             advanceStage();
+        }
+    }
+
+    /** Roll and drop a minion's (common/uncommon) loot at its death location. */
+    private void dropMinionLoot(Entity entity, ArmyMinion template) {
+        if (template.drops().isEmpty() || entity.getWorld() == null) {
+            return;
+        }
+        World world = entity.getWorld();
+        Location at = entity.getLocation();
+        for (com.yourshika.wildbosses.boss.MinionDrop d : template.drops()) {
+            if (ThreadLocalRandom.current().nextDouble() > d.chance()) {
+                continue;
+            }
+            org.bukkit.inventory.ItemStack stack =
+                    new org.bukkit.inventory.ItemStack(d.material(), Math.max(1, d.amount().roll()));
+            org.bukkit.inventory.meta.ItemMeta meta = stack.getItemMeta();
+            if (meta != null) {
+                meta.lore(java.util.List.of(
+                        Text.mm(d.rarity().loreLine()).decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false)));
+                stack.setItemMeta(meta);
+            }
+            world.dropItemNaturally(at, stack);
         }
     }
 
@@ -207,6 +237,28 @@ public final class ArmyEncounter {
             spawnWave();
         } else {
             resolve(army.outcome());
+        }
+    }
+
+    /** A loud, flashy "the leader emerges" moment: chat line, sound and a rising particle column. */
+    private void emergenceEffect() {
+        announceNearby("<gold><bold>The horde parts... their champion rises!");
+        World world = anchor.getWorld();
+        if (world == null) {
+            return;
+        }
+        world.playSound(anchor, "entity.wither.spawn", 3.0f, 0.7f);
+        world.playSound(anchor, "entity.ender_dragon.growl", 2.0f, 0.9f);
+        world.spawnParticle(org.bukkit.Particle.EXPLOSION_EMITTER, anchor.clone().add(0, 1, 0), 4, 0.6, 0.4, 0.6, 0);
+        for (double y = 0; y <= 5; y += 0.25) {
+            double r = 1.4 * (1.0 - y / 6.0);
+            for (int a = 0; a < 8; a++) {
+                double ang = a * Math.PI / 4 + y;
+                Location p = anchor.clone().add(Math.cos(ang) * r, y, Math.sin(ang) * r);
+                world.spawnParticle(org.bukkit.Particle.SOUL_FIRE_FLAME, p, 2, 0.05, 0.05, 0.05, 0.01);
+                world.spawnParticle(org.bukkit.Particle.DUST, p, 1,
+                        new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(255, 60, 60), 1.4f));
+            }
         }
     }
 
@@ -239,6 +291,7 @@ public final class ArmyEncounter {
                 }
                 BossDefinition endBoss = plugin.registry().get(army.endBossId());
                 if (endBoss != null) {
+                    emergenceEffect();
                     // applyTerrain=false: the army already themed the ground; don't double up.
                     plugin.bossManager().spawn(endBoss, anchor.clone(), UUID.randomUUID().toString(), true, false);
                 } else {
@@ -278,6 +331,7 @@ public final class ArmyEncounter {
             manager.unregisterMinion(uuid);
         }
         alive.clear();
+        templateOf.clear();
     }
 
     private void end() {

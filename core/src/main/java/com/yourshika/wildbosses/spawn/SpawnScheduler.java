@@ -216,21 +216,39 @@ public final class SpawnScheduler {
     private Location findNearbyLocation(Player anchor, BossDefinition def) {
         World world = anchor.getWorld();
         SpawnRules rules = def.spawn();
-        double minDist = Math.max(8, rules.minPlayerDistance());
-        for (int attempt = 0; attempt < 12; attempt++) {
+        double globalMin = plugin.config().minPlayerDistance();
+        double minDist = Math.max(rules.minPlayerDistance(), globalMin);
+        for (int attempt = 0; attempt < 24; attempt++) {
             double angle = ThreadLocalRandom.current().nextDouble(Math.PI * 2);
-            double dist = minDist + ThreadLocalRandom.current().nextDouble(48);
+            double dist = minDist + ThreadLocalRandom.current().nextDouble(300);
             int x = anchor.getLocation().getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getLocation().getBlockZ() + (int) (Math.sin(angle) * dist);
             Integer y = findSafeY(world, x, z, rules.minY(), rules.maxY());
-            if (y != null) {
-                Location candidate = new Location(world, x + 0.5, y, z + 0.5);
-                if (conditionsMet(def, candidate)) {
-                    return candidate;
-                }
+            if (y == null) {
+                continue;
+            }
+            Location candidate = new Location(world, x + 0.5, y, z + 0.5);
+            // The spot must be at least the global minimum from EVERY player - reroll otherwise.
+            if (conditionsMet(def, candidate) && farFromAllPlayers(candidate, globalMin)) {
+                return candidate;
             }
         }
         return null;
+    }
+
+    /** True if {@code loc} is at least {@code minDist} blocks from every survival/adventure player. */
+    private boolean farFromAllPlayers(Location loc, double minDist) {
+        if (minDist <= 0 || loc.getWorld() == null) {
+            return true;
+        }
+        double minSq = minDist * minDist;
+        for (Player p : loc.getWorld().getPlayers()) {
+            if ((p.getGameMode() == org.bukkit.GameMode.SURVIVAL || p.getGameMode() == org.bukkit.GameMode.ADVENTURE)
+                    && p.getLocation().distanceSquared(loc) < minSq) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Location findFrontierLocation(Player anchor, BossDefinition def) {

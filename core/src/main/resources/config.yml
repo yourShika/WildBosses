@@ -20,18 +20,23 @@ settings:
   max-active-bosses: 5
   # Minimum distance (blocks) enforced between two active bosses.
   min-distance-between-bosses: 200
+  # Normal bosses spawn at least this many blocks from EVERY online player (the spot is re-rolled
+  # until it is far enough from everyone). Players travel to the broadcast coordinates.
+  # (Terrain/army encounters additionally only spawn on never-generated "frontier" chunks.)
+  min-player-distance: 500
   # Bosses/armies that are never defeated eventually flee (with a broadcast). A random lifetime
   # between min and max minutes is chosen per encounter.
   boss-lifetime:
     enabled: true
     min-minutes: 30
     max-minutes: 60
-  # Scale a boss up when more players are nearby (health and summoned add counts).
+  # Scale a boss up when more players are nearby. Measured once at spawn and kept for the whole
+  # fight (it does NOT drop if players later die or run away). Scales health, damage and armor.
   scaling:
     enabled: true
     radius: 48
-    health-per-player: 0.25      # +25% max health per extra player
-    max-multiplier: 4.0
+    per-player-multiplier: 1.5   # each nearby player beyond the first multiplies stats by this (x1.5)
+    max-multiplier: 8.0          # hard cap on the total multiplier
 
 rewards:
   # If true, every player who damaged the boss gets their own loot roll (no loot stealing).

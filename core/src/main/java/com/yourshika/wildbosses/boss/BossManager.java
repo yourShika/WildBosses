@@ -160,6 +160,7 @@ public final class BossManager {
             bee.setAnger(Integer.MAX_VALUE); // stays hostile for the whole fight
         }
         tag(le, def, encounterId);
+        le.addScoreboardTag("wildbosses"); // lets lag-clearer plugins whitelist our mobs by tag
 
         double scale = applyScaling(le, loc);
         double maxHp = maxHealthOf(le, def);
@@ -207,7 +208,11 @@ public final class BossManager {
         le.setHealth(maxHealthOf(le, def));
     }
 
-    /** Multiply the boss' max health by the nearby-player scaling factor and return that factor. */
+    /**
+     * Scale the boss' combat stats up for nearby players and return the factor. Each player beyond the
+     * first multiplies the stats by {@code per-player-multiplier} (default x1.5). Computed once, at
+     * spawn - it stays for the whole fight even if players later die or flee.
+     */
     private double applyScaling(LivingEntity le, Location loc) {
         if (!plugin.config().scalingEnabled()) {
             return 1.0;
@@ -217,21 +222,31 @@ public final class BossManager {
         World world = loc.getWorld();
         if (world != null) {
             for (Player p : world.getPlayers()) {
-                if (p.getLocation().distanceSquared(loc) <= radiusSq) {
+                if ((p.getGameMode() == org.bukkit.GameMode.SURVIVAL || p.getGameMode() == org.bukkit.GameMode.ADVENTURE)
+                        && p.getLocation().distanceSquared(loc) <= radiusSq) {
                     players++;
                 }
             }
         }
         double mult = Math.min(plugin.config().scalingMaxMultiplier(),
-                1.0 + Math.max(0, players - 1) * plugin.config().scalingHealthPerPlayer());
+                Math.pow(plugin.config().scalingPerPlayer(), Math.max(0, players - 1)));
         if (mult > 1.0) {
-            AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
-            if (max != null) {
-                max.setBaseValue(max.getBaseValue() * mult);
-                le.setHealth(max.getValue());
-            }
+            scaleAttr(le, Attribute.MAX_HEALTH, mult, true);
+            scaleAttr(le, Attribute.ATTACK_DAMAGE, mult, false);
+            scaleAttr(le, Attribute.ARMOR, mult, false);
+            scaleAttr(le, Attribute.ARMOR_TOUGHNESS, mult, false);
         }
         return mult;
+    }
+
+    private static void scaleAttr(LivingEntity le, Attribute attr, double mult, boolean refillHealth) {
+        AttributeInstance inst = le.getAttribute(attr);
+        if (inst != null) {
+            inst.setBaseValue(inst.getBaseValue() * mult);
+            if (refillHealth) {
+                le.setHealth(inst.getValue());
+            }
+        }
     }
 
     private void applyEquipment(LivingEntity le, BossDefinition def) {
