@@ -12,9 +12,12 @@ settings:
   spawn-attempts-per-cycle: 1     # attempts each cycle (each still checks a boss' rules)
   max-active-bosses: 5            # global cap on active bosses (armies count as one)
   min-distance-between-bosses: 200
-  min-player-distance: 500        # normal bosses spawn >= this from EVERY player (re-rolled otherwise);
-                                  # the spawn chunk is force-loaded until a player arrives, and an
-                                  # un-engaged boss despawns after its lifetime to free the chunk
+  min-player-distance: 500        # normal bosses spawn >= this from EVERY player (only in already
+                                  # generated/explored chunks); the spawn chunk is force-loaded until
+                                  # a player arrives
+  unclaimed-despawn-minutes: 8    # an un-fought boss despawns after this (frees its chunk); the full
+                                  # flee lifetime only starts on first player contact
+  disabled-bosses: []             # ids to switch OFF entirely (survives reload & restore), e.g. [medusa]
   boss-lifetime:                  # undefeated bosses/armies eventually flee (with a broadcast)
     enabled: true
     min-minutes: 30
@@ -22,8 +25,9 @@ settings:
   scaling:                        # scale a boss up to how many players ENGAGE it (first contact)
     enabled: true
     radius: 48
-    per-player-multiplier: 1.5    # each attacker beyond the first multiplies health/damage/armor
-    max-multiplier: 5.0           # measured on the first hit, then kept even if players die/flee
+    per-player-multiplier: 1.5    # each attacker beyond the first multiplies health/damage
+    max-multiplier: 5.0           # kept for the whole fight even if players die/flee
+    engage-window-seconds: 10     # after first contact, re-match the growing crowd for this long (take max)
 
 rewards:
   participation-loot: true        # every player who damaged the boss gets their own loot roll

@@ -85,6 +85,6 @@ public final class ActiveMenu extends Menu {
     }
 
     private static String worldName(Location loc) {
-        return loc.getWorld() == null ? "?" : loc.getWorld().getName();
+        return com.yourshika.wildbosses.util.Text.worldName(loc);
     }
 }

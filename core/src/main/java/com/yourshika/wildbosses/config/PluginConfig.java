@@ -24,6 +24,8 @@ public final class PluginConfig {
     private int maxActiveBosses = 5;
     private double minDistanceBetweenBosses = 200;
     private double minPlayerDistance = 500;
+    private int unclaimedDespawnMinutes = 8;
+    private final java.util.Set<String> disabledBosses = new java.util.HashSet<>();
 
     private int frontierMinDistance = 200;
     private int frontierMaxDistance = 3000;
@@ -50,6 +52,7 @@ public final class PluginConfig {
     private double scalingRadius = 48;
     private double scalingPerPlayer = 1.5;
     private double scalingMaxMultiplier = 5.0;
+    private int scalingEngageWindowSeconds = 10;
 
     private boolean participationLoot = true;
     private String discordWebhook = "";
@@ -69,6 +72,13 @@ public final class PluginConfig {
         maxActiveBosses = Math.max(1, c.getInt("settings.max-active-bosses", 5));
         minDistanceBetweenBosses = Math.max(0, c.getDouble("settings.min-distance-between-bosses", 200));
         minPlayerDistance = Math.max(0, c.getDouble("settings.min-player-distance", 500));
+        unclaimedDespawnMinutes = Math.max(1, c.getInt("settings.unclaimed-despawn-minutes", 8));
+        disabledBosses.clear();
+        for (String id : c.getStringList("settings.disabled-bosses")) {
+            if (id != null && !id.isBlank()) {
+                disabledBosses.add(id.trim().toLowerCase(Locale.ROOT));
+            }
+        }
 
         bossLifetimeEnabled = c.getBoolean("settings.boss-lifetime.enabled", true);
         bossLifetimeMinMinutes = Math.max(1, c.getInt("settings.boss-lifetime.min-minutes", 30));
@@ -79,6 +89,7 @@ public final class PluginConfig {
         // Each nearby player beyond the first multiplies the boss' combat stats by this factor.
         scalingPerPlayer = Math.max(1.0, c.getDouble("settings.scaling.per-player-multiplier", 1.5));
         scalingMaxMultiplier = Math.max(1, c.getDouble("settings.scaling.max-multiplier", 5.0));
+        scalingEngageWindowSeconds = Math.max(0, c.getInt("settings.scaling.engage-window-seconds", 10));
 
         participationLoot = c.getBoolean("rewards.participation-loot", true);
         discordWebhook = c.getString("integrations.discord-webhook", "");
@@ -249,6 +260,21 @@ public final class PluginConfig {
 
     public double minPlayerDistance() {
         return minPlayerDistance;
+    }
+
+    /** Minutes before an un-engaged boss (nobody has fought it) despawns and frees its chunk. */
+    public int unclaimedDespawnMinutes() {
+        return unclaimedDespawnMinutes;
+    }
+
+    /** Boss ids the admin has switched off - never loaded, never auto-restored. */
+    public java.util.Set<String> disabledBosses() {
+        return disabledBosses;
+    }
+
+    /** Seconds after first contact during which the boss keeps re-measuring the attacking crowd. */
+    public int scalingEngageWindowSeconds() {
+        return scalingEngageWindowSeconds;
     }
 
     public double scalingMaxMultiplier() {

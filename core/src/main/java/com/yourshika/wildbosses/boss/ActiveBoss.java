@@ -33,6 +33,8 @@ public final class ActiveBoss {
     private final String encounterId;
 
     private boolean engaged;
+    private long scaleLockTick;
+    private int scaledPlayers;
     private World ticketWorld;
     private int ticketCx;
     private int ticketCz;
@@ -124,6 +126,27 @@ public final class ActiveBoss {
 
     public void setEngaged(boolean engaged) {
         this.engaged = engaged;
+    }
+
+    public long scaleLockTick() {
+        return scaleLockTick;
+    }
+
+    public void setScaleLockTick(long tick) {
+        this.scaleLockTick = tick;
+    }
+
+    public int scaledPlayers() {
+        return scaledPlayers;
+    }
+
+    public void setScaledPlayers(int players) {
+        this.scaledPlayers = players;
+    }
+
+    /** True if any player is close enough to see the boss bar (i.e. worth running abilities for). */
+    public boolean hasNearbyPlayers() {
+        return !viewers.isEmpty();
     }
 
     public void setMaxHealth(double maxHealth) {

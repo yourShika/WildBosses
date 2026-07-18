@@ -27,6 +27,12 @@ public final class BossRegistry {
     private final Plugin plugin;
     private final Logger logger;
     private final Map<String, BossDefinition> bosses = new LinkedHashMap<>();
+    private Set<String> disabled = Set.of();
+
+    /** Ids the admin switched off in config: never auto-restored and never loaded. */
+    public void setDisabled(Set<String> disabled) {
+        this.disabled = disabled == null ? Set.of() : disabled;
+    }
 
     public BossRegistry(Plugin plugin) {
         this.plugin = plugin;
@@ -47,6 +53,9 @@ public final class BossRegistry {
             try {
                 YamlConfiguration yml = YamlConfiguration.loadConfiguration(file);
                 String id = yml.getString("id", stripExtension(file.getName())).toLowerCase(Locale.ROOT);
+                if (disabled.contains(id)) {
+                    continue; // admin disabled this boss - skip loading it
+                }
                 bosses.put(id, loader.load(id, yml));
             } catch (Exception ex) {
                 logger.severe("Failed to load boss file " + file.getName() + ": " + ex.getMessage());
@@ -63,6 +72,9 @@ public final class BossRegistry {
             logger.warning("Could not create bosses/ directory.");
         }
         for (String name : DEFAULTS) {
+            if (disabled.contains(name)) {
+                continue; // don't re-create a boss the admin turned off
+            }
             if (!new File(dir, name + ".yml").exists()) {
                 try {
                     plugin.saveResource("bosses/" + name + ".yml", false);
@@ -81,6 +93,9 @@ public final class BossRegistry {
         }
         int n = 0;
         for (String name : DEFAULTS) {
+            if (disabled.contains(name)) {
+                continue; // leave disabled bosses off even on a factory reset
+            }
             try {
                 plugin.saveResource("bosses/" + name + ".yml", true);
                 n++;

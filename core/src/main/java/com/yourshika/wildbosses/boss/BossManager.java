@@ -172,9 +172,9 @@ public final class BossManager {
         // Player-scaling is now measured when a player first engages (see onBossDamaged), not at spawn -
         // a boss spawned far from everyone would otherwise never scale.
         spawnBurst(le.getLocation());
-        // Fallback lifetime: an un-engaged boss despawns after this; it's reset to a full lifetime the
-        // moment a player engages, so the flee clock effectively starts on contact.
-        boss.setFleeAtTick(tick + bossLifetimeTicks());
+        // Un-engaged bosses despawn after a short "unclaimed" timeout (frees the force-loaded chunk).
+        // On first player contact this is replaced by the full flee lifetime (see onBossDamaged).
+        boss.setFleeAtTick(tick + plugin.config().unclaimedDespawnMinutes() * 60L * 20L);
         byEntity.put(le.getUniqueId(), boss);
 
         // Keep the spawn chunk loaded so a far-away boss survives until players travel to it.
@@ -221,38 +221,62 @@ public final class BossManager {
      * if players later die or flee. Each attacker beyond the first multiplies stats by
      * {@code per-player-multiplier} (default x1.5), capped at {@code max-multiplier}.
      */
-    private void applyScalingOnEngage(ActiveBoss boss) {
+    /** Re-measure the attacking crowd and scale the boss up to match it if it grew. */
+    private void engageScale(ActiveBoss boss) {
         if (!plugin.config().scalingEnabled()) {
             return;
         }
+        int players = countNearbyPlayers(boss);
+        if (players > boss.scaledPlayers()) {
+            boss.setScaledPlayers(players);
+            applyScaling(boss, players);
+        }
+    }
+
+    private int countNearbyPlayers(ActiveBoss boss) {
         LivingEntity le = boss.entity();
-        if (le == null || !le.isValid()) {
-            return;
+        if (le == null || !le.isValid() || le.getWorld() == null) {
+            return 0;
         }
         Location loc = le.getLocation();
         double radiusSq = plugin.config().scalingRadius() * plugin.config().scalingRadius();
         int players = 0;
-        World world = loc.getWorld();
-        if (world != null) {
-            for (Player p : world.getPlayers()) {
-                if ((p.getGameMode() == org.bukkit.GameMode.SURVIVAL || p.getGameMode() == org.bukkit.GameMode.ADVENTURE)
-                        && p.getLocation().distanceSquared(loc) <= radiusSq) {
-                    players++;
-                }
+        for (Player p : le.getWorld().getPlayers()) {
+            if ((p.getGameMode() == org.bukkit.GameMode.SURVIVAL || p.getGameMode() == org.bukkit.GameMode.ADVENTURE)
+                    && p.getLocation().distanceSquared(loc) <= radiusSq) {
+                players++;
             }
+        }
+        return players;
+    }
+
+    /**
+     * Scale the boss' combat stats to {@code players} attackers, computed from its configured base
+     * stats (so repeated re-scaling never drifts). Preserves the current health fraction, so scaling
+     * up never undoes damage already dealt. Health/damage scale; armour is left alone (vanilla caps
+     * it at 30 anyway) - tankiness comes from the scaled health pool; knockback-resistance ramps up.
+     */
+    private void applyScaling(ActiveBoss boss, int players) {
+        LivingEntity le = boss.entity();
+        if (le == null || !le.isValid()) {
+            return;
         }
         double mult = Math.min(plugin.config().scalingMaxMultiplier(),
                 Math.pow(plugin.config().scalingPerPlayer(), Math.max(0, players - 1)));
         boss.setAddMultiplier(mult);
-        if (mult > 1.0) {
-            scaleAttr(le, Attribute.MAX_HEALTH, mult, true);
-            scaleAttr(le, Attribute.ATTACK_DAMAGE, mult, false);
-            scaleAttr(le, Attribute.ARMOR, mult, false);
-            scaleAttr(le, Attribute.ARMOR_TOUGHNESS, mult, false);
-            AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
-            if (max != null) {
-                boss.setMaxHealth(max.getValue());
-            }
+        if (mult <= 1.0) {
+            return;
+        }
+        BossStats s = boss.def().stats();
+        AttributeInstance maxAttr = le.getAttribute(Attribute.MAX_HEALTH);
+        double frac = (maxAttr != null && maxAttr.getValue() > 0) ? le.getHealth() / maxAttr.getValue() : 1.0;
+        setAttr(le, Attribute.MAX_HEALTH, s.health() * mult);
+        setAttr(le, Attribute.ATTACK_DAMAGE, s.attackDamage() * mult);
+        setAttr(le, Attribute.KNOCKBACK_RESISTANCE, Math.min(1.0, s.knockbackResistance() * mult));
+        AttributeInstance nm = le.getAttribute(Attribute.MAX_HEALTH);
+        if (nm != null) {
+            boss.setMaxHealth(nm.getValue());
+            le.setHealth(Math.max(1.0, Math.min(nm.getValue(), frac * nm.getValue())));
         }
     }
 
@@ -261,22 +285,6 @@ public final class BossManager {
         long min = plugin.config().bossLifetimeMinMinutes() * 60L * 20L;
         long max = plugin.config().bossLifetimeMaxMinutes() * 60L * 20L;
         return max > min ? ThreadLocalRandom.current().nextLong(min, max) : min;
-    }
-
-    /** Spawn-time fallback lifetime: even with lifetime disabled, an UN-engaged boss despawns after
-     *  this so its force-loaded chunk is eventually released. */
-    private long bossLifetimeTicks() {
-        return plugin.config().bossLifetimeEnabled() ? randomLifetimeTicks() : 30L * 60L * 20L;
-    }
-
-    private static void scaleAttr(LivingEntity le, Attribute attr, double mult, boolean refillHealth) {
-        AttributeInstance inst = le.getAttribute(attr);
-        if (inst != null) {
-            inst.setBaseValue(inst.getBaseValue() * mult);
-            if (refillHealth) {
-                le.setHealth(inst.getValue());
-            }
-        }
     }
 
     private void applyEquipment(LivingEntity le, BossDefinition def) {
@@ -415,6 +423,9 @@ public final class BossManager {
                 continue;
             }
             boss.updateBossBar();
+            if (!boss.hasNearbyPlayers()) {
+                continue; // nobody near (e.g. a far, un-reached boss): don't waste ticks on AI/abilities
+            }
             int newPhase = computePhaseIndex(boss);
             if (newPhase > boss.phaseIndex()) {
                 applyPhase(boss, newPhase, false);
@@ -704,10 +715,14 @@ public final class BossManager {
         if (contributor != null) {
             boss.recordDamage(contributor.getUniqueId(), amount);
             if (!boss.engaged()) {
-                // First real contact: scale to the attacking crowd, and (re)start the flee clock now.
+                // First real contact: (re)start the flee clock, open the scaling-measure window.
                 boss.setEngaged(true);
-                applyScalingOnEngage(boss);
+                boss.setScaleLockTick(tick + plugin.config().scalingEngageWindowSeconds() * 20L);
                 boss.setFleeAtTick(plugin.config().bossLifetimeEnabled() ? tick + randomLifetimeTicks() : 0);
+            }
+            // During the window, keep matching the boss to the (growing) attacking crowd - take the max.
+            if (tick <= boss.scaleLockTick()) {
+                engageScale(boss);
             }
         }
         skillEngine.onDamaged(boss, damager, amount);

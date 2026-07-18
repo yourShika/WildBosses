@@ -123,6 +123,7 @@ public final class WildBossesPlugin extends JavaPlugin {
         reloadConfig();
         pluginConfig.load(getConfig(), getLogger());
         messages.reload();
+        registry.setDisabled(pluginConfig.disabledBosses());
         int count = registry.reload();
         if (spawnScheduler != null) {
             spawnScheduler.start(); // re-apply the (possibly changed) interval

@@ -299,8 +299,7 @@ public final class WildBossesCommand implements TabExecutor {
     }
 
     private static String worldName(Location loc) {
-        World world = loc.getWorld();
-        return world == null ? "?" : world.getName();
+        return Text.worldName(loc);
     }
 
     private static String worldsString(BossDefinition def) {

@@ -24,6 +24,12 @@ settings:
   # until it is far enough from everyone). Players travel to the broadcast coordinates.
   # (Terrain/army encounters additionally only spawn on never-generated "frontier" chunks.)
   min-player-distance: 500
+  # An un-engaged boss (nobody has fought it) despawns after this many minutes, freeing its
+  # force-loaded chunk. The full flee lifetime below only starts once a player makes contact.
+  unclaimed-despawn-minutes: 8
+  # Bosses listed here are switched OFF: never loaded, never auto-restored (survives /wb reload
+  # and /wb restore default). Use lowercase ids, e.g. [zombie_king, medusa].
+  disabled-bosses: []
   # Bosses/armies that are never defeated eventually flee (with a broadcast). A random lifetime
   # between min and max minutes is chosen per encounter.
   boss-lifetime:
@@ -37,6 +43,7 @@ settings:
     radius: 48
     per-player-multiplier: 1.5   # each attacking player beyond the first multiplies stats by this (x1.5)
     max-multiplier: 5.0          # hard cap on the total multiplier (measured on first player contact)
+    engage-window-seconds: 10    # after first contact, keep matching the growing crowd for this long
 
 rewards:
   # If true, every player who damaged the boss gets their own loot roll (no loot stealing).

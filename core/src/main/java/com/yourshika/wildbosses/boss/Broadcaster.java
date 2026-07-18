@@ -36,7 +36,7 @@ public final class Broadcaster {
     }
 
     private static String worldName(Location loc) {
-        return loc.getWorld() == null ? "?" : loc.getWorld().getName();
+        return Text.worldName(loc);
     }
 
     public void bossFled(BossDefinition def) {

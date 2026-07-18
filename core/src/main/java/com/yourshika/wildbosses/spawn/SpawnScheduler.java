@@ -223,6 +223,11 @@ public final class SpawnScheduler {
             double dist = minDist + ThreadLocalRandom.current().nextDouble(300);
             int x = anchor.getLocation().getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getLocation().getBlockZ() + (int) (Math.sin(angle) * dist);
+            // Only probe already-generated (explored) terrain - never force-generate far chunks
+            // synchronously (that was the spawn-cycle lag spike).
+            if (!world.isChunkGenerated(x >> 4, z >> 4)) {
+                continue;
+            }
             Integer y = findSafeY(world, x, z, rules.minY(), rules.maxY());
             if (y == null) {
                 continue;

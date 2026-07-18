@@ -75,7 +75,9 @@ public final class ArmyEncounter {
             int hi = Math.max(1, plugin.config().bossLifetimeMaxMinutes()) * 60;
             seconds = hi <= lo ? lo : ThreadLocalRandom.current().nextInt(lo, hi + 1);
         } else {
-            seconds = 0;
+            // No own timeout and lifetime disabled: still cap it so the force-loaded anchor chunk
+            // is always released eventually instead of staying loaded forever.
+            seconds = 30 * 60;
         }
         this.lifetimeTicks = seconds * 20L;
     }

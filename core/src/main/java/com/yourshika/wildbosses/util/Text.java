@@ -52,6 +52,11 @@ public final class Text {
         return PlainTextComponentSerializer.plainText().serialize(mm(input));
     }
 
+    /** The world's name for a location, or {@code "?"} if the world is unloaded/null. */
+    public static String worldName(org.bukkit.Location loc) {
+        return loc == null || loc.getWorld() == null ? "?" : loc.getWorld().getName();
+    }
+
     /** Format a number of seconds as a short {@code "12m 30s"} / {@code "45s"} duration. */
     public static String duration(long seconds) {
         long m = seconds / 60;
