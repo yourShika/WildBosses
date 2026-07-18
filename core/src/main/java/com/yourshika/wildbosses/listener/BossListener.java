@@ -48,11 +48,18 @@ public final class BossListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (boss.def().immunities().isEmpty()) {
+        if (!boss.def().immunities().isEmpty() && isImmune(boss.def(), cause)) {
+            event.setCancelled(true);
             return;
         }
-        if (isImmune(boss.def(), cause)) {
-            event.setCancelled(true);
+        // No one-shots: cap a single hit to a fraction of the boss' max health. Applied to the base
+        // damage, so the post-armour final damage is always <= the cap.
+        double pct = manager.maxHitDamagePercent();
+        if (pct < 1.0) {
+            double cap = boss.maxHealth() * pct;
+            if (cap > 0 && event.getDamage() > cap) {
+                event.setDamage(cap);
+            }
         }
     }
 

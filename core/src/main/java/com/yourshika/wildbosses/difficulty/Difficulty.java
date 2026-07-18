@@ -85,7 +85,13 @@ public enum Difficulty {
 
     /** The bracketed label as a raw MiniMessage string (for embedding in placeholders). */
     public String bracketedMini() {
-        return "<gray>[</gray>" + gradient(label) + "<gray>]</gray>";
+        return bracketedMini(label);
+    }
+
+    /** As {@link #bracketedMini()} but with a translated label. */
+    public String bracketedMini(String labelOverride) {
+        String l = labelOverride == null || labelOverride.isBlank() ? label : labelOverride;
+        return "<gray>[</gray>" + gradient(l) + "<gray>]</gray>";
     }
 
     /** Lenient parse: case-insensitive, spaces or dashes accepted (e.g. "ultra hard"). */

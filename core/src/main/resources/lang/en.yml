@@ -1,4 +1,5 @@
-# WildBosses language file (English). All values are MiniMessage.
+# WildBosses language file (English). All values are MiniMessage. This file is the fallback for any
+# key missing from another language.
 prefix: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> "
 
 no-permission: "<red>You don't have permission to do that."
@@ -18,14 +19,29 @@ list-entry: "<gray> - <white><id> <difficulty> <dark_gray>(<gray><worlds></dark_
 active-header: "<gray>Active encounters (<yellow><count></yellow>):"
 active-entry: "<gray> - <white><boss> <gray>@ <yellow><world> <x> <y> <z></yellow> <dark_gray>(<gray><health></gray> HP)"
 
+word-someone: "Someone"
+
+# Server broadcasts (used unless overridden in config.yml's broadcast section).
+broadcast-boss-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>A wild <boss> <difficulty> <white>has appeared in <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
+broadcast-army-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <difficulty> <white>is invading <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
+broadcast-boss-death: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <white>has been slain by <yellow><slayers></yellow>!"
+broadcast-boss-fled: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <gray>The <boss> <gray>grew tired of waiting and fled into the wild..."
+broadcast-boss-drop: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <yellow><player></yellow> <white>looted <item> <white>from the <boss><white>!"
+
+# Discord webhook lines (plain text; %boss% %difficulty% %world% %x% %z% %slayers%).
+discord-boss-spawn: ":crossed_swords: **%boss%** [%difficulty%] appeared in %world% near %x%, %z%"
+discord-army-spawn: ":skull: **%boss%** [%difficulty%] is invading %world% near %x%, %z%"
+discord-boss-death: ":trophy: **%boss%** has been slain by %slayers%!"
+
 help:
   - "<gradient:#f8b500:#fceabb><bold>WildBosses</bold></gradient> <gray>commands:"
-  - "<yellow>/wb spawn <id> [here|player] <gray>- spawn a boss"
-  - "<yellow>/wb army <id> <gray>- start an army encounter"
-  - "<yellow>/wb list <gray>- list registered bosses"
+  - "<yellow>/wb spawn <id|random> [here|player] <gray>- spawn a boss"
+  - "<yellow>/wb army <id|random> <gray>- start an army encounter"
+  - "<yellow>/wb list <gray>- open the bestiary (bosses + drops)"
   - "<yellow>/wb active <gray>- list active encounters"
   - "<yellow>/wb info <id> <gray>- show details for a boss"
   - "<yellow>/wb gui <gray>- open the admin GUI"
   - "<yellow>/wb killall <gray>- remove all active bosses"
   - "<yellow>/wb reload <gray>- reload config and bosses"
+  - "<yellow>/wb restore default <gray>- reset boss files to defaults"
   - "<yellow>/wb update <gray>- download the latest release from GitHub"

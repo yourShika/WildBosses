@@ -4,6 +4,9 @@ All message strings are [MiniMessage](https://docs.advntr.dev/minimessage/) and 
 
 ```yaml
 settings:
+  language: en                    # en | de | pl (missing keys fall back to English). Translates
+                                  # messages, broadcasts, Discord, difficulty, boss & item names.
+  max-hit-damage-percent: 0.5     # a single hit deals at most this fraction of max HP (no one-shots)
   random-spawns: true             # master switch for automatic spawning
   spawn-interval:                 # each cycle waits a RANDOM time in [min, max] minutes (1 to 60+)
     min-minutes: 10

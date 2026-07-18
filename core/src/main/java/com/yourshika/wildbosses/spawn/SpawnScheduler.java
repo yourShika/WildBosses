@@ -233,12 +233,30 @@ public final class SpawnScheduler {
                 continue;
             }
             Location candidate = new Location(world, x + 0.5, y, z + 0.5);
+            // Land bosses never spawn in the ocean/rivers or underwater (only water bosses may).
+            if (!def.spawn().nearWater() && isWaterySpot(candidate)) {
+                continue;
+            }
             // The spot must be at least the global minimum from EVERY player - reroll otherwise.
             if (conditionsMet(def, candidate) && farFromAllPlayers(candidate, globalMin)) {
                 return candidate;
             }
         }
         return null;
+    }
+
+    /** True if the spot is submerged or in an ocean/river biome (bad for a non-water boss). */
+    private boolean isWaterySpot(Location loc) {
+        World w = loc.getWorld();
+        int x = loc.getBlockX();
+        int y = loc.getBlockY();
+        int z = loc.getBlockZ();
+        if (w.getBlockAt(x, y, z).getType() == Material.WATER
+                || w.getBlockAt(x, y + 1, z).getType() == Material.WATER) {
+            return true;
+        }
+        String biome = w.getBlockAt(x, y, z).getBiome().getKey().value().toUpperCase(Locale.ROOT);
+        return biome.contains("OCEAN") || biome.contains("RIVER");
     }
 
     /** True if {@code loc} is at least {@code minDist} blocks from every survival/adventure player. */

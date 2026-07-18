@@ -83,7 +83,7 @@ public final class RewardManager implements BossDeathListener {
         for (DropEntry entry : drops.items()) {
             ItemStack stack = build(entry);
             Component base = (entry.name() != null && !entry.name().isBlank())
-                    ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
+                    ? Text.mm(plugin.messages().tr(entry.name())).decoration(TextDecoration.ITALIC, false)
                     : stack.effectiveName();
             (ThreadLocalRandom.current().nextDouble() < entry.chance() ? winners : losers)
                     .add(new Candidate(entry.chance(), stack, entry.rarity(), base));
@@ -199,7 +199,7 @@ public final class RewardManager implements BossDeathListener {
             return item;
         }
         if (entry.name() != null && !entry.name().isBlank()) {
-            meta.displayName(Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false));
+            meta.displayName(Text.mm(plugin.messages().tr(entry.name())).decoration(TextDecoration.ITALIC, false));
         }
         List<Component> lore = new ArrayList<>();
         lore.add(Text.mm(entry.rarity().loreLine()).decoration(TextDecoration.ITALIC, false));

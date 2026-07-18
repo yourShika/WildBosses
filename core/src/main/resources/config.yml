@@ -5,6 +5,9 @@
 # =====================================================================================
 
 settings:
+  # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
+  # Missing keys fall back to English. Add your own lang/<code>.yml for more languages.
+  language: en
   # Master switch for automatic random boss spawning.
   random-spawns: true
   # Time between spawn cycles. Each cycle waits a RANDOM duration between min and max minutes
@@ -27,6 +30,9 @@ settings:
   # An un-engaged boss (nobody has fought it) despawns after this many minutes, freeing its
   # force-loaded chunk. The full flee lifetime below only starts once a player makes contact.
   unclaimed-despawn-minutes: 8
+  # A single hit can never take more than this fraction of a boss' max health (prevents one-shots).
+  # 0.5 = at most 50% per hit (>= 2 hits to kill). Set to 1.0 to allow one-shots.
+  max-hit-damage-percent: 0.5
   # Bosses listed here are switched OFF: never loaded, never auto-restored (survives /wb reload
   # and /wb restore default). Use lowercase ids, e.g. [zombie_king, medusa].
   disabled-bosses: []
@@ -75,15 +81,15 @@ worlds:
 
 broadcast:
   enabled: true
-  # Placeholders: <boss> <difficulty> <world> <x> <y> <z>
-  boss-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>A wild <boss> <difficulty> <white>has appeared in <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
-  army-spawn: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <difficulty> <white>is invading <yellow><world></yellow> near <yellow><x>, <z></yellow>!"
-  # Placeholders: <boss> <difficulty>. The killer name(s) are appended automatically; or place
-  # <slayers> yourself (comma-separated players who dealt damage) to control where they appear.
-  boss-death: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <white>The <boss> <white>has been slain!"
-  boss-fled: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <gray>The <boss> <gray>grew tired of waiting and fled into the wild..."
-  # Placeholders: <boss> <difficulty> <player> (who found it) <item> (hover to preview) <amount>
-  boss-drop: "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <yellow><player></yellow> <white>looted <item> <white>from the <boss><white>!"
+  # Broadcast messages come from the active language file (lang/<language>.yml). Set any of these to
+  # a non-empty string here to OVERRIDE the language file for that message. Left blank = use language.
+  # Placeholders: <boss> <difficulty> <world> <x> <y> <z> (spawn); <player> <item> <amount> (drop);
+  # <slayers> (death - killer names, appended automatically if omitted).
+  boss-spawn: ""
+  army-spawn: ""
+  boss-death: ""
+  boss-fled: ""
+  boss-drop: ""
   # Announce notable item drops in chat when a boss dies.
   drops:
     enabled: true

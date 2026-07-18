@@ -83,6 +83,10 @@ public final class BossManager {
         return tick;
     }
 
+    public double maxHitDamagePercent() {
+        return plugin.config().maxHitDamagePercent();
+    }
+
     public BossRegistry registry() {
         return registry;
     }
@@ -503,7 +507,7 @@ public final class BossManager {
 
     private Component displayName(BossDefinition def) {
         // Difficulty is intentionally not shown on the name tag / boss bar (only in the broadcast).
-        return Text.mm(def.name());
+        return Text.mm(plugin.messages().tr(def.name()));
     }
 
     // ---- tick loop ------------------------------------------------------------------------
