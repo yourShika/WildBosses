@@ -36,8 +36,8 @@ drops:
     - { item: HONEYCOMB, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9, rarity: COMMON }
     - { item: HONEYCOMB_BLOCK, amount: "1-3", chance: 0.7, rarity: COMMON }
-    - { item: SUGAR, amount: "4-9", chance: 0.75, rarity: COMMON }
-    - { item: GLOW_BERRIES, amount: "3-6", chance: 0.6, rarity: COMMON }
+    - { item: DANDELION, amount: "3-7", chance: 0.75, rarity: COMMON }
+    - { item: CHERRY_LEAVES, amount: "4-9", chance: 0.6, rarity: COMMON }
     # Uncommon
     - { item: HONEY_BLOCK, amount: "1-2", chance: 0.5, rarity: UNCOMMON }
     - { item: DIAMOND, amount: "2-5", chance: 0.7, rarity: UNCOMMON }

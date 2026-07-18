@@ -53,5 +53,5 @@ drops:
         enchants: ["UNBREAKING:5", "MENDING:1"] }
   command-rewards:
     # Mythical
-    - { command: "pets give pixie 1 %player%", chance: 0.07, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#f9a8d4:#93c5fd>a Pixie pet from Aurelith!</gradient>" }
+    - { command: "pets give unicorn 1 %player%", chance: 0.07, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#f9a8d4:#93c5fd>a Unicorn pet from Aurelith!</gradient>" }
   xp: 950
