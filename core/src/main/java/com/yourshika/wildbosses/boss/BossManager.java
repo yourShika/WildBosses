@@ -59,6 +59,7 @@ public final class BossManager {
 
     private BukkitTask task;
     private long tick;
+    private boolean stateRestored;
 
     public BossManager(WildBossesPlugin plugin, BossRegistry registry, Broadcaster broadcaster) {
         this.plugin = plugin;
@@ -103,6 +104,116 @@ public final class BossManager {
             boss.cleanup(true); // remove the entity too, so a reload/disable leaves nothing behind
         }
         byEntity.clear();
+    }
+
+    // ---- restart persistence --------------------------------------------------------------
+
+    private java.io.File stateFile() {
+        return new java.io.File(plugin.getDataFolder(), "active-bosses.yml");
+    }
+
+    /** Write the live bosses (id, location, health, engagement, flee timer, scaling) to disk. */
+    public void saveState() {
+        if (!stateRestored) {
+            return; // don't clobber the saved state before we've restored from it on this boot
+        }
+        org.bukkit.configuration.file.YamlConfiguration yml = new org.bukkit.configuration.file.YamlConfiguration();
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (ActiveBoss b : byEntity.values()) {
+            LivingEntity e = b.entity();
+            if (e == null || !e.isValid() || e.getWorld() == null) {
+                continue;
+            }
+            Location l = e.getLocation();
+            Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("boss", b.def().id());
+            m.put("world", l.getWorld().getUID().toString());
+            m.put("x", l.getX());
+            m.put("y", l.getY());
+            m.put("z", l.getZ());
+            m.put("health", e.getHealth());
+            m.put("engaged", b.engaged());
+            m.put("scaled-players", b.scaledPlayers());
+            m.put("flee-remaining", b.fleeAtTick() > 0 ? Math.max(0, b.fleeAtTick() - tick) : 0);
+            m.put("encounter", b.encounterId());
+            list.add(m);
+        }
+        yml.set("bosses", list);
+        try {
+            yml.save(stateFile());
+        } catch (java.io.IOException ex) {
+            plugin.getLogger().warning("Could not save active-boss state: " + ex.getMessage());
+        }
+    }
+
+    /**
+     * Re-spawn the bosses that were alive before a restart/crash at their last location, health and
+     * combat state. Called shortly after enable (so worlds are loaded). Non-persistent boss entities
+     * never survive a restart, so this file is the single source of truth - no duplicates.
+     */
+    public void restoreState() {
+        stateRestored = true;
+        java.io.File file = stateFile();
+        if (!file.exists()) {
+            return;
+        }
+        org.bukkit.configuration.file.YamlConfiguration yml =
+                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        int restored = 0;
+        for (Map<?, ?> raw : yml.getMapList("bosses")) {
+            try {
+                BossDefinition def = registry.get(String.valueOf(raw.get("boss")));
+                if (def == null) {
+                    continue;
+                }
+                World w = Bukkit.getWorld(UUID.fromString(String.valueOf(raw.get("world"))));
+                if (w == null) {
+                    continue;
+                }
+                Location loc = new Location(w, num(raw.get("x")), num(raw.get("y")), num(raw.get("z")));
+                String encounterId = raw.get("encounter") != null
+                        ? String.valueOf(raw.get("encounter")) : UUID.randomUUID().toString();
+                ActiveBoss boss = spawn(def, loc, encounterId, false, false); // silent, no terrain re-apply
+                if (boss == null) {
+                    continue;
+                }
+                boolean engaged = Boolean.TRUE.equals(raw.get("engaged"));
+                boss.setEngaged(engaged);
+                int scaled = (int) num(raw.get("scaled-players"));
+                if (scaled > 0) {
+                    boss.setScaledPlayers(scaled);
+                    applyScaling(boss, scaled);
+                }
+                LivingEntity e = boss.entity();
+                AttributeInstance max = e.getAttribute(Attribute.MAX_HEALTH);
+                double maxHp = max != null ? max.getValue() : num(raw.get("health"));
+                e.setHealth(Math.max(1.0, Math.min(maxHp, num(raw.get("health")))));
+                long fleeRem = (long) num(raw.get("flee-remaining"));
+                if (fleeRem > 0) {
+                    boss.setFleeAtTick(tick + fleeRem);
+                } else if (engaged) {
+                    boss.setFleeAtTick(0); // engaged, no flee left (lifetime disabled) -> persist
+                }
+                restored++;
+            } catch (Exception ex) {
+                plugin.getLogger().warning("Failed to restore a boss from state: " + ex.getMessage());
+            }
+        }
+        if (restored > 0) {
+            plugin.getLogger().info("Restored " + restored + " active boss(es) after restart.");
+        }
+        saveState(); // rewrite the file to reflect what actually came back
+    }
+
+    private static double num(Object o) {
+        if (o instanceof Number n) {
+            return n.doubleValue();
+        }
+        try {
+            return Double.parseDouble(String.valueOf(o));
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
     }
 
     // ---- spawning -------------------------------------------------------------------------
@@ -399,6 +510,9 @@ public final class BossManager {
 
     private void tick() {
         tick++;
+        if (stateRestored && tick % 200 == 0) {
+            saveState(); // periodic snapshot so a crash loses at most ~10s of boss state
+        }
         if (byEntity.isEmpty()) {
             return;
         }

@@ -62,6 +62,9 @@ public final class WildBossesPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(
                 new com.yourshika.wildbosses.listener.CleanupListener(this), this);
         bossManager.start();
+        // Restore bosses that were alive before a restart/crash. Slightly delayed so all worlds
+        // (incl. Multiverse-loaded ones) are available first.
+        getServer().getScheduler().runTaskLater(this, bossManager::restoreState, 40L);
 
         spawnScheduler = new SpawnScheduler(this);
         spawnScheduler.setArmyStarter(armyManager);
@@ -97,6 +100,7 @@ public final class WildBossesPlugin extends JavaPlugin {
             armyManager.shutdown();
         }
         if (bossManager != null) {
+            bossManager.saveState();   // persist live bosses before we tear them down
             bossManager.shutdown();
         }
         getLogger().info("WildBosses disabled.");
