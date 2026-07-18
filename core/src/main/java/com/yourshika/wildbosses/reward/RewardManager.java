@@ -48,14 +48,16 @@ public final class RewardManager implements BossDeathListener {
 
         var contributors = boss.damageByPlayer();
         if (plugin.config().participationLoot() && !contributors.isEmpty()) {
-            // Everyone who dealt damage gets their own loot roll at their feet (no loot stealing).
+            // Everyone who dealt damage gets their OWN 1-3 loot roll at their feet (no loot stealing),
+            // and each of their drops is announced in chat under their name.
             for (java.util.UUID id : contributors.keySet()) {
                 Player p = Bukkit.getPlayer(id);
                 Location dropLoc = (p != null && p.getWorld().equals(world)) ? p.getLocation() : loc;
-                rollDrops(drops, dropLoc, boss, p);
+                String name = p != null ? p.getName() : Bukkit.getOfflinePlayer(id).getName();
+                rollDrops(drops, dropLoc, boss, p, name);
             }
         } else {
-            rollDrops(drops, loc, boss, killer);
+            rollDrops(drops, loc, boss, killer, killer != null ? killer.getName() : null);
         }
 
         if (drops.xp() > 0) {
@@ -70,7 +72,7 @@ public final class RewardManager implements BossDeathListener {
         }
     }
 
-    private void rollDrops(DropTable drops, Location loc, ActiveBoss boss, Player finder) {
+    private void rollDrops(DropTable drops, Location loc, ActiveBoss boss, Player finder, String finderName) {
         World world = loc.getWorld();
         if (world == null) {
             return;
@@ -116,7 +118,7 @@ public final class RewardManager implements BossDeathListener {
             org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), c.stack);
             dropped.setGlowing(true);   // only a few drop now, so make them all easy to see
             dropped.setWillAge(false);
-            announceItem(boss, c.base, c.stack, c.rarity, finder); // every dropped item is announced
+            announceItem(boss, c.base, c.stack, c.rarity, finderName); // every dropped item is announced
         }
         rollCommandRewards(drops, boss, finder);
     }
@@ -174,7 +176,7 @@ public final class RewardManager implements BossDeathListener {
 
     /** Broadcast a notable drop, tagged with its rarity and a hoverable item preview. */
     private void announceItem(ActiveBoss boss, Component base, ItemStack stack,
-                              com.yourshika.wildbosses.boss.Rarity rarity, Player finder) {
+                              com.yourshika.wildbosses.boss.Rarity rarity, String finderName) {
         if (!plugin.config().dropBroadcastEnabled()) {
             return;
         }
@@ -187,8 +189,7 @@ public final class RewardManager implements BossDeathListener {
                         ? Text.mm(" <gray>×" + stack.getAmount())
                         : Component.empty())
                 .hoverEvent(stack);
-        plugin.broadcaster().bossDrop(boss.def(), display, stack.getAmount(),
-                finder == null ? null : finder.getName());
+        plugin.broadcaster().bossDrop(boss.def(), display, stack.getAmount(), finderName);
     }
 
     private ItemStack build(DropEntry entry) {
