@@ -75,48 +75,84 @@ public final class RewardManager implements BossDeathListener {
         if (world == null) {
             return;
         }
+        // Build the candidate pool (item + raw drops) and roll each one's chance independently.
+        List<Candidate> winners = new ArrayList<>();
+        List<Candidate> losers = new ArrayList<>();
         for (DropEntry entry : drops.items()) {
-            if (ThreadLocalRandom.current().nextDouble() > entry.chance()) {
-                continue;
-            }
             ItemStack stack = build(entry);
-            org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), stack);
-            boolean notable = isNotable(entry);
-            if (notable || entry.rarity().glow()) {
-                dropped.setGlowing(true);      // visible through blocks so nobody misses good loot
-            }
-            if (notable) {
-                dropped.setWillAge(false);     // a notable drop won't quietly despawn
-                Component base = (entry.name() != null && !entry.name().isBlank())
-                        ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
-                        : stack.effectiveName();
-                announceItem(boss, base, stack, entry.rarity(), finder);
-            }
+            Component base = (entry.name() != null && !entry.name().isBlank())
+                    ? Text.mm(entry.name()).decoration(TextDecoration.ITALIC, false)
+                    : stack.effectiveName();
+            (ThreadLocalRandom.current().nextDouble() < entry.chance() ? winners : losers)
+                    .add(new Candidate(entry.chance(), stack, entry.rarity(), base));
         }
         for (com.yourshika.wildbosses.boss.RawDrop raw : drops.rawDrops()) {
-            if (ThreadLocalRandom.current().nextDouble() > raw.chance()) {
-                continue;
-            }
             ItemStack stack = raw.stack().clone();
-            org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), stack);
-            boolean notable = raw.announce() || raw.rarity().alwaysAnnounce()
-                    || raw.chance() <= plugin.config().dropBroadcastThreshold();
-            if (notable || raw.rarity().glow()) {
-                dropped.setGlowing(true);
+            (ThreadLocalRandom.current().nextDouble() < raw.chance() ? winners : losers)
+                    .add(new Candidate(raw.chance(), stack, raw.rarity(), stack.effectiveName()));
+        }
+
+        int max = plugin.config().maxDrops();
+        int min = plugin.config().minDrops();
+        // Too many rolled? Keep only the rarest ones (highest rarity, then lowest chance).
+        if (winners.size() > max) {
+            winners.sort((a, b) -> {
+                int r = Integer.compare(b.rarity.ordinal(), a.rarity.ordinal());
+                return r != 0 ? r : Double.compare(a.weight, b.weight);
+            });
+            winners = new ArrayList<>(winners.subList(0, max));
+        }
+        // Too few? Top up to the minimum from the ones that missed (weighted by their chance).
+        while (winners.size() < min && !losers.isEmpty()) {
+            Candidate c = pickWeighted(losers);
+            if (c == null) {
+                break;
             }
-            if (notable) {
-                dropped.setWillAge(false);
-                announceItem(boss, stack.effectiveName(), stack, raw.rarity(), finder);
-            }
+            losers.remove(c);
+            winners.add(c);
+        }
+
+        for (Candidate c : winners) {
+            org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), c.stack);
+            dropped.setGlowing(true);   // only a few drop now, so make them all easy to see
+            dropped.setWillAge(false);
+            announceItem(boss, c.base, c.stack, c.rarity, finder); // every dropped item is announced
         }
         rollCommandRewards(drops, boss, finder);
     }
 
-    /** A drop is "notable" when flagged announce, its rarity forces it, or it's rarer than the threshold. */
-    private boolean isNotable(DropEntry entry) {
-        return entry.announce()
-                || entry.rarity().alwaysAnnounce()
-                || entry.chance() <= plugin.config().dropBroadcastThreshold();
+    private static Candidate pickWeighted(List<Candidate> pool) {
+        double total = 0;
+        for (Candidate c : pool) {
+            total += Math.max(0, c.weight);
+        }
+        if (total <= 0) {
+            return pool.isEmpty() ? null : pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
+        }
+        double r = ThreadLocalRandom.current().nextDouble() * total;
+        double acc = 0;
+        for (Candidate c : pool) {
+            acc += Math.max(0, c.weight);
+            if (r < acc) {
+                return c;
+            }
+        }
+        return pool.get(pool.size() - 1);
+    }
+
+    /** A rolled drop candidate (item + its rarity, chance-weight and broadcast name). */
+    private static final class Candidate {
+        final double weight;
+        final ItemStack stack;
+        final com.yourshika.wildbosses.boss.Rarity rarity;
+        final Component base;
+
+        Candidate(double weight, ItemStack stack, com.yourshika.wildbosses.boss.Rarity rarity, Component base) {
+            this.weight = weight;
+            this.stack = stack;
+            this.rarity = rarity;
+            this.base = base;
+        }
     }
 
     /** Roll chance-based console rewards (e.g. granting a pet), one roll per finder. */
@@ -147,6 +183,9 @@ public final class RewardManager implements BossDeathListener {
                 .append(Component.text("["))
                 .append(base)
                 .append(Component.text("]"))
+                .append(stack.getAmount() > 1
+                        ? Text.mm(" <gray>×" + stack.getAmount())
+                        : Component.empty())
                 .hoverEvent(stack);
         plugin.broadcaster().bossDrop(boss.def(), display, stack.getAmount(),
                 finder == null ? null : finder.getName());

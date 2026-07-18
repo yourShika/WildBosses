@@ -48,6 +48,12 @@ settings:
 rewards:
   # If true, every player who damaged the boss gets their own loot roll (no loot stealing).
   participation-loot: true
+  # How many items actually drop per kill. Each item still rolls its own chance, but the result is
+  # capped to a random count in [min, max] (the rarest winners are kept), and topped up to min.
+  # Every dropped item is announced in chat (with its amount). Pets are separate bonus rewards.
+  drop-count:
+    min: 1
+    max: 3
 
 integrations:
   # Optional Discord webhook URL - posts a message on boss spawn and kill. Leave blank to disable.

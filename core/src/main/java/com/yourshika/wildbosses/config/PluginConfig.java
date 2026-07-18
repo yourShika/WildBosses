@@ -55,6 +55,8 @@ public final class PluginConfig {
     private int scalingEngageWindowSeconds = 10;
 
     private boolean participationLoot = true;
+    private int minDrops = 1;
+    private int maxDrops = 3;
     private String discordWebhook = "";
     private String updateRepo = "yourShika/WildBosses";
 
@@ -92,6 +94,8 @@ public final class PluginConfig {
         scalingEngageWindowSeconds = Math.max(0, c.getInt("settings.scaling.engage-window-seconds", 10));
 
         participationLoot = c.getBoolean("rewards.participation-loot", true);
+        minDrops = Math.max(0, c.getInt("rewards.drop-count.min", 1));
+        maxDrops = Math.max(minDrops, c.getInt("rewards.drop-count.max", 3));
         discordWebhook = c.getString("integrations.discord-webhook", "");
         updateRepo = c.getString("integrations.update-repo", "yourShika/WildBosses");
 
@@ -283,6 +287,14 @@ public final class PluginConfig {
 
     public boolean participationLoot() {
         return participationLoot;
+    }
+
+    public int minDrops() {
+        return minDrops;
+    }
+
+    public int maxDrops() {
+        return maxDrops;
     }
 
     public String discordWebhook() {

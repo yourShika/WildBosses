@@ -31,6 +31,7 @@ settings:
 
 rewards:
   participation-loot: true        # every player who damaged the boss gets their own loot roll
+  drop-count: { min: 1, max: 3 }  # cap items dropped per kill to a random 1-3 (rarest kept); all announced
 
 integrations:
   discord-webhook: ""             # optional: posts to Discord on boss spawn/kill (leave blank to disable)
