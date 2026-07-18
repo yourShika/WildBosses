@@ -30,9 +30,24 @@ public final class Broadcaster {
                 + " near " + loc.getBlockX() + ", " + loc.getBlockZ());
     }
 
-    public void bossDeath(BossDefinition def) {
-        broadcastSimple(plugin.config().broadcastBossDeath(), def);
-        DiscordWebhook.send(plugin, ":trophy: **" + Text.plain(def.name()) + "** has been slain!");
+    public void bossDeath(BossDefinition def, String slayers) {
+        boolean hasSlayers = slayers != null && !slayers.isBlank();
+        if (plugin.config().broadcastEnabled()) {
+            String fmt = plugin.config().broadcastBossDeath();
+            if (fmt != null && !fmt.isBlank()) {
+                net.kyori.adventure.text.Component msg = Text.mm(fmt,
+                        Text.parsed("boss", def.name()),
+                        Text.parsed("difficulty", def.difficulty().bracketedMini()),
+                        Text.unparsed("slayers", hasSlayers ? slayers : ""));
+                // If the template doesn't use <slayers>, append the killer(s) so they're always shown.
+                if (hasSlayers && !fmt.contains("<slayers>")) {
+                    msg = msg.append(Text.mm(" <gray>by <yellow>" + slayers));
+                }
+                Bukkit.broadcast(msg);
+            }
+        }
+        DiscordWebhook.send(plugin, ":trophy: **" + Text.plain(def.name()) + "** has been slain"
+                + (hasSlayers ? " by " + slayers : "") + "!");
     }
 
     private static String worldName(Location loc) {
@@ -48,9 +63,14 @@ public final class Broadcaster {
      * {@code amount} the stack size; {@code finderName} may be {@code null} (unknown killer).
      */
     public void bossDrop(BossDefinition def, net.kyori.adventure.text.Component display, int amount, String finderName) {
-        String fmt = plugin.config().broadcastBossDrop();
-        if (!plugin.config().dropBroadcastEnabled() || fmt == null || fmt.isBlank()) {
+        if (!plugin.config().dropBroadcastEnabled()) {
             return;
+        }
+        String fmt = plugin.config().broadcastBossDrop();
+        if (fmt == null || fmt.isBlank()) {
+            // Fall back to a built-in format so drops/pets are announced even on an outdated config
+            // that has no broadcast.boss-drop line.
+            fmt = "<gradient:#f8b500:#fceabb><bold>[WildBosses]</bold></gradient> <yellow><player></yellow> <white>looted <item> <white>from the <boss><white>!";
         }
         Bukkit.broadcast(Text.mm(fmt,
                 Text.parsed("boss", def.name()),

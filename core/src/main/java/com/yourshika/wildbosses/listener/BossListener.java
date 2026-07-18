@@ -39,12 +39,29 @@ public final class BossListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        // A boss nobody has fought yet is invulnerable to NON-player damage: a freshly-spawned,
+        // far-away boss must not be instantly killed by the environment (lava/cactus/etc.) or a
+        // mob-clearing plugin's damage before any player can reach it. Player hits pass through
+        // (and "engage" it), after which normal damage rules apply.
+        if (!boss.engaged()
+                && !(event instanceof EntityDamageByEntityEvent ede && isPlayerSource(ede.getDamager()))) {
+            event.setCancelled(true);
+            return;
+        }
         if (boss.def().immunities().isEmpty()) {
             return;
         }
         if (isImmune(boss.def(), cause)) {
             event.setCancelled(true);
         }
+    }
+
+    private static boolean isPlayerSource(org.bukkit.entity.Entity damager) {
+        if (damager instanceof org.bukkit.entity.Player) {
+            return true;
+        }
+        return damager instanceof org.bukkit.entity.Projectile proj
+                && proj.getShooter() instanceof org.bukkit.entity.Player;
     }
 
     private static boolean isImmune(BossDefinition def, String cause) {

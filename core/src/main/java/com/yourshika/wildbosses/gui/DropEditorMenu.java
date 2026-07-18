@@ -33,6 +33,7 @@ public final class DropEditorMenu extends Menu {
     private final YamlConfiguration yml;
     private final List<Map<String, Object>> items = new ArrayList<>();
     private final List<Map<String, Object>> raw = new ArrayList<>();
+    private final List<Map<String, Object>> pets = new ArrayList<>();
 
     public DropEditorMenu(WildBossesPlugin plugin, String bossId) {
         super(plugin, 54, "<dark_gray>WildBosses <gray>- Drops: " + bossId);
@@ -41,6 +42,7 @@ public final class DropEditorMenu extends Menu {
         this.yml = YamlConfiguration.loadConfiguration(file);
         load("drops.items", items);
         load("drops.raw-items", raw);
+        load("drops.command-rewards", pets);
     }
 
     private void load(String path, List<Map<String, Object>> into) {
@@ -64,7 +66,11 @@ public final class DropEditorMenu extends Menu {
         for (int i = 0; i < raw.size() && slot < 45; i++, slot++) {
             set(slot, rawIcon(raw.get(i)), handler(raw, i));
         }
-        if (items.isEmpty() && raw.isEmpty()) {
+        // Command rewards (pets etc.) - chance/delete editable; the command + announce text stay in YAML.
+        for (int i = 0; i < pets.size() && slot < 45; i++, slot++) {
+            set(slot, petIcon(pets.get(i)), petHandler(i));
+        }
+        if (items.isEmpty() && raw.isEmpty() && pets.isEmpty()) {
             set(22, icon(Material.BARRIER, "<red>No drops yet.", "<gray>Add one from your hand below."), null);
         }
 
@@ -160,6 +166,36 @@ public final class DropEditorMenu extends Menu {
         };
     }
 
+    private ItemStack petIcon(Map<String, Object> it) {
+        String cmd = it.get("command") == null ? "?" : String.valueOf(it.get("command"));
+        return icon(Material.LEAD, "<light_purple>Command reward",
+                "<gradient:#ff6bd6:#c86bff>✦ Mythical",
+                "<gray>Command: <white>" + cmd,
+                "<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%",
+                " ",
+                "<gray>Left-click <green>+5% <gray>· Right-click <red>-5%",
+                "<gray>Drop key (Q) <red>delete",
+                "<dark_gray>(command + announce text: edit in the YAML)");
+    }
+
+    private java.util.function.Consumer<org.bukkit.event.inventory.InventoryClickEvent> petHandler(int index) {
+        return e -> {
+            if (index >= pets.size()) {
+                return;
+            }
+            ClickType click = e.getClick();
+            Map<String, Object> it = pets.get(index);
+            if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
+                pets.remove(index);
+            } else if (e.isRightClick()) {
+                it.put("chance", round2(Math.max(0.0, toDouble(it.get("chance"), 1.0) - 0.05)));
+            } else if (e.isLeftClick()) {
+                it.put("chance", round2(Math.min(1.0, toDouble(it.get("chance"), 1.0) + 0.05)));
+            }
+            rebuild();
+        };
+    }
+
     private void addFromHand(Player player) {
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType().isAir()) {
@@ -179,6 +215,7 @@ public final class DropEditorMenu extends Menu {
     private void save(Player player) {
         yml.set("drops.items", items);
         yml.set("drops.raw-items", raw.isEmpty() ? null : raw);
+        yml.set("drops.command-rewards", pets.isEmpty() ? null : pets);
         try {
             yml.save(file);
             plugin.reloadAll();

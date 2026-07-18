@@ -686,12 +686,26 @@ public final class BossManager {
         } catch (Exception ex) {
             plugin.getLogger().warning("Reward handling failed for boss " + boss.def().id() + ": " + ex.getMessage());
         }
-        broadcaster.bossDeath(boss.def());
+        broadcaster.bossDeath(boss.def(), slayerNames(boss, killer));
         playDeathSound();
         encounterHook.onEnd(boss);
         skillEngine.onDeath(boss);
         boss.releaseChunkTicket(plugin);
         boss.cleanup(false);
+    }
+
+    /** Comma-separated names of everyone who damaged the boss (most damage first, max 5). */
+    private String slayerNames(ActiveBoss boss, Player killer) {
+        Map<UUID, Double> dmg = boss.damageByPlayer();
+        if (dmg.isEmpty()) {
+            return killer != null ? killer.getName() : "";
+        }
+        return dmg.entrySet().stream()
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .map(e -> Bukkit.getOfflinePlayer(e.getKey()).getName())
+                .filter(java.util.Objects::nonNull)
+                .limit(5)
+                .collect(java.util.stream.Collectors.joining(", "));
     }
 
     /** Play the victory sound to every online player when a boss falls. */
