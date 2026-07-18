@@ -86,7 +86,7 @@ public final class DropEditorMenu extends Menu {
 
     private ItemStack fieldIcon(Map<String, Object> it) {
         Material mat = matOf(it.get("item"));
-        String name = it.get("name") != null ? String.valueOf(it.get("name")) : "<white>" + titleCase(mat.name());
+        String name = it.get("name") != null ? String.valueOf(it.get("name")) : "<white>" + Text.titleCase(mat.name());
         List<String> lore = new ArrayList<>();
         lore.add(rarityOf(it).loreLine());
         lore.add("<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
@@ -216,29 +216,8 @@ public final class DropEditorMenu extends Menu {
 
     private static String prettyEnchant(String token) {
         String[] p = token.split(":");
-        String name = titleCase(p[0]);
+        String name = Text.titleCase(p[0]);
         return p.length > 1 ? name + " " + p[1] : name;
-    }
-
-    private static String titleCase(String s) {
-        if (s == null || s.isEmpty()) {
-            return "";
-        }
-        String lower = s.toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
-        StringBuilder sb = new StringBuilder(lower.length());
-        boolean cap = true;
-        for (char c : lower.toCharArray()) {
-            if (cap && Character.isLetter(c)) {
-                sb.append(Character.toUpperCase(c));
-                cap = false;
-            } else {
-                sb.append(c);
-                if (c == ' ') {
-                    cap = true;
-                }
-            }
-        }
-        return sb.toString();
     }
 
     private static Material matOf(Object raw) {

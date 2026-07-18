@@ -49,7 +49,7 @@ public final class PluginConfig {
     private boolean scalingEnabled = true;
     private double scalingRadius = 48;
     private double scalingPerPlayer = 1.5;
-    private double scalingMaxMultiplier = 8.0;
+    private double scalingMaxMultiplier = 5.0;
 
     private boolean participationLoot = true;
     private String discordWebhook = "";
@@ -78,7 +78,7 @@ public final class PluginConfig {
         scalingRadius = Math.max(8, c.getDouble("settings.scaling.radius", 48));
         // Each nearby player beyond the first multiplies the boss' combat stats by this factor.
         scalingPerPlayer = Math.max(1.0, c.getDouble("settings.scaling.per-player-multiplier", 1.5));
-        scalingMaxMultiplier = Math.max(1, c.getDouble("settings.scaling.max-multiplier", 8.0));
+        scalingMaxMultiplier = Math.max(1, c.getDouble("settings.scaling.max-multiplier", 5.0));
 
         participationLoot = c.getBoolean("rewards.participation-loot", true);
         discordWebhook = c.getString("integrations.discord-webhook", "");

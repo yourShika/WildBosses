@@ -104,6 +104,10 @@ public final class ArmyEncounter {
         if (def.hasTerrain()) {
             plugin.terrainManager().applyAt(id, anchor, def.terrain());
         }
+        // Keep the anchor chunk loaded so a frontier army doesn't unload before players arrive.
+        if (anchor.getWorld() != null) {
+            anchor.getWorld().addPluginChunkTicket(anchor.getBlockX() >> 4, anchor.getBlockZ() >> 4, plugin);
+        }
         spawnWave();
         nextReinforceTick = army.reinforceIntervalTicks();
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
@@ -341,6 +345,9 @@ public final class ArmyEncounter {
         ended = true;
         if (task != null) {
             task.cancel();
+        }
+        if (anchor.getWorld() != null) {
+            anchor.getWorld().removePluginChunkTicket(anchor.getBlockX() >> 4, anchor.getBlockZ() >> 4, plugin);
         }
         if (def.hasTerrain()) {
             plugin.terrainManager().restoreEncounter(id, def.terrain().restoreOnEnd());

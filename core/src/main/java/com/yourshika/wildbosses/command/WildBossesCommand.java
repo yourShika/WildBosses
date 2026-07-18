@@ -77,15 +77,18 @@ public final class WildBossesCommand implements TabExecutor {
         if (denied(sender, "wildbosses.admin")) {
             return;
         }
-        int n = plugin.registry().restoreDefaults();   // overwrite every bundled boss file
-        try {
-            plugin.saveResource("config.yml", true);     // and reset the main config
-        } catch (IllegalArgumentException ignored) {
-            // no bundled config.yml (shouldn't happen)
+        int n = plugin.registry().restoreDefaults();   // factory-reset every bundled boss file
+        // Only (re)build config.yml if it's actually missing - never wipe existing settings.
+        if (!new java.io.File(plugin.getDataFolder(), "config.yml").exists()) {
+            try {
+                plugin.saveResource("config.yml", false);
+            } catch (IllegalArgumentException ignored) {
+                // no bundled config.yml (shouldn't happen)
+            }
         }
         int loaded = plugin.reloadAll();
-        sender.sendMessage(Text.mm("<green>Restored <yellow>" + n + "<green> default boss files + config, "
-                + "reloaded <yellow>" + loaded + "<green> bosses."));
+        sender.sendMessage(Text.mm("<green>Factory-reset <yellow>" + n + "<green> boss files "
+                + "(config kept), reloaded <yellow>" + loaded + "<green> bosses."));
     }
 
     private BossDefinition randomBoss(boolean armyOnly) {
@@ -99,12 +102,6 @@ public final class WildBossesCommand implements TabExecutor {
             pool = new ArrayList<>(plugin.registry().all());
         }
         return pool.isEmpty() ? null : pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
-    }
-
-    private static String fmtDuration(long seconds) {
-        long m = seconds / 60;
-        long s = seconds % 60;
-        return m > 0 ? m + "m " + s + "s" : s + "s";
     }
 
     private void spawn(CommandSender sender, String[] args) {
@@ -223,7 +220,7 @@ public final class WildBossesCommand implements TabExecutor {
             long remain = boss.fleeAtTick() - now;
             if (boss.fleeAtTick() > 0 && remain > 0) {
                 line = line.append(Text.mm(" <dark_gray>(<gray>flees in <yellow>"
-                        + fmtDuration(remain / 20) + "</yellow>)</dark_gray>"));
+                        + Text.duration(remain / 20) + "</yellow>)</dark_gray>"));
             }
             sender.sendMessage(line);
         }

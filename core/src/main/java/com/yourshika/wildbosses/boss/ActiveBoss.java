@@ -28,9 +28,15 @@ public final class ActiveBoss {
     private final BossDefinition def;
     private final LivingEntity entity;
     private final BossBar bossBar;
-    private final double maxHealth;
+    private double maxHealth;
     private final long spawnTick;
     private final String encounterId;
+
+    private boolean engaged;
+    private World ticketWorld;
+    private int ticketCx;
+    private int ticketCz;
+    private boolean hasTicket;
 
     private final Map<Integer, Long> skillNextTick = new HashMap<>();
     private final Set<UUID> viewers = new HashSet<>();
@@ -110,6 +116,33 @@ public final class ActiveBoss {
 
     public void setTarget(LivingEntity target) {
         this.target = target;
+    }
+
+    public boolean engaged() {
+        return engaged;
+    }
+
+    public void setEngaged(boolean engaged) {
+        this.engaged = engaged;
+    }
+
+    public void setMaxHealth(double maxHealth) {
+        this.maxHealth = maxHealth;
+    }
+
+    /** Keep the boss' spawn chunk loaded so a far-away spawn doesn't unload before players arrive. */
+    public void setChunkTicket(World world, int cx, int cz) {
+        this.ticketWorld = world;
+        this.ticketCx = cx;
+        this.ticketCz = cz;
+        this.hasTicket = true;
+    }
+
+    public void releaseChunkTicket(org.bukkit.plugin.Plugin plugin) {
+        if (hasTicket && ticketWorld != null) {
+            ticketWorld.removePluginChunkTicket(ticketCx, ticketCz, plugin);
+            hasTicket = false;
+        }
     }
 
     public long fleeAtTick() {

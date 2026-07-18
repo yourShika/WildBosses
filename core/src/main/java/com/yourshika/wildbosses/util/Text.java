@@ -51,4 +51,33 @@ public final class Text {
     public static String plain(String input) {
         return PlainTextComponentSerializer.plainText().serialize(mm(input));
     }
+
+    /** Format a number of seconds as a short {@code "12m 30s"} / {@code "45s"} duration. */
+    public static String duration(long seconds) {
+        long m = seconds / 60;
+        long s = seconds % 60;
+        return m > 0 ? m + "m " + s + "s" : s + "s";
+    }
+
+    /** {@code "GOLDEN_HELMET"} / {@code "golden helmet"} -> {@code "Golden Helmet"}. */
+    public static String titleCase(String s) {
+        if (s == null || s.isEmpty()) {
+            return "";
+        }
+        String lower = s.toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
+        StringBuilder sb = new StringBuilder(lower.length());
+        boolean cap = true;
+        for (char c : lower.toCharArray()) {
+            if (cap && Character.isLetter(c)) {
+                sb.append(Character.toUpperCase(c));
+                cap = false;
+            } else {
+                sb.append(c);
+                if (c == ' ') {
+                    cap = true;
+                }
+            }
+        }
+        return sb.toString();
+    }
 }

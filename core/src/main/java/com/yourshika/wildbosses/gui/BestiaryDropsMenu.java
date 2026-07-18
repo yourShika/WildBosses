@@ -126,7 +126,7 @@ public final class BestiaryDropsMenu extends Menu {
 
     private static String prettyEnchant(String token) {
         String[] p = token.split(":");
-        String name = titleCase(p[0]);
+        String name = Text.titleCase(p[0]);
         return p.length > 1 ? name + " " + p[1] : name;
     }
 
@@ -144,24 +144,4 @@ public final class BestiaryDropsMenu extends Menu {
         }
     }
 
-    private static String titleCase(String s) {
-        if (s == null || s.isEmpty()) {
-            return "";
-        }
-        String lower = s.toLowerCase(Locale.ROOT).replace('_', ' ');
-        StringBuilder sb = new StringBuilder(lower.length());
-        boolean cap = true;
-        for (char c : lower.toCharArray()) {
-            if (cap && Character.isLetter(c)) {
-                sb.append(Character.toUpperCase(c));
-                cap = false;
-            } else {
-                sb.append(c);
-                if (c == ' ') {
-                    cap = true;
-                }
-            }
-        }
-        return sb.toString();
-    }
 }

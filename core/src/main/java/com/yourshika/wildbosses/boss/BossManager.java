@@ -99,6 +99,7 @@ public final class BossManager {
         }
         for (ActiveBoss boss : new ArrayList<>(byEntity.values())) {
             encounterHook.onEnd(boss);
+            boss.releaseChunkTicket(plugin);
             boss.cleanup(true); // remove the entity too, so a reload/disable leaves nothing behind
         }
         byEntity.clear();
@@ -162,22 +163,28 @@ public final class BossManager {
         tag(le, def, encounterId);
         le.addScoreboardTag("wildbosses"); // lets lag-clearer plugins whitelist our mobs by tag
 
-        double scale = applyScaling(le, loc);
         double maxHp = maxHealthOf(le, def);
         BossBar bar = BossBar.bossBar(displayName(def), 1f, barColor(def), def.bossBar().overlay());
         le.customName(displayName(def));
         le.setCustomNameVisible(true);
 
         ActiveBoss boss = new ActiveBoss(def, le, bar, maxHp, tick, encounterId);
-        boss.setAddMultiplier(scale);
+        // Player-scaling is now measured when a player first engages (see onBossDamaged), not at spawn -
+        // a boss spawned far from everyone would otherwise never scale.
         spawnBurst(le.getLocation());
-        if (plugin.config().bossLifetimeEnabled()) {
-            long minTicks = plugin.config().bossLifetimeMinMinutes() * 60L * 20L;
-            long maxTicks = plugin.config().bossLifetimeMaxMinutes() * 60L * 20L;
-            long life = maxTicks > minTicks ? ThreadLocalRandom.current().nextLong(minTicks, maxTicks) : minTicks;
-            boss.setFleeAtTick(tick + life);
-        }
+        // Fallback lifetime: an un-engaged boss despawns after this; it's reset to a full lifetime the
+        // moment a player engages, so the flee clock effectively starts on contact.
+        boss.setFleeAtTick(tick + bossLifetimeTicks());
         byEntity.put(le.getUniqueId(), boss);
+
+        // Keep the spawn chunk loaded so a far-away boss survives until players travel to it.
+        World w = le.getWorld();
+        if (w != null) {
+            int cx = le.getLocation().getBlockX() >> 4;
+            int cz = le.getLocation().getBlockZ() >> 4;
+            w.addPluginChunkTicket(cx, cz, plugin);
+            boss.setChunkTicket(w, cx, cz);
+        }
 
         applyPhase(boss, computePhaseIndex(boss), true);
         if (applyTerrain) {
@@ -209,14 +216,20 @@ public final class BossManager {
     }
 
     /**
-     * Scale the boss' combat stats up for nearby players and return the factor. Each player beyond the
-     * first multiplies the stats by {@code per-player-multiplier} (default x1.5). Computed once, at
-     * spawn - it stays for the whole fight even if players later die or flee.
+     * Scale the boss' combat stats to how many players engaged it. Measured once, the first time a
+     * player deals damage ("how many are attacking"), then kept for the whole fight - it never drops
+     * if players later die or flee. Each attacker beyond the first multiplies stats by
+     * {@code per-player-multiplier} (default x1.5), capped at {@code max-multiplier}.
      */
-    private double applyScaling(LivingEntity le, Location loc) {
+    private void applyScalingOnEngage(ActiveBoss boss) {
         if (!plugin.config().scalingEnabled()) {
-            return 1.0;
+            return;
         }
+        LivingEntity le = boss.entity();
+        if (le == null || !le.isValid()) {
+            return;
+        }
+        Location loc = le.getLocation();
         double radiusSq = plugin.config().scalingRadius() * plugin.config().scalingRadius();
         int players = 0;
         World world = loc.getWorld();
@@ -230,13 +243,30 @@ public final class BossManager {
         }
         double mult = Math.min(plugin.config().scalingMaxMultiplier(),
                 Math.pow(plugin.config().scalingPerPlayer(), Math.max(0, players - 1)));
+        boss.setAddMultiplier(mult);
         if (mult > 1.0) {
             scaleAttr(le, Attribute.MAX_HEALTH, mult, true);
             scaleAttr(le, Attribute.ATTACK_DAMAGE, mult, false);
             scaleAttr(le, Attribute.ARMOR, mult, false);
             scaleAttr(le, Attribute.ARMOR_TOUGHNESS, mult, false);
+            AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
+            if (max != null) {
+                boss.setMaxHealth(max.getValue());
+            }
         }
-        return mult;
+    }
+
+    /** A random lifetime in ticks (used as the flee/despawn countdown). */
+    private long randomLifetimeTicks() {
+        long min = plugin.config().bossLifetimeMinMinutes() * 60L * 20L;
+        long max = plugin.config().bossLifetimeMaxMinutes() * 60L * 20L;
+        return max > min ? ThreadLocalRandom.current().nextLong(min, max) : min;
+    }
+
+    /** Spawn-time fallback lifetime: even with lifetime disabled, an UN-engaged boss despawns after
+     *  this so its force-loaded chunk is eventually released. */
+    private long bossLifetimeTicks() {
+        return plugin.config().bossLifetimeEnabled() ? randomLifetimeTicks() : 30L * 60L * 20L;
     }
 
     private static void scaleAttr(LivingEntity le, Attribute attr, double mult, boolean refillHealth) {
@@ -374,6 +404,7 @@ public final class BossManager {
             }
             if (!boss.isValid()) {
                 encounterHook.onEnd(boss);
+                boss.releaseChunkTicket(plugin);
                 boss.cleanup(true);
                 byEntity.remove(boss.entity().getUniqueId());
                 continue;
@@ -507,7 +538,10 @@ public final class BossManager {
     }
 
     private void fleeBoss(ActiveBoss boss) {
-        broadcaster.bossFled(boss.def());
+        boss.releaseChunkTicket(plugin);
+        if (boss.engaged()) {
+            broadcaster.bossFled(boss.def()); // only announce a flee if players actually met it
+        }
         LivingEntity e = boss.entity();
         if (e instanceof Mob mob) {
             mob.setTarget(null);
@@ -645,6 +679,7 @@ public final class BossManager {
         playDeathSound();
         encounterHook.onEnd(boss);
         skillEngine.onDeath(boss);
+        boss.releaseChunkTicket(plugin);
         boss.cleanup(false);
     }
 
@@ -668,6 +703,12 @@ public final class BossManager {
         Player contributor = resolvePlayer(damager);
         if (contributor != null) {
             boss.recordDamage(contributor.getUniqueId(), amount);
+            if (!boss.engaged()) {
+                // First real contact: scale to the attacking crowd, and (re)start the flee clock now.
+                boss.setEngaged(true);
+                applyScalingOnEngage(boss);
+                boss.setFleeAtTick(plugin.config().bossLifetimeEnabled() ? tick + randomLifetimeTicks() : 0);
+            }
         }
         skillEngine.onDamaged(boss, damager, amount);
     }
@@ -731,6 +772,7 @@ public final class BossManager {
     public void killOne(ActiveBoss boss) {
         if (byEntity.remove(boss.entity().getUniqueId()) != null) {
             encounterHook.onEnd(boss);
+            boss.releaseChunkTicket(plugin);
             boss.cleanup(true);
         }
     }
@@ -739,6 +781,7 @@ public final class BossManager {
         int n = byEntity.size();
         for (ActiveBoss boss : new ArrayList<>(byEntity.values())) {
             encounterHook.onEnd(boss);
+            boss.releaseChunkTicket(plugin);
             boss.cleanup(true);
         }
         byEntity.clear();

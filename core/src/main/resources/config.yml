@@ -35,8 +35,8 @@ settings:
   scaling:
     enabled: true
     radius: 48
-    per-player-multiplier: 1.5   # each nearby player beyond the first multiplies stats by this (x1.5)
-    max-multiplier: 8.0          # hard cap on the total multiplier
+    per-player-multiplier: 1.5   # each attacking player beyond the first multiplies stats by this (x1.5)
+    max-multiplier: 5.0          # hard cap on the total multiplier (measured on first player contact)
 
 rewards:
   # If true, every player who damaged the boss gets their own loot roll (no loot stealing).
