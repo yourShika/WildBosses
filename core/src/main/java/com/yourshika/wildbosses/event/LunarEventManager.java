@@ -52,8 +52,14 @@ public final class LunarEventManager implements Listener {
     private final WildBossesPlugin plugin;
     private final Map<UUID, String> activeByWorld = new HashMap<>();   // world uid -> event type
     private final Map<UUID, Long> rolledNight = new HashMap<>();       // world uid -> day number rolled
+    private final Map<UUID, Long> startedAt = new HashMap<>();         // world uid -> event start (millis)
     private final Set<UUID> forced = new HashSet<>();                  // admin-triggered (don't auto-end at dawn)
     private BukkitTask task;
+
+    /** Only Blood/Crystal/Eclipse are night-locked; a golden Harvest may linger into the day. */
+    private static boolean nightOnly(String type) {
+        return !"harvestmoon".equals(type);
+    }
 
     public LunarEventManager(WildBossesPlugin plugin) {
         this.plugin = plugin;
@@ -69,7 +75,23 @@ public final class LunarEventManager implements Listener {
             task.cancel();
             task = null;
         }
+        // Clean up any lingering empowerment side-effects (esp. infinite invisibility) so nothing is
+        // left stuck after a reload/disable - and, on the next enable, after a crash.
+        for (World w : plugin.getServer().getWorlds()) {
+            clearInvisibility(w);
+        }
         activeByWorld.clear();
+        forced.clear();
+        startedAt.clear();
+    }
+
+    /** Remove the infinite invisibility from any empowered mobs in a world (they become visible again). */
+    private void clearInvisibility(World world) {
+        for (LivingEntity le : world.getLivingEntities()) {
+            if (le.getScoreboardTags().contains(LUNAR_TAG)) {
+                le.removePotionEffect(PotionEffectType.INVISIBILITY);
+            }
+        }
     }
 
     public boolean isActive(World world) {
@@ -136,6 +158,15 @@ public final class LunarEventManager implements Listener {
         event.setDroppedExp((int) Math.round(event.getDroppedExp() * Math.max(1.0, mult)));
     }
 
+    /** Sleeping through the night (or a {@code /time} skip) ends any active event in that world. */
+    @EventHandler(ignoreCancelled = true)
+    public void onTimeSkip(org.bukkit.event.world.TimeSkipEvent event) {
+        String active = activeByWorld.get(event.getWorld().getUID());
+        if (active != null) {
+            endEvent(event.getWorld(), active);
+        }
+    }
+
     // ---- loop -----------------------------------------------------------------------------
 
     private void tick() {
@@ -154,10 +185,19 @@ public final class LunarEventManager implements Listener {
             UUID id = world.getUID();
             String active = activeByWorld.get(id);
             if (active != null) {
-                if (!night && !forced.contains(id)) {
-                    endEvent(world, active); // dawn (or someone slept) - the event fades
+                boolean isForced = forced.contains(id);
+                // Hard safety cap so an event can NEVER get stuck running forever (any cause).
+                int capMin = isForced
+                        ? plugin.getConfig().getInt("lunar-events.forced-max-minutes", 60)
+                        : plugin.getConfig().getInt("lunar-events.max-minutes", 20);
+                long elapsed = System.currentTimeMillis() - startedAt.getOrDefault(id, 0L);
+                boolean expired = capMin > 0 && elapsed >= capMin * 60_000L;
+                // Blood/Crystal/Eclipse are NIGHT-ONLY: they fade at dawn. Harvest may linger into day.
+                boolean dawnEnded = nightOnly(active) && !night && !isForced;
+                if (expired || dawnEnded) {
+                    endEvent(world, active);
                 } else {
-                    ambient(world, active); // forced events keep running until stopped, even by day
+                    ambient(world, active);
                     maybeSpawnHorde(world, active);
                 }
                 continue;
@@ -179,6 +219,7 @@ public final class LunarEventManager implements Listener {
 
     private void startEvent(World world, String type) {
         activeByWorld.put(world.getUID(), type.toLowerCase(Locale.ROOT));
+        startedAt.put(world.getUID(), System.currentTimeMillis());
         Component title = Text.mm(titleFor(type));
         Component sub = Text.mm(subtitleFor(type));
         for (Player p : world.getPlayers()) {
@@ -191,8 +232,11 @@ public final class LunarEventManager implements Listener {
     private void endEvent(World world, String type) {
         activeByWorld.remove(world.getUID());
         forced.remove(world.getUID());
-        Component msg = Text.mm("<gray>The " + prettyName(type) + " fades with the dawn.");
+        startedAt.remove(world.getUID());
+        clearInvisibility(world); // empowered mobs become visible again - never left permanently invisible
+        Component msg = Text.mm("<gray>The " + prettyName(type) + " fades away.");
         for (Player p : world.getPlayers()) {
+            p.removePotionEffect(PotionEffectType.DARKNESS); // clear any lingering eclipse gloom at once
             p.sendMessage(msg);
         }
     }
@@ -370,6 +414,9 @@ public final class LunarEventManager implements Listener {
     private void maybeSpawnHorde(World world, String type) {
         if ("harvestmoon".equals(type) || !plugin.getConfig().getBoolean("lunar-events.hordes", true)) {
             return; // peaceful night, or hordes disabled
+        }
+        if (world.getDifficulty() == org.bukkit.Difficulty.PEACEFUL) {
+            return; // hostiles would be wiped instantly on Peaceful
         }
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         if (rnd.nextDouble() >= plugin.getConfig().getDouble("lunar-events.horde-chance", 0.03)) {

@@ -6,7 +6,7 @@
 
 # Internal - do NOT edit. When the plugin updates, any NEW options are merged into your config
 # automatically (your existing values are kept) and this number is bumped.
-config-version: 2
+config-version: 3
 
 settings:
   # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
@@ -81,6 +81,9 @@ terrain:
 lunar-events:
   enabled: true
   chance: 0.12                 # chance per night for an event to start (0..1)
+  max-minutes: 20              # hard cap: a natural event always ends after this (never runs forever).
+                               # Night events also end at dawn; Harvest may linger into the day.
+  forced-max-minutes: 60       # safety cap for admin /wb lunar events so they can't get stuck either
   types: [bloodmoon, crystalmoon, harvestmoon, eclipse]  # one is picked at random each event
   # bloodmoon/crystalmoon/eclipse empower mobs; harvestmoon is a peaceful, rewarding night instead
   # (mobs NOT buffed, but far more bosses spawn and killed mobs give extra XP). eclipse also dims the
