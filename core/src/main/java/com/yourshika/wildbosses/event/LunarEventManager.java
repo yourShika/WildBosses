@@ -24,6 +24,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,14 +52,19 @@ public final class LunarEventManager implements Listener {
 
     private final WildBossesPlugin plugin;
     private final Map<UUID, String> activeByWorld = new HashMap<>();   // world uid -> event type
-    private final Map<UUID, Long> rolledNight = new HashMap<>();       // world uid -> day number rolled
+    private final Map<UUID, Long> rolledPhase = new HashMap<>();       // world uid -> last rolled day/night phase
     private final Map<UUID, Long> startedAt = new HashMap<>();         // world uid -> event start (millis)
-    private final Set<UUID> forced = new HashSet<>();                  // admin-triggered (don't auto-end at dawn)
+    private final Set<UUID> forced = new HashSet<>();                  // admin-triggered (ignore time-of-day end)
     private BukkitTask task;
 
-    /** Only Blood/Crystal/Eclipse are night-locked; a golden Harvest may linger into the day. */
-    private static boolean nightOnly(String type) {
-        return !"harvestmoon".equals(type);
+    /** Harvest is a daytime event; Blood/Crystal/Eclipse are night events. */
+    private static boolean isDayEvent(String type) {
+        return "harvestmoon".equals(type);
+    }
+
+    /** Whether an event of {@code type} is running at the wrong time of day (and so should fade). */
+    private static boolean wrongTimeOfDay(String type, boolean night) {
+        return isDayEvent(type) ? night : !night;
     }
 
     public LunarEventManager(WildBossesPlugin plugin) {
@@ -109,7 +115,7 @@ public final class LunarEventManager implements Listener {
             return; // lunar events are Overworld-only
         }
         forced.add(world.getUID());
-        rolledNight.put(world.getUID(), Math.floorDiv(world.getFullTime(), 24000L));
+        rolledPhase.put(world.getUID(), phaseId(world)); // don't immediately re-roll this phase
         startEvent(world, type);
     }
 
@@ -174,27 +180,30 @@ public final class LunarEventManager implements Listener {
         double chance = plugin.getConfig().getDouble("lunar-events.chance", 0.12);
         List<String> types = plugin.getConfig().getStringList("lunar-events.types");
         if (types.isEmpty()) {
-            types = List.of("bloodmoon", "crystalmoon");
+            types = List.of("bloodmoon", "crystalmoon", "harvestmoon", "eclipse");
         }
         for (World world : plugin.getServer().getWorlds()) {
             if (world.getEnvironment() != World.Environment.NORMAL) {
                 continue;
             }
-            long timeOfDay = world.getTime() % 24000;
-            boolean night = timeOfDay >= 13000 && timeOfDay < 23000;
+            boolean night = isNight(world);
             UUID id = world.getUID();
             String active = activeByWorld.get(id);
             if (active != null) {
+                // Nobody left in the world (e.g. before an AMP idle-sleep) -> end it cleanly.
+                if (world.getPlayers().isEmpty()) {
+                    endEvent(world, active);
+                    continue;
+                }
                 boolean isForced = forced.contains(id);
-                // Hard safety cap so an event can NEVER get stuck running forever (any cause).
                 int capMin = isForced
                         ? plugin.getConfig().getInt("lunar-events.forced-max-minutes", 60)
                         : plugin.getConfig().getInt("lunar-events.max-minutes", 20);
                 long elapsed = System.currentTimeMillis() - startedAt.getOrDefault(id, 0L);
                 boolean expired = capMin > 0 && elapsed >= capMin * 60_000L;
-                // Blood/Crystal/Eclipse are NIGHT-ONLY: they fade at dawn. Harvest may linger into day.
-                boolean dawnEnded = nightOnly(active) && !night && !isForced;
-                if (expired || dawnEnded) {
+                // Night events fade at dawn; the daytime Harvest fades at dusk. Forced events ignore this.
+                boolean timeEnded = !isForced && wrongTimeOfDay(active, night);
+                if (expired || timeEnded) {
                     endEvent(world, active);
                 } else {
                     ambient(world, active);
@@ -202,19 +211,35 @@ public final class LunarEventManager implements Listener {
                 }
                 continue;
             }
-            if (!enabled || !night || world.getPlayers().isEmpty()) {
+            if (!enabled || world.getPlayers().isEmpty()) {
                 continue;
             }
-            long dayNumber = Math.floorDiv(world.getFullTime(), 24000L);
-            Long rolled = rolledNight.get(id);
-            if (rolled != null && rolled == dayNumber) {
-                continue; // already rolled for tonight
+            long phase = phaseId(world);
+            if (rolledPhase.getOrDefault(id, Long.MIN_VALUE) == phase) {
+                continue; // already rolled for this day/night phase
             }
-            rolledNight.put(id, dayNumber);
-            if (ThreadLocalRandom.current().nextDouble() < chance) {
-                startEvent(world, types.get(ThreadLocalRandom.current().nextInt(types.size())));
+            rolledPhase.put(id, phase);
+            // Night phase draws from the night events; day phase from the day events (Harvest).
+            List<String> pool = new ArrayList<>();
+            for (String t : types) {
+                if (night != isDayEvent(t.toLowerCase(Locale.ROOT))) {
+                    pool.add(t);
+                }
+            }
+            if (!pool.isEmpty() && ThreadLocalRandom.current().nextDouble() < chance) {
+                startEvent(world, pool.get(ThreadLocalRandom.current().nextInt(pool.size())));
             }
         }
+    }
+
+    private static boolean isNight(World world) {
+        long t = world.getTime() % 24000;
+        return t >= 13000 && t < 23000;
+    }
+
+    /** A unique id per day/night phase, so each phase rolls at most once. */
+    private static long phaseId(World world) {
+        return Math.floorDiv(world.getFullTime(), 24000L) * 2 + (isNight(world) ? 1 : 0);
     }
 
     private void startEvent(World world, String type) {
@@ -506,7 +531,7 @@ public final class LunarEventManager implements Listener {
     private String subtitleFor(String type) {
         return switch (type) {
             case "crystalmoon" -> "<aqua>The night hums with crystal light - the mobs grow strange and strong.";
-            case "harvestmoon" -> "<gold>A golden night - fortune favours the bold, and great beasts stir.";
+            case "harvestmoon" -> "<gold>A golden day - fortune favours the bold, and great beasts stir.";
             case "eclipse" -> "<dark_gray>Darkness swallows the land - things move unseen.";
             default -> "<red>The mobs grow bold and bloodthirsty tonight.";
         };

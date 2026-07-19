@@ -100,12 +100,15 @@ it. One of `lunar-events.types` is picked at random; it ends at **daybreak** (so
 WildBosses' own mobs are never affected. Empowered mobs get a **themed name** (e.g. *Crystal Zombie
 Warrior*) and a particle shimmer — only for mobs you can actually see, so cave mobs don't light up.
 
-- **Blood Moon** / **Crystal Moon** — a random fraction of hostiles are **empowered** (randomised
-  health + Strength per mob); bosses spawn more readily.
-- **Harvest Moon** — a *peaceful, rewarding* night: mobs are **not** buffed, but **far more bosses**
-  spawn and mobs killed by players give **extra XP** (`harvest-xp-multiplier`).
-- **Eclipse** — the sky **dims** (a Darkness effect near players) and some empowered mobs **stalk you
-  invisibly**.
+- **Blood Moon** / **Crystal Moon** — *night* events. A random fraction of hostiles are **empowered**
+  (randomised health + Strength per mob); bosses spawn more readily. End at **dawn**.
+- **Harvest Moon** — a *peaceful, rewarding* **day** event: mobs are **not** buffed, but **far more
+  bosses** spawn and mobs killed by players give **extra XP** (`harvest-xp-multiplier`). Ends at **dusk**.
+- **Eclipse** — a *night* event: the sky **dims** (a Darkness effect near players) and some empowered
+  mobs **stalk you invisibly**. Ends at **dawn**.
+
+Every event also ends immediately if the world empties of players, on a hard time cap (`max-minutes` /
+`forced-max-minutes`) so it can never get stuck, and when players sleep through / skip the time.
 
 Admins can trigger one for testing with **`/wb lunar <bloodmoon|crystalmoon|harvestmoon|eclipse|stop>
 [world]`** (alias `/wb moon`) — forced events run at any time of day until stopped.
