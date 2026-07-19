@@ -299,8 +299,10 @@ public final class WildBossesCommand implements TabExecutor {
                     : "<gray>No lunar event was active in <yellow>" + world.getName() + "<gray>."));
             return;
         }
-        if (!type.equals("bloodmoon") && !type.equals("crystalmoon")) {
-            sender.sendMessage(Text.mm("<red>Usage: <yellow>/wb lunar <bloodmoon|crystalmoon|stop> [world]"));
+        if (!type.equals("bloodmoon") && !type.equals("crystalmoon")
+                && !type.equals("harvestmoon") && !type.equals("eclipse")) {
+            sender.sendMessage(Text.mm(
+                    "<red>Usage: <yellow>/wb lunar <bloodmoon|crystalmoon|harvestmoon|eclipse|stop> [world]"));
             return;
         }
         lunar.forceStart(world, type);
@@ -385,7 +387,7 @@ public final class WildBossesCommand implements TabExecutor {
                 return filter(List.of("default"), args[1]);
             }
             if (sub.equals("lunar") || sub.equals("moon")) {
-                return filter(List.of("bloodmoon", "crystalmoon", "stop"), args[1]);
+                return filter(List.of("bloodmoon", "crystalmoon", "harvestmoon", "eclipse", "stop"), args[1]);
             }
         }
         if (args.length == 3 && (args[0].equalsIgnoreCase("lunar") || args[0].equalsIgnoreCase("moon"))) {

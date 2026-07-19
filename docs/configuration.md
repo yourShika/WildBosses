@@ -90,11 +90,20 @@ the terrain toggle are editable via `/wb gui → Bosses → shift-click a boss`.
 
 ## Lunar events (Blood Moon / Crystal Moon)
 
-On some nights (`lunar-events.chance`, default 12%) a **Blood Moon** or **Crystal Moon** rises in an
-Overworld with players in it. While active: coloured particles drift around each nearby player, every
-**naturally-spawned hostile mob is buffed** (more health + Strength, and Crystal-Moon mobs glow), and
-**bosses spawn more readily** (`boss-extra-attempts`). It ends at **daybreak** — so sleeping through
-the night ends it too. WildBosses' own mobs are never double-buffed.
+On some nights (`lunar-events.chance`, default 12%) a lunar event rises in an Overworld with players in
+it. One of `lunar-events.types` is picked at random; it ends at **daybreak** (so sleeping ends it too).
+WildBosses' own mobs are never affected. Empowered mobs get a **themed name** (e.g. *Crystal Zombie
+Warrior*) and a particle shimmer — only for mobs you can actually see, so cave mobs don't light up.
+
+- **Blood Moon** / **Crystal Moon** — a random fraction of hostiles are **empowered** (randomised
+  health + Strength per mob); bosses spawn more readily.
+- **Harvest Moon** — a *peaceful, rewarding* night: mobs are **not** buffed, but **far more bosses**
+  spawn and mobs killed by players give **extra XP** (`harvest-xp-multiplier`).
+- **Eclipse** — the sky **dims** (a Darkness effect near players) and some empowered mobs **stalk you
+  invisibly**.
+
+Admins can trigger one for testing with **`/wb lunar <bloodmoon|crystalmoon|harvestmoon|eclipse|stop>
+[world]`** (alias `/wb moon`) — forced events run at any time of day until stopped.
 
 > The vanilla moon's colour can't be changed server-side without a resource pack, so the "red/crystal
 > moon" is conveyed through the heavy coloured particles and the on-screen title, not the moon texture.

@@ -77,7 +77,11 @@ terrain:
 lunar-events:
   enabled: true
   chance: 0.12                 # chance per night for an event to start (0..1)
-  types: [bloodmoon, crystalmoon]
+  types: [bloodmoon, crystalmoon, harvestmoon, eclipse]  # one is picked at random each event
+  # bloodmoon/crystalmoon/eclipse empower mobs; harvestmoon is a peaceful, rewarding night instead
+  # (mobs NOT buffed, but far more bosses spawn and killed mobs give extra XP). eclipse also dims the
+  # sky (a Darkness effect) and hides some empowered mobs with invisibility.
+  harvest-xp-multiplier: 2.0   # Harvest Moon: XP from mobs killed by players is multiplied by this
   mob-affect-chance: 0.6       # fraction of naturally-spawned hostiles that get empowered (0..1)
   mob-health-multiplier: 1.6   # MAX extra health (each mob rolls a random amount up to this)
   mob-strength: 1              # MAX Strength amplifier (randomised per mob; ~2/3 of them get some)

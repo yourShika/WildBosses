@@ -101,11 +101,32 @@ public final class LunarEventManager implements Listener {
         return !activeByWorld.isEmpty();
     }
 
-    /** Extra boss-spawn attempts to run per cycle while any lunar event is active. */
+    /** Extra boss-spawn attempts to run per cycle while any lunar event is active (Harvest boosts more). */
     public int bossExtraAttempts() {
-        return activeAnywhere()
-                ? Math.max(0, plugin.getConfig().getInt("lunar-events.boss-extra-attempts", 1))
-                : 0;
+        if (!activeAnywhere()) {
+            return 0;
+        }
+        int base = Math.max(0, plugin.getConfig().getInt("lunar-events.boss-extra-attempts", 1));
+        int extra = base;
+        for (String t : activeByWorld.values()) {
+            if ("harvestmoon".equals(t)) {
+                extra = Math.max(extra, base + 2); // a Harvest Moon draws out far more great beasts
+            }
+        }
+        return extra;
+    }
+
+    /** Harvest Moon: mobs killed by players yield extra experience (bosses excluded). */
+    @EventHandler(ignoreCancelled = true)
+    public void onMobDeath(org.bukkit.event.entity.EntityDeathEvent event) {
+        if (!"harvestmoon".equals(activeByWorld.get(event.getEntity().getWorld().getUID()))) {
+            return;
+        }
+        if (event.getEntity().getScoreboardTags().contains("wildbosses")) {
+            return;
+        }
+        double mult = plugin.getConfig().getDouble("lunar-events.harvest-xp-multiplier", 2.0);
+        event.setDroppedExp((int) Math.round(event.getDroppedExp() * Math.max(1.0, mult)));
     }
 
     // ---- loop -----------------------------------------------------------------------------
@@ -171,38 +192,64 @@ public final class LunarEventManager implements Listener {
     // ---- effects --------------------------------------------------------------------------
 
     private void ambient(World world, String type) {
-        boolean blood = type.equals("bloodmoon");
         for (Player p : world.getPlayers()) {
             var base = p.getLocation();
-            // Sky ambiance around the player.
             for (int i = 0; i < 24; i++) {
-                double dx = rand(9), dy = ThreadLocalRandom.current().nextDouble(0, 7), dz = rand(9);
-                var loc = base.clone().add(dx, dy, dz);
-                if (blood) {
-                    world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
-                            new Particle.DustOptions(Color.fromRGB(170, 8, 8), 1.6f));
-                } else if ((i & 1) == 0) {
+                var loc = base.clone().add(rand(9), ThreadLocalRandom.current().nextDouble(0, 7), rand(9));
+                skyParticle(world, loc, type, i);
+            }
+            if (type.equals("eclipse")) {
+                p.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 60, 0, false, false, false));
+            }
+            // A shimmer on each empowered mob - but only ones the player can actually SEE, so mobs
+            // tucked away in caves behind walls don't light up (no glow, no wall-piercing outline).
+            for (Entity e : world.getNearbyEntities(base, 26, 18, 26,
+                    en -> en instanceof LivingEntity le && le.getScoreboardTags().contains(LUNAR_TAG))) {
+                if (p.hasLineOfSight(e)) {
+                    mobShimmer(world, ((LivingEntity) e).getEyeLocation(), type);
+                }
+            }
+        }
+    }
+
+    private void skyParticle(World world, org.bukkit.Location loc, String type, int i) {
+        switch (type) {
+            case "crystalmoon" -> {
+                if ((i & 1) == 0) {
                     world.spawnParticle(Particle.END_ROD, loc, 1, 0, 0, 0, 0.001);
                 } else {
                     world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
                             new Particle.DustOptions(Color.fromRGB(120, 220, 255), 1.4f));
                 }
             }
-            // A shimmer on each empowered mob - but only ones the player can actually SEE, so mobs
-            // tucked away in caves behind walls don't light up (no glow, no wall-piercing outline).
-            for (Entity e : world.getNearbyEntities(base, 26, 18, 26,
-                    en -> en instanceof LivingEntity le && le.getScoreboardTags().contains(LUNAR_TAG))) {
-                if (!p.hasLineOfSight(e)) {
-                    continue;
-                }
-                var at = ((LivingEntity) e).getEyeLocation();
-                if (blood) {
-                    world.spawnParticle(Particle.DUST, at, 4, 0.3, 0.4, 0.3, 0,
-                            new Particle.DustOptions(Color.fromRGB(200, 20, 20), 1.2f));
+            case "harvestmoon" -> {
+                if ((i % 3) == 0) {
+                    world.spawnParticle(Particle.HAPPY_VILLAGER, loc, 1, 0.1, 0.1, 0.1, 0);
                 } else {
-                    world.spawnParticle(Particle.END_ROD, at, 3, 0.25, 0.4, 0.25, 0.002);
+                    world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
+                            new Particle.DustOptions(Color.fromRGB(250, 200, 60), 1.5f));
                 }
             }
+            case "eclipse" -> {
+                if ((i & 1) == 0) {
+                    world.spawnParticle(Particle.LARGE_SMOKE, loc, 1, 0.2, 0.2, 0.2, 0.001);
+                } else {
+                    world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
+                            new Particle.DustOptions(Color.fromRGB(40, 40, 55), 1.6f));
+                }
+            }
+            default -> world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
+                    new Particle.DustOptions(Color.fromRGB(170, 8, 8), 1.6f));
+        }
+    }
+
+    private void mobShimmer(World world, org.bukkit.Location at, String type) {
+        switch (type) {
+            case "crystalmoon" -> world.spawnParticle(Particle.END_ROD, at, 3, 0.25, 0.4, 0.25, 0.002);
+            case "harvestmoon" -> world.spawnParticle(Particle.WAX_ON, at, 4, 0.3, 0.4, 0.3, 0);
+            case "eclipse" -> world.spawnParticle(Particle.SMOKE, at, 5, 0.3, 0.4, 0.3, 0.005);
+            default -> world.spawnParticle(Particle.DUST, at, 4, 0.3, 0.4, 0.3, 0,
+                    new Particle.DustOptions(Color.fromRGB(200, 20, 20), 1.2f));
         }
     }
 
@@ -223,11 +270,14 @@ public final class LunarEventManager implements Listener {
         if (reason == CreatureSpawnEvent.SpawnReason.CUSTOM || reason == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) {
             return;
         }
+        String type = activeByWorld.get(monster.getWorld().getUID());
+        if ("harvestmoon".equals(type)) {
+            return; // a Harvest Moon is a peaceful, rewarding night - mobs are NOT empowered
+        }
         ThreadLocalRandom rnd = ThreadLocalRandom.current();
         if (rnd.nextDouble() >= plugin.getConfig().getDouble("lunar-events.mob-affect-chance", 0.6)) {
             return; // not every mob is empowered
         }
-        String type = activeByWorld.get(monster.getWorld().getUID());
         double healthMax = plugin.getConfig().getDouble("lunar-events.mob-health-multiplier", 1.6);
         int strengthMax = plugin.getConfig().getInt("lunar-events.mob-strength", 1);
         int speedMax = plugin.getConfig().getInt("lunar-events.mob-speed", 0);
@@ -244,6 +294,10 @@ public final class LunarEventManager implements Listener {
         if (speedMax >= 1 && rnd.nextInt(3) == 0) {
             addInfinite(monster, PotionEffectType.SPEED, rnd.nextInt(speedMax + 1));
         }
+        // An eclipse hides some of its horrors: a few empowered mobs stalk you invisibly.
+        if ("eclipse".equals(type) && rnd.nextInt(4) == 0) {
+            addInfinite(monster, PotionEffectType.INVISIBILITY, 0);
+        }
         monster.getScoreboardTags().add(LUNAR_TAG);
         monster.customName(Text.mm(variantName(monster.getType(), type, rnd)));
         monster.setCustomNameVisible(false); // shows on approach/hover like a normal named mob, not always
@@ -251,12 +305,15 @@ public final class LunarEventManager implements Listener {
 
     /** A themed name like "Crystal Zombie", "Crystal Skeleton Warrior", "Bloodmoon Spider Brute". */
     private String variantName(EntityType mob, String event, ThreadLocalRandom rnd) {
-        boolean crystal = "crystalmoon".equals(event);
-        String color = crystal ? "<aqua>" : "<red>";
-        String prefix = crystal ? "Crystal" : "Bloodmoon";
+        String color;
+        String prefix;
+        switch (event == null ? "" : event) {
+            case "crystalmoon" -> { color = "<aqua>"; prefix = "Crystal"; }
+            case "eclipse" -> { color = "<dark_gray>"; prefix = "Shadow"; }
+            default -> { color = "<red>"; prefix = "Bloodmoon"; }
+        }
         String[] tiers = {"", "", "", " Warrior", " Brute", " Champion", " Stalker"};
-        String tier = tiers[rnd.nextInt(tiers.length)];
-        return color + prefix + " " + Text.titleCase(mob.name()) + tier;
+        return color + prefix + " " + Text.titleCase(mob.name()) + tiers[rnd.nextInt(tiers.length)];
     }
 
     private static void addInfinite(LivingEntity e, PotionEffectType type, int amplifier) {
@@ -271,22 +328,37 @@ public final class LunarEventManager implements Listener {
     private String titleFor(String type) {
         return switch (type) {
             case "crystalmoon" -> "<gradient:#67e8f9:#a5f3fc><bold>Crystal Moon</bold></gradient>";
+            case "harvestmoon" -> "<gradient:#fbbf24:#f59e0b><bold>Harvest Moon</bold></gradient>";
+            case "eclipse" -> "<gradient:#374151:#0b1220><bold>Blood Eclipse</bold></gradient>";
             default -> "<gradient:#7f1d1d:#ef4444><bold>Blood Moon</bold></gradient>";
         };
     }
 
     private String subtitleFor(String type) {
-        return type.equals("crystalmoon")
-                ? "<aqua>The night hums with crystal light - the mobs grow strange and strong."
-                : "<red>The mobs grow bold and bloodthirsty tonight.";
+        return switch (type) {
+            case "crystalmoon" -> "<aqua>The night hums with crystal light - the mobs grow strange and strong.";
+            case "harvestmoon" -> "<gold>A golden night - fortune favours the bold, and great beasts stir.";
+            case "eclipse" -> "<dark_gray>Darkness swallows the land - things move unseen.";
+            default -> "<red>The mobs grow bold and bloodthirsty tonight.";
+        };
     }
 
     private String prettyName(String type) {
-        return type.equals("crystalmoon") ? "<aqua>Crystal Moon</aqua>" : "<red>Blood Moon</red>";
+        return switch (type) {
+            case "crystalmoon" -> "<aqua>Crystal Moon</aqua>";
+            case "harvestmoon" -> "<gold>Harvest Moon</gold>";
+            case "eclipse" -> "<dark_gray>Eclipse</dark_gray>";
+            default -> "<red>Blood Moon</red>";
+        };
     }
 
     private String soundFor(String type) {
-        return type.equals("crystalmoon") ? "block.amethyst_block.chime" : "entity.wither.spawn";
+        return switch (type) {
+            case "crystalmoon" -> "block.amethyst_block.chime";
+            case "harvestmoon" -> "block.note_block.chime";
+            case "eclipse" -> "entity.warden.emerge";
+            default -> "entity.wither.spawn";
+        };
     }
 
     private static double rand(double m) {
