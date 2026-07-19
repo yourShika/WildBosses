@@ -52,10 +52,10 @@ public final class BossListMenu extends Menu {
                 plugin.messages().tr(def.name()) + " "
                         + def.difficulty().bracketedMini(plugin.messages().tr(def.difficulty().label())),
                 "<gray>" + title,
-                "<dark_gray>Health <gray>" + (int) def.stats().health()
-                        + " <dark_gray>Armor <gray>" + (int) def.stats().armor(),
-                "<dark_gray>Weight <gray>" + def.spawn().weight()
-                        + " <dark_gray>Terrain <gray>" + (def.hasTerrain() ? "yes" : "no"),
+                "<dark_gray>" + tr("Health") + " <gray>" + (int) def.stats().health()
+                        + " <dark_gray>" + tr("Armor") + " <gray>" + (int) def.stats().armor(),
+                "<dark_gray>" + tr("Weight") + " <gray>" + def.spawn().weight()
+                        + " <dark_gray>" + tr("Terrain") + " <gray>" + tr(def.hasTerrain() ? "yes" : "no"),
                 " ",
                 "<yellow>Left-click <gray>spawn here",
                 def.isArmy() ? "<yellow>Right-click <gray>start army" : "<dark_gray>(not an army)",

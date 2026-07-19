@@ -43,10 +43,10 @@ public final class BestiaryMenu extends Menu {
                         + def.difficulty().bracketedMini(plugin.messages().tr(def.difficulty().label())),
                 def.title() == null ? "<gray>" : "<gray><italic>" + stripTags(plugin.messages().tr(def.title())),
                 " ",
-                "<gray>Health <white>" + (int) def.stats().health()
-                        + " <gray>· Armor <white>" + (int) def.stats().armor(),
-                "<gray>Type: <white>" + (def.isArmy() ? "Army" : "Boss"),
-                "<gray>Drops: <white>" + drops + " entries",
+                "<gray>" + tr("Health") + " <white>" + (int) def.stats().health()
+                        + " <gray>· " + tr("Armor") + " <white>" + (int) def.stats().armor(),
+                "<gray>" + tr("Type:") + " <white>" + tr(def.isArmy() ? "Army" : "Boss"),
+                "<gray>" + tr("Drops:") + " <white>" + drops + " " + tr("entries"),
                 " ",
                 "<yellow>Click <gray>to view the drop table");
     }

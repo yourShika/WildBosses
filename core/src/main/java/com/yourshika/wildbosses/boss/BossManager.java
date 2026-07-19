@@ -636,7 +636,7 @@ public final class BossManager {
             applyEnrage(boss.entity());
         }
         if (phase.message() != null && !phase.message().isBlank()) {
-            announceNearby(boss, Text.mm(phase.message()));
+            announceNearby(boss, Text.mm(plugin.messages().tr(phase.message())));
         }
         skillEngine.onPhaseChange(boss, index);
     }

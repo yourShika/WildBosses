@@ -61,13 +61,13 @@ public final class ActiveMenu extends Menu {
         Location loc = boss.location();
         long remain = boss.fleeAtTick() - plugin.bossManager().currentTick();
         String flee = (boss.fleeAtTick() > 0 && remain > 0)
-                ? "<gray>Flees in <yellow>" + com.yourshika.wildbosses.util.Text.duration(remain / 20)
+                ? "<gray>" + tr("Flees in") + " <yellow>" + com.yourshika.wildbosses.util.Text.duration(remain / 20)
                 : "<dark_gray>No flee timer";
         return icon(egg != null ? egg : Material.NETHER_STAR,
                 plugin.messages().tr(boss.def().name()) + " "
                         + boss.def().difficulty().bracketedMini(plugin.messages().tr(boss.def().difficulty().label())),
-                "<gray>Health <white>" + (int) Math.ceil(boss.entity().getHealth()) + "<gray>/<white>" + (int) boss.maxHealth(),
-                "<gray>At <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
+                "<gray>" + tr("Health") + " <white>" + (int) Math.ceil(boss.entity().getHealth()) + "<gray>/<white>" + (int) boss.maxHealth(),
+                "<gray>" + tr("At") + " <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
                 flee,
                 " ",
                 "<yellow>Left-click <gray>teleport",
@@ -78,8 +78,8 @@ public final class ActiveMenu extends Menu {
         Location loc = army.anchor();
         return icon(Material.ZOMBIE_HEAD,
                 plugin.messages().tr(army.def().name()) + " <gray>(army)",
-                "<gray>Slain <white>" + army.kills(),
-                "<gray>At <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
+                "<gray>" + tr("Slain") + " <white>" + army.kills(),
+                "<gray>" + tr("At") + " <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
                 " ",
                 "<yellow>Left-click <gray>teleport",
                 "<yellow>Right-click <gray>terminate");

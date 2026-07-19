@@ -64,7 +64,7 @@ public final class ChanceEditorMenu extends Menu {
         step(2, "-5%", Material.RED_STAINED_GLASS, -0.05);
         step(3, "-1%", Material.PINK_STAINED_GLASS, -0.01);
         set(4, icon(Material.PAPER, "<gold><bold>" + pct + "%<gray> chance",
-                "<gray>Drop: <white>" + label(),
+                "<gray>" + tr("Drop:") + " <white>" + label(),
                 " ",
                 "<gray>Use the buttons to fine-tune,",
                 "<gray>or snap to a preset below."), null);

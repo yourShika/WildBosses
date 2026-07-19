@@ -97,8 +97,8 @@ public final class DropEditorMenu extends Menu {
                 : "<white>" + Text.titleCase(mat.name());
         List<String> lore = new ArrayList<>();
         lore.add(rarityOf(it).loreLine());
-        lore.add("<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
-        lore.add("<gray>Announce: " + (announceOn(it) ? "<green>on" : "<red>off"));
+        lore.add("<gray>" + tr("Chance:") + " <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
+        lore.add("<gray>" + tr("Announce:") + " " + (announceOn(it) ? "<green>" + tr("on") : "<red>" + tr("off")));
         for (Object en : listOf(it.get("enchants"))) {
             lore.add("<dark_gray>• <aqua>" + prettyEnchant(String.valueOf(en)));
         }
@@ -118,8 +118,8 @@ public final class DropEditorMenu extends Menu {
             lore.add(Component.empty());
             add(lore, "<gray>» <white>captured 1:1 from hand");
             add(lore, rarityOf(it).loreLine());
-            add(lore, "<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
-            add(lore, "<gray>Announce: " + (announceOn(it) ? "<green>on" : "<red>off"));
+            add(lore, "<gray>" + tr("Chance:") + " <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
+            add(lore, "<gray>" + tr("Announce:") + " " + (announceOn(it) ? "<green>" + tr("on") : "<red>" + tr("off")));
             List<String> ctrl = new ArrayList<>();
             appendControls(ctrl);
             for (String c : ctrl) {
@@ -175,8 +175,8 @@ public final class DropEditorMenu extends Menu {
         String cmd = it.get("command") == null ? "?" : String.valueOf(it.get("command"));
         return icon(Material.LEAD, "<light_purple>Command reward",
                 "<gradient:#ff6bd6:#c86bff>✦ Mythical",
-                "<gray>Command: <white>" + cmd,
-                "<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%",
+                "<gray>" + tr("Command:") + " <white>" + cmd,
+                "<gray>" + tr("Chance:") + " <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%",
                 " ",
                 "<gray>Left-click <aqua>edit chance (precise)",
                 "<gray>Drop key (Q) <red>delete",

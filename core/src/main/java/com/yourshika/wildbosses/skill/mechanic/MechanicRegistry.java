@@ -366,7 +366,9 @@ public final class MechanicRegistry {
         }
         String line = lines.get(ThreadLocalRandom.current().nextInt(lines.size()));
         String prefix = p.getString("prefix", ctx.boss().def().name());
-        var message = Text.mm(prefix + "<gray>: <white>" + line);
+        // Localise the speaker name and the spoken line via the active language's terms map.
+        var messages = ctx.plugin().messages();
+        var message = Text.mm(messages.tr(prefix) + "<gray>: <white>" + messages.tr(line));
         double radius = p.getDouble("radius", 40);
         double rSq = radius * radius;
         Location loc = ctx.location();

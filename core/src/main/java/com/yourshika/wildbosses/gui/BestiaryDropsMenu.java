@@ -78,7 +78,7 @@ public final class BestiaryDropsMenu extends Menu {
             }
             List<Component> lore = new ArrayList<>();
             add(lore, e.rarity().loreLine());
-            add(lore, "<gray>Chance: <yellow>" + pct(e.chance()) + "%");
+            add(lore, "<gray>" + tr("Chance:") + " <yellow>" + pct(e.chance()) + "%");
             for (String token : e.enchants()) {
                 add(lore, "<dark_gray>• <aqua>" + prettyEnchant(token));
                 applyEnchant(meta, token);
@@ -99,7 +99,7 @@ public final class BestiaryDropsMenu extends Menu {
             List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.empty());
             add(lore, r.rarity().loreLine());
-            add(lore, "<gray>Chance: <yellow>" + pct(r.chance()) + "%");
+            add(lore, "<gray>" + tr("Chance:") + " <yellow>" + pct(r.chance()) + "%");
             meta.lore(lore);
             item.setItemMeta(meta);
         }
@@ -112,7 +112,7 @@ public final class BestiaryDropsMenu extends Menu {
                 : "Pet reward";
         return icon(Material.LEAD, "<light_purple>" + label,
                 "<gradient:#ff6bd6:#c86bff>✦ Mythical",
-                "<gray>Chance: <yellow>" + pct(cr.chance()) + "%",
+                "<gray>" + tr("Chance:") + " <yellow>" + pct(cr.chance()) + "%",
                 "<dark_gray>Granted via command on kill");
     }
 

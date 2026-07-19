@@ -31,11 +31,17 @@ public abstract class Menu implements InventoryHolder {
 
     protected Menu(WildBossesPlugin plugin, int size, String miniTitle) {
         this.plugin = plugin;
-        this.inventory = Bukkit.createInventory(this, size, Text.mm(miniTitle));
+        // Titles and all icon text are auto-translated via the active language's `terms` map.
+        this.inventory = Bukkit.createInventory(this, size, Text.mm(plugin.messages().tr(miniTitle)));
     }
 
     /** Populate items/actions. Called on open and on {@link #rebuild()}. */
     protected abstract void build();
+
+    /** Translate an authored label/word via the active language's {@code terms} map. */
+    protected String tr(String mini) {
+        return plugin.messages().tr(mini);
+    }
 
     protected void set(int slot, ItemStack item, Consumer<InventoryClickEvent> action) {
         inventory.setItem(slot, item);
@@ -69,15 +75,20 @@ public abstract class Menu implements InventoryHolder {
 
     // ---- item helpers ---------------------------------------------------------------------
 
-    protected static ItemStack icon(Material material, String miniName, String... miniLore) {
+    /**
+     * Build a menu icon. The name and every lore line are run through the active language's
+     * {@code terms} map, so static GUI labels ("Back", "Close", control hints, ...) localise
+     * automatically wherever a translation exists (and stay as authored otherwise).
+     */
+    protected ItemStack icon(Material material, String miniName, String... miniLore) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.displayName(Text.mm(miniName).decoration(TextDecoration.ITALIC, false));
+            meta.displayName(Text.mm(plugin.messages().tr(miniName)).decoration(TextDecoration.ITALIC, false));
             if (miniLore.length > 0) {
                 List<Component> lore = new ArrayList<>();
                 for (String line : miniLore) {
-                    lore.add(Text.mm(line).decoration(TextDecoration.ITALIC, false));
+                    lore.add(Text.mm(plugin.messages().tr(line)).decoration(TextDecoration.ITALIC, false));
                 }
                 meta.lore(lore);
             }
