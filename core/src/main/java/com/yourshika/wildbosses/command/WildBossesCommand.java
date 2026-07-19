@@ -29,7 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("spawn", "army", "list", "active", "info", "gui", "killall", "reload", "restore", "update", "help");
+            List.of("spawn", "army", "lunar", "list", "active", "info", "gui", "killall", "reload", "restore", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -48,6 +48,7 @@ public final class WildBossesCommand implements TabExecutor {
             case "restore" -> restore(sender);
             case "spawn" -> spawn(sender, args);
             case "army" -> army(sender, args);
+            case "lunar", "moon" -> lunar(sender, args);
             case "list" -> list(sender);
             case "active" -> active(sender);
             case "info" -> info(sender, args);
@@ -274,6 +275,55 @@ public final class WildBossesCommand implements TabExecutor {
         Updater.run(plugin, sender);
     }
 
+    /** {@code /wb lunar <bloodmoon|crystalmoon|stop> [world]} - trigger or stop a lunar event now. */
+    private void lunar(CommandSender sender, String[] args) {
+        if (denied(sender, "wildbosses.admin")) {
+            return;
+        }
+        var lunar = plugin.lunarEvents();
+        if (lunar == null) {
+            sender.sendMessage(Text.mm("<red>Lunar events are not available."));
+            return;
+        }
+        String type = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : "bloodmoon";
+        World world = lunarWorld(sender, args.length > 2 ? args[2] : null);
+        if (world == null) {
+            sender.sendMessage(Text.mm("<red>No overworld found - specify a world: <yellow>/wb lunar "
+                    + type + " <world>"));
+            return;
+        }
+        if (type.equals("stop") || type.equals("end") || type.equals("clear") || type.equals("off")) {
+            boolean stopped = lunar.forceStop(world);
+            sender.sendMessage(Text.mm(stopped
+                    ? "<green>Stopped the lunar event in <yellow>" + world.getName() + "<green>."
+                    : "<gray>No lunar event was active in <yellow>" + world.getName() + "<gray>."));
+            return;
+        }
+        if (!type.equals("bloodmoon") && !type.equals("crystalmoon")) {
+            sender.sendMessage(Text.mm("<red>Usage: <yellow>/wb lunar <bloodmoon|crystalmoon|stop> [world]"));
+            return;
+        }
+        lunar.forceStart(world, type);
+        sender.sendMessage(Text.mm("<green>Started a <yellow>" + type + "<green> in <yellow>" + world.getName()
+                + "<green>. <gray>(Ends with <yellow>/wb lunar stop<gray>.)"));
+    }
+
+    /** Resolve the target overworld for a lunar command: named world, else the sender's, else the first. */
+    private World lunarWorld(CommandSender sender, String name) {
+        if (name != null && !name.isBlank()) {
+            return Bukkit.getWorld(name);
+        }
+        if (sender instanceof Player p && p.getWorld().getEnvironment() == World.Environment.NORMAL) {
+            return p.getWorld();
+        }
+        for (World w : Bukkit.getWorlds()) {
+            if (w.getEnvironment() == World.Environment.NORMAL) {
+                return w;
+            }
+        }
+        return null;
+    }
+
     private void killAll(CommandSender sender) {
         if (denied(sender, "wildbosses.admin")) {
             return;
@@ -334,6 +384,18 @@ public final class WildBossesCommand implements TabExecutor {
             if (sub.equals("restore")) {
                 return filter(List.of("default"), args[1]);
             }
+            if (sub.equals("lunar") || sub.equals("moon")) {
+                return filter(List.of("bloodmoon", "crystalmoon", "stop"), args[1]);
+            }
+        }
+        if (args.length == 3 && (args[0].equalsIgnoreCase("lunar") || args[0].equalsIgnoreCase("moon"))) {
+            List<String> worlds = new ArrayList<>();
+            for (World w : Bukkit.getWorlds()) {
+                if (w.getEnvironment() == World.Environment.NORMAL) {
+                    worlds.add(w.getName());
+                }
+            }
+            return filter(worlds, args[2]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
             List<String> opts = new ArrayList<>();

@@ -37,6 +37,7 @@ help:
   - "<gradient:#f8b500:#fceabb><bold>WildBosses</bold></gradient> <gray>commands:"
   - "<yellow>/wb spawn <id|random> [here|player] <gray>- spawn a boss"
   - "<yellow>/wb army <id|random> <gray>- start an army encounter"
+  - "<yellow>/wb lunar <bloodmoon|crystalmoon|stop> [world] <gray>- trigger/stop a lunar event"
   - "<yellow>/wb list <gray>- open the bestiary (bosses + drops)"
   - "<yellow>/wb active <gray>- list active encounters"
   - "<yellow>/wb info <id> <gray>- show details for a boss"

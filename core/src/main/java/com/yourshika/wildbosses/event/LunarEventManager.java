@@ -19,9 +19,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -39,6 +41,7 @@ public final class LunarEventManager implements Listener {
     private final WildBossesPlugin plugin;
     private final Map<UUID, String> activeByWorld = new HashMap<>();   // world uid -> event type
     private final Map<UUID, Long> rolledNight = new HashMap<>();       // world uid -> day number rolled
+    private final Set<UUID> forced = new HashSet<>();                  // admin-triggered (don't auto-end at dawn)
     private BukkitTask task;
 
     public LunarEventManager(WildBossesPlugin plugin) {
@@ -60,6 +63,34 @@ public final class LunarEventManager implements Listener {
 
     public boolean isActive(World world) {
         return world != null && activeByWorld.containsKey(world.getUID());
+    }
+
+    /** The active event type in a world, or {@code null} if none. */
+    public String activeType(World world) {
+        return world == null ? null : activeByWorld.get(world.getUID());
+    }
+
+    /** Admin trigger: start an event now (any time of day) that only ends via {@link #forceStop}. */
+    public void forceStart(World world, String type) {
+        if (world == null) {
+            return;
+        }
+        forced.add(world.getUID());
+        rolledNight.put(world.getUID(), Math.floorDiv(world.getFullTime(), 24000L));
+        startEvent(world, type);
+    }
+
+    /** Admin trigger: stop whatever event is running in a world. */
+    public boolean forceStop(World world) {
+        if (world == null) {
+            return false;
+        }
+        forced.remove(world.getUID());
+        if (activeByWorld.containsKey(world.getUID())) {
+            endEvent(world, activeByWorld.get(world.getUID()));
+            return true;
+        }
+        return false;
     }
 
     public boolean activeAnywhere() {
@@ -91,10 +122,10 @@ public final class LunarEventManager implements Listener {
             UUID id = world.getUID();
             String active = activeByWorld.get(id);
             if (active != null) {
-                if (!night) {
+                if (!night && !forced.contains(id)) {
                     endEvent(world, active); // dawn (or someone slept) - the event fades
                 } else {
-                    ambient(world, active);
+                    ambient(world, active); // forced events keep running until stopped, even by day
                 }
                 continue;
             }
@@ -126,6 +157,7 @@ public final class LunarEventManager implements Listener {
 
     private void endEvent(World world, String type) {
         activeByWorld.remove(world.getUID());
+        forced.remove(world.getUID());
         Component msg = Text.mm("<gray>The " + prettyName(type) + " fades with the dawn.");
         for (Player p : world.getPlayers()) {
             p.sendMessage(msg);
