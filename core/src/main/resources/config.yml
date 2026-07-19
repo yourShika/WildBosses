@@ -4,6 +4,10 @@
 #  <gradient:#aaa:#bbb>, <color>, <bold>, hover/click tags, etc.
 # =====================================================================================
 
+# Internal - do NOT edit. When the plugin updates, any NEW options are merged into your config
+# automatically (your existing values are kept) and this number is bumped.
+config-version: 2
+
 settings:
   # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
   # Missing keys fall back to English. Add your own lang/<code>.yml for more languages.

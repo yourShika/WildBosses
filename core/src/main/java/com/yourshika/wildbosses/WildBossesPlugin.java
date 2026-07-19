@@ -133,6 +133,7 @@ public final class WildBossesPlugin extends JavaPlugin {
     /** Reload config.yml, language and all boss definitions. Returns the number of bosses loaded. */
     public int reloadAll() {
         reloadConfig();
+        updateConfig();          // merge in any new options added by a plugin update (keeps your values)
         pluginConfig.load(getConfig(), getLogger());
         messages.reload();
         registry.setDisabled(pluginConfig.disabledBosses());
@@ -141,6 +142,51 @@ public final class WildBossesPlugin extends JavaPlugin {
             spawnScheduler.start(); // re-apply the (possibly changed) interval
         }
         return count;
+    }
+
+    /**
+     * Migrate {@code config.yml} across plugin updates: any option present in the bundled default but
+     * missing from the user's file is added (with its default value and comment), and the internal
+     * {@code config-version} is bumped. Existing values are never touched. No-op once up to date.
+     */
+    private void updateConfig() {
+        java.io.InputStream in = getResource("config.yml");
+        if (in == null) {
+            return;
+        }
+        org.bukkit.configuration.file.FileConfiguration def = org.bukkit.configuration.file.YamlConfiguration
+                .loadConfiguration(new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+        org.bukkit.configuration.file.FileConfiguration cur = getConfig();
+        int defVersion = def.getInt("config-version", 1);
+        int curVersion = cur.getInt("config-version", 0);
+        if (curVersion >= defVersion) {
+            return;
+        }
+        int added = 0;
+        for (String path : def.getKeys(true)) {
+            if (def.isConfigurationSection(path)) {
+                continue; // only copy leaf values/lists; sections are created implicitly
+            }
+            if (!cur.contains(path, true)) { // ignoreDefault=true: only the user's own file counts
+                cur.set(path, def.get(path));
+                try {
+                    cur.setComments(path, def.getComments(path));
+                    cur.setInlineComments(path, def.getInlineComments(path));
+                } catch (Throwable ignored) {
+                    // comment APIs unavailable - the value is still merged
+                }
+                added++;
+            }
+        }
+        cur.set("config-version", defVersion);
+        try {
+            cur.options().setHeader(def.options().getHeader());
+        } catch (Throwable ignored) {
+            // header API differences - non-fatal
+        }
+        saveConfig();
+        getLogger().info("Updated config.yml from v" + curVersion + " to v" + defVersion
+                + " (" + added + " new option(s) added; your settings were kept).");
     }
 
     /** The plugin's own jar file (used by the self-updater to name the replacement jar). */

@@ -74,6 +74,11 @@ difficulties:                     # per-tier label, gradient and boss-bar colour
 Most of these are also editable in-game via `/wb gui → Settings`. Boss stats/difficulty/weight and
 the terrain toggle are editable via `/wb gui → Bosses → shift-click a boss`.
 
+**Auto-updating config:** the file carries an internal `config-version`. When you update the plugin,
+any **new options** are merged into your existing `config.yml` automatically (with their default value
+and comment) while **your existing settings are kept** — you never need to delete the file. The merge
+runs on startup and on `/wb reload`.
+
 `/wb reload` reloads config + bosses and **re-creates any missing default boss file**.
 `/wb restore default` rewrites every bundled boss file **and** `config.yml` back to defaults.
 
