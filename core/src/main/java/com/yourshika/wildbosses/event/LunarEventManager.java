@@ -8,6 +8,8 @@ import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -37,6 +39,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * "red / crystal moon" is conveyed through heavy coloured particles and a title, not the moon texture.</p>
  */
 public final class LunarEventManager implements Listener {
+
+    private static final String LUNAR_TAG = "wb_lunar"; // marks an empowered lunar mob
 
     private final WildBossesPlugin plugin;
     private final Map<UUID, String> activeByWorld = new HashMap<>();   // world uid -> event type
@@ -72,8 +76,8 @@ public final class LunarEventManager implements Listener {
 
     /** Admin trigger: start an event now (any time of day) that only ends via {@link #forceStop}. */
     public void forceStart(World world, String type) {
-        if (world == null) {
-            return;
+        if (world == null || world.getEnvironment() != World.Environment.NORMAL) {
+            return; // lunar events are Overworld-only
         }
         forced.add(world.getUID());
         rolledNight.put(world.getUID(), Math.floorDiv(world.getFullTime(), 24000L));
@@ -170,25 +174,43 @@ public final class LunarEventManager implements Listener {
         boolean blood = type.equals("bloodmoon");
         for (Player p : world.getPlayers()) {
             var base = p.getLocation();
+            // Sky ambiance around the player.
             for (int i = 0; i < 24; i++) {
                 double dx = rand(9), dy = ThreadLocalRandom.current().nextDouble(0, 7), dz = rand(9);
                 var loc = base.clone().add(dx, dy, dz);
                 if (blood) {
                     world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
                             new Particle.DustOptions(Color.fromRGB(170, 8, 8), 1.6f));
+                } else if ((i & 1) == 0) {
+                    world.spawnParticle(Particle.END_ROD, loc, 1, 0, 0, 0, 0.001);
                 } else {
-                    if ((i & 1) == 0) {
-                        world.spawnParticle(Particle.END_ROD, loc, 1, 0, 0, 0, 0.001);
-                    } else {
-                        world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
-                                new Particle.DustOptions(Color.fromRGB(120, 220, 255), 1.4f));
-                    }
+                    world.spawnParticle(Particle.DUST, loc, 1, 0, 0, 0, 0,
+                            new Particle.DustOptions(Color.fromRGB(120, 220, 255), 1.4f));
+                }
+            }
+            // A shimmer on each empowered mob - but only ones the player can actually SEE, so mobs
+            // tucked away in caves behind walls don't light up (no glow, no wall-piercing outline).
+            for (Entity e : world.getNearbyEntities(base, 26, 18, 26,
+                    en -> en instanceof LivingEntity le && le.getScoreboardTags().contains(LUNAR_TAG))) {
+                if (!p.hasLineOfSight(e)) {
+                    continue;
+                }
+                var at = ((LivingEntity) e).getEyeLocation();
+                if (blood) {
+                    world.spawnParticle(Particle.DUST, at, 4, 0.3, 0.4, 0.3, 0,
+                            new Particle.DustOptions(Color.fromRGB(200, 20, 20), 1.2f));
+                } else {
+                    world.spawnParticle(Particle.END_ROD, at, 3, 0.25, 0.4, 0.25, 0.002);
                 }
             }
         }
     }
 
-    /** Buff hostile mobs that spawn naturally during the event (WildBosses' own mobs are skipped). */
+    /**
+     * Empower a fraction of the hostile mobs that spawn naturally during the event (WildBosses' own
+     * mobs are skipped). Power is randomised per mob - some are only a touch tougher, a few are truly
+     * dangerous - and each empowered mob gets a themed variant name. No glow (that pierced cave walls).
+     */
     @EventHandler(ignoreCancelled = true)
     public void onSpawn(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Monster monster) || !isActive(monster.getWorld())) {
@@ -201,25 +223,40 @@ public final class LunarEventManager implements Listener {
         if (reason == CreatureSpawnEvent.SpawnReason.CUSTOM || reason == CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) {
             return;
         }
+        ThreadLocalRandom rnd = ThreadLocalRandom.current();
+        if (rnd.nextDouble() >= plugin.getConfig().getDouble("lunar-events.mob-affect-chance", 0.6)) {
+            return; // not every mob is empowered
+        }
         String type = activeByWorld.get(monster.getWorld().getUID());
-        double healthMult = plugin.getConfig().getDouble("lunar-events.mob-health-multiplier", 1.6);
-        int strength = plugin.getConfig().getInt("lunar-events.mob-strength", 1);
-        int speed = plugin.getConfig().getInt("lunar-events.mob-speed", 0);
+        double healthMax = plugin.getConfig().getDouble("lunar-events.mob-health-multiplier", 1.6);
+        int strengthMax = plugin.getConfig().getInt("lunar-events.mob-strength", 1);
+        int speedMax = plugin.getConfig().getInt("lunar-events.mob-speed", 0);
+
+        double healthMult = healthMax > 1.0 ? 1.0 + rnd.nextDouble() * (healthMax - 1.0) : 1.0;
         AttributeInstance maxHp = monster.getAttribute(Attribute.MAX_HEALTH);
         if (maxHp != null && healthMult > 1.0) {
             maxHp.setBaseValue(maxHp.getBaseValue() * healthMult);
             monster.setHealth(maxHp.getBaseValue());
         }
-        addInfinite(monster, PotionEffectType.STRENGTH, strength);
-        if (speed > 0) {
-            addInfinite(monster, PotionEffectType.SPEED, speed - 1);
+        if (strengthMax >= 1 && rnd.nextInt(3) > 0) { // ~2/3 get some Strength, amplifier randomised
+            addInfinite(monster, PotionEffectType.STRENGTH, rnd.nextInt(strengthMax + 1));
         }
-        // A crystal moon makes them eerily bright; a blood moon makes them burn with fury.
-        if ("crystalmoon".equals(type)) {
-            monster.setGlowing(true);
-        } else {
-            addInfinite(monster, PotionEffectType.RESISTANCE, 0);
+        if (speedMax >= 1 && rnd.nextInt(3) == 0) {
+            addInfinite(monster, PotionEffectType.SPEED, rnd.nextInt(speedMax + 1));
         }
+        monster.getScoreboardTags().add(LUNAR_TAG);
+        monster.customName(Text.mm(variantName(monster.getType(), type, rnd)));
+        monster.setCustomNameVisible(false); // shows on approach/hover like a normal named mob, not always
+    }
+
+    /** A themed name like "Crystal Zombie", "Crystal Skeleton Warrior", "Bloodmoon Spider Brute". */
+    private String variantName(EntityType mob, String event, ThreadLocalRandom rnd) {
+        boolean crystal = "crystalmoon".equals(event);
+        String color = crystal ? "<aqua>" : "<red>";
+        String prefix = crystal ? "Crystal" : "Bloodmoon";
+        String[] tiers = {"", "", "", " Warrior", " Brute", " Champion", " Stalker"};
+        String tier = tiers[rnd.nextInt(tiers.length)];
+        return color + prefix + " " + Text.titleCase(mob.name()) + tier;
     }
 
     private static void addInfinite(LivingEntity e, PotionEffectType type, int amplifier) {

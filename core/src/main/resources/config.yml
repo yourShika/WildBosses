@@ -78,9 +78,10 @@ lunar-events:
   enabled: true
   chance: 0.12                 # chance per night for an event to start (0..1)
   types: [bloodmoon, crystalmoon]
-  mob-health-multiplier: 1.6   # naturally-spawned hostiles get this much more health
-  mob-strength: 1              # Strength amplifier granted to those mobs (0 = Strength I)
-  mob-speed: 0                 # Speed amplifier (0 = none; 1 = Speed I)
+  mob-affect-chance: 0.6       # fraction of naturally-spawned hostiles that get empowered (0..1)
+  mob-health-multiplier: 1.6   # MAX extra health (each mob rolls a random amount up to this)
+  mob-strength: 1              # MAX Strength amplifier (randomised per mob; ~2/3 of them get some)
+  mob-speed: 0                 # MAX Speed amplifier (0 = never; randomised, only some mobs)
   boss-extra-attempts: 1       # extra boss-spawn attempts per cycle while an event is active
 
 integrations:
