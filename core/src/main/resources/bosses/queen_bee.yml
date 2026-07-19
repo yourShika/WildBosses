@@ -57,6 +57,9 @@ terrain:
     - { type: honey_patch, count: 8 }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#fde047:#a16207>Trophy of Vespula</gradient>", lore: ["<dark_gray>Proof you bested Vespula.", "<gray>Mount it on your wall."] }
     # Common
     - { item: HONEYCOMB, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9, rarity: COMMON }

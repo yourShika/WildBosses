@@ -73,6 +73,9 @@ terrain:
     STONE: COBBLESTONE
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: ZOMBIE_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#65a30d:#4d7c0f>Trophy of Pestis</gradient>", lore: ["<dark_gray>Proof you bested Pestis.", "<gray>Mount it on your wall."] }
     # Common
     - { item: ROTTEN_FLESH, amount: "12-24", chance: 1.0, rarity: COMMON }
     - { item: POISONOUS_POTATO, amount: "2-5", chance: 0.85, rarity: COMMON }

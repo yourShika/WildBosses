@@ -325,12 +325,18 @@ public final class TerrainManager implements EncounterHook {
     }
 
     private void setBlock(TerrainSnapshot snap, Block block, Material material) {
+        if (!plugin.config().terrainCanReplace(block.getType())) {
+            return; // failsafe: only ever replace the configured natural block types
+        }
         String from = block.getBlockData().getAsString();
         block.setType(material, false);
         snap.record(block.getX(), block.getY(), block.getZ(), from, block.getBlockData().getAsString());
     }
 
     private void setLeaves(TerrainSnapshot snap, Block block) {
+        if (!plugin.config().terrainCanReplace(block.getType())) {
+            return;
+        }
         String from = block.getBlockData().getAsString();
         block.setType(Material.OAK_LEAVES, false);
         if (block.getBlockData() instanceof Leaves leaves) {
@@ -341,6 +347,9 @@ public final class TerrainManager implements EncounterHook {
     }
 
     private void setAged(TerrainSnapshot snap, Block block, Material crop, ThreadLocalRandom rnd) {
+        if (!plugin.config().terrainCanReplace(block.getType())) {
+            return;
+        }
         String from = block.getBlockData().getAsString();
         block.setType(crop, false);
         BlockData data = block.getBlockData();

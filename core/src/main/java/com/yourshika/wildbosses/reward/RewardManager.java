@@ -47,16 +47,22 @@ public final class RewardManager implements BossDeathListener {
         }
 
         var contributors = boss.damageByPlayer();
+        boolean droppedAny = false;
         if (plugin.config().participationLoot() && !contributors.isEmpty()) {
-            // Everyone who dealt damage gets their OWN 1-3 loot roll at their feet (no loot stealing),
-            // and each of their drops is announced in chat under their name.
+            // Everyone who dealt damage and is still online in this world gets their OWN 1-3 loot roll
+            // at their feet (no loot stealing, announced under their name). Absent/offline contributors
+            // are skipped so no phantom second pile is dropped at the boss.
             for (java.util.UUID id : contributors.keySet()) {
                 Player p = Bukkit.getPlayer(id);
-                Location dropLoc = (p != null && p.getWorld().equals(world)) ? p.getLocation() : loc;
-                String name = p != null ? p.getName() : Bukkit.getOfflinePlayer(id).getName();
-                rollDrops(drops, dropLoc, boss, p, name);
+                if (p == null || !p.getWorld().equals(world)) {
+                    continue;
+                }
+                rollDrops(drops, p.getLocation(), boss, p, p.getName());
+                droppedAny = true;
             }
-        } else {
+        }
+        // Fallback (participation off, or nobody eligible was online): a single roll at the boss.
+        if (!droppedAny) {
             rollDrops(drops, loc, boss, killer, killer != null ? killer.getName() : null);
         }
 

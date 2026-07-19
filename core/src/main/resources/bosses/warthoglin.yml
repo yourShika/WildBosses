@@ -38,6 +38,9 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: STRENGTH, duration: 300, amplifier: 1 } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PIGLIN_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#f59e0b:#7c2d12>Trophy of Warthoglin</gradient>", lore: ["<dark_gray>Proof you bested Warthoglin.", "<gray>Mount it on your wall."] }
     # Common
     - { item: GOLD_NUGGET, amount: "12-24", chance: 1.0, rarity: COMMON }
     - { item: GOLD_INGOT, amount: "4-9", chance: 0.9, rarity: COMMON }

@@ -8,6 +8,9 @@ difficulty: ULTRA_HARD
 base-entity: ENDERMAN
 stats: { health: 660, armor: 10, knockback-resistance: 0.8, damage: 13, speed: 0.32, follow-range: 64, scale: 1.4 }
 bossbar: { color: PURPLE, style: NOTCHED_10 }
+# She is a void queen, not a common enderman: rain/water and fire never hurt her, and she never
+# involuntarily blinks away when struck or set alight - she only teleports through her own skills.
+immunities: [DROWNING, DRYOUT, FIRE]
 enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.05 }
 spawn:
   worlds: [THE_END]
@@ -50,6 +53,9 @@ terrain:
     - { type: crying_obsidian, count: 10 }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: DRAGON_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#a855f7:#312e81>Trophy of Nyxara</gradient>", lore: ["<dark_gray>Proof you bested Nyxara.", "<gray>Mount it on your wall."] }
     # Common
     - { item: ENDER_PEARL, amount: "6-12", chance: 1.0, rarity: COMMON }
     - { item: END_STONE, amount: "8-16", chance: 0.85, rarity: COMMON }

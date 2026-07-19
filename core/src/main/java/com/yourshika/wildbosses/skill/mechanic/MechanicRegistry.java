@@ -312,6 +312,7 @@ public final class MechanicRegistry {
                 dest = safe;
             }
         }
+        ctx.boss().markScriptedTeleport(); // allow this one past the anti-blink guard
         ctx.self().teleport(dest);
     }
 

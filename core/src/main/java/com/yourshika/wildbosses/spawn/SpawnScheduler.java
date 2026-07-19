@@ -65,7 +65,12 @@ public final class SpawnScheduler {
     private void cycle() {
         PluginConfig cfg = plugin.config();
         if (cfg.randomSpawns()) {
-            for (int i = 0; i < cfg.spawnAttemptsPerCycle(); i++) {
+            int attempts = cfg.spawnAttemptsPerCycle();
+            // A lunar event (Blood/Crystal Moon) makes bosses far more likely to appear.
+            if (plugin.lunarEvents() != null) {
+                attempts += plugin.lunarEvents().bossExtraAttempts();
+            }
+            for (int i = 0; i < attempts; i++) {
                 attemptSpawn();
             }
         }

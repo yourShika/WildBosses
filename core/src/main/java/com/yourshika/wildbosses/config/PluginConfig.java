@@ -2,13 +2,17 @@ package com.yourshika.wildbosses.config;
 
 import com.yourshika.wildbosses.difficulty.Difficulty;
 import net.kyori.adventure.bossbar.BossBar;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -61,6 +65,16 @@ public final class PluginConfig {
     private String discordWebhook = "";
     private String updateRepo = "yourShika/WildBosses";
 
+    /** Failsafe: the ONLY block types terrain theming/features may ever replace. */
+    private static final Set<Material> DEFAULT_REPLACEABLE = EnumSet.of(
+            Material.AIR, Material.DIRT, Material.GRASS_BLOCK, Material.COARSE_DIRT, Material.PODZOL,
+            Material.ROOTED_DIRT, Material.MOSS_BLOCK, Material.MYCELIUM, Material.MUD, Material.GRAVEL,
+            Material.SAND, Material.RED_SAND, Material.STONE, Material.SANDSTONE, Material.SNOW,
+            Material.SNOW_BLOCK, Material.NETHERRACK, Material.END_STONE, Material.END_STONE_BRICKS,
+            Material.TERRACOTTA, Material.SHORT_GRASS, Material.TALL_GRASS, Material.FERN,
+            Material.LARGE_FERN, Material.DEAD_BUSH);
+    private final Set<Material> terrainReplaceable = EnumSet.copyOf(DEFAULT_REPLACEABLE);
+
     public void load(FileConfiguration c, Logger logger) {
         randomSpawns = c.getBoolean("settings.random-spawns", true);
         spawnIntervalSeconds = Math.max(5, c.getInt("settings.spawn-interval-seconds", 600));
@@ -100,6 +114,24 @@ public final class PluginConfig {
         maxDrops = Math.max(minDrops, c.getInt("rewards.drop-count.max", 3));
         discordWebhook = c.getString("integrations.discord-webhook", "");
         updateRepo = c.getString("integrations.update-repo", "yourShika/WildBosses");
+
+        // Failsafe allowlist: which block types terrain theming/features may ever replace. If the
+        // config omits it, keep the safe natural default (never touches ores, logs, chests, builds).
+        terrainReplaceable.clear();
+        List<String> configured = c.getStringList("terrain.replaceable-blocks");
+        if (configured.isEmpty()) {
+            terrainReplaceable.addAll(DEFAULT_REPLACEABLE);
+        } else {
+            for (String name : configured) {
+                Material m = Material.matchMaterial(name.trim().toUpperCase(Locale.ROOT));
+                if (m != null) {
+                    terrainReplaceable.add(m);
+                } else if (logger != null) {
+                    logger.warning("Unknown material in terrain.replaceable-blocks: " + name);
+                }
+            }
+            terrainReplaceable.add(Material.AIR); // always allow filling empty space
+        }
 
         frontierMinDistance = Math.max(0, c.getInt("settings.frontier-search.min-distance", 200));
         frontierMaxDistance = Math.max(frontierMinDistance + 16, c.getInt("settings.frontier-search.max-distance", 3000));
@@ -276,6 +308,11 @@ public final class PluginConfig {
     /** A single hit deals at most this fraction of a boss' max health (1.0 = no cap / one-shots allowed). */
     public double maxHitDamagePercent() {
         return maxHitDamagePercent;
+    }
+
+    /** Whether terrain theming/features are allowed to replace a block of this type (failsafe). */
+    public boolean terrainCanReplace(Material type) {
+        return terrainReplaceable.contains(type);
     }
 
     /** Boss ids the admin has switched off - never loaded, never auto-restored. */

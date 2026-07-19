@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -63,6 +64,28 @@ public final class BossListener implements Listener {
         }
     }
 
+    /**
+     * Final safety net against one-shots: after every other plugin/vanilla modifier has run, if the
+     * FINAL damage of a single hit still exceeds the cap, shave the base down so it can't. Guarantees
+     * a boss always survives a lone blow from full health, whatever inflated the damage upstream.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDamageClamp(EntityDamageEvent event) {
+        ActiveBoss boss = manager.get(event.getEntity());
+        if (boss == null) {
+            return;
+        }
+        double pct = manager.maxHitDamagePercent();
+        if (pct >= 1.0) {
+            return;
+        }
+        double cap = boss.maxHealth() * pct;
+        if (cap > 0 && event.getFinalDamage() > cap) {
+            double overflow = event.getFinalDamage() - cap;
+            event.setDamage(Math.max(0, event.getDamage() - overflow));
+        }
+    }
+
     private static boolean isPlayerSource(org.bukkit.entity.Entity damager) {
         if (damager instanceof org.bukkit.entity.Player) {
             return true;
@@ -99,6 +122,19 @@ public final class BossListener implements Listener {
             if (victim != null) {
                 manager.onBossDamaged(victim, event.getDamager(), event.getFinalDamage());
             }
+        }
+    }
+
+    /**
+     * Stop a boss (e.g. the Enderman Queen) from involuntarily blinking away when struck, set on fire
+     * or rained on - the "vanish" that loses the fight. Teleports the boss initiates through its own
+     * {@code teleport} skill are flagged and allowed; every other (vanilla) teleport is cancelled.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBossTeleport(EntityTeleportEvent event) {
+        ActiveBoss boss = manager.get(event.getEntity());
+        if (boss != null && !boss.consumeScriptedTeleport()) {
+            event.setCancelled(true);
         }
     }
 

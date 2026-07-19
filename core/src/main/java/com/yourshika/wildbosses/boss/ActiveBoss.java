@@ -54,6 +54,8 @@ public final class ActiveBoss {
     private double addMultiplier = 1.0;
     private double healerHealPerTick;
     private long lastEnrageTick;
+    private boolean deathHandled;
+    private boolean scriptedTeleport;
 
     public ActiveBoss(BossDefinition def, LivingEntity entity, BossBar bossBar,
                       double maxHealth, long spawnTick, String encounterId) {
@@ -206,6 +208,27 @@ public final class ActiveBoss {
 
     public void setLastEnrageTick(long lastEnrageTick) {
         this.lastEnrageTick = lastEnrageTick;
+    }
+
+    /** True the first time only - guards death handling (and loot) from ever running twice. */
+    public boolean beginDeath() {
+        if (deathHandled) {
+            return false;
+        }
+        deathHandled = true;
+        return true;
+    }
+
+    /** The next enderman teleport is one WE scripted (via the teleport mechanic), so allow it. */
+    public void markScriptedTeleport() {
+        scriptedTeleport = true;
+    }
+
+    /** Consume the scripted-teleport flag: true = allow this teleport, false = it was involuntary. */
+    public boolean consumeScriptedTeleport() {
+        boolean b = scriptedTeleport;
+        scriptedTeleport = false;
+        return b;
     }
 
     /** Record damage a player dealt to this boss (for participation loot). */

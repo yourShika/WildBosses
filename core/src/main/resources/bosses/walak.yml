@@ -45,6 +45,9 @@ skills:
   - { trigger: onTimer, interval: 80, interval-max: 120, mechanic: lightning, targeter: players_in_radius, conditions: [{ type: phase_equals, phase: 2 }], params: { damage: true } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#7c3aed:#2e1065>Trophy of Walak</gradient>", lore: ["<dark_gray>Proof you bested Walak.", "<gray>Mount it on your wall."] }
     # Common
     - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
     - { item: SPIDER_EYE, amount: "3-7", chance: 0.85, rarity: COMMON }

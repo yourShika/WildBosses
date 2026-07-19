@@ -48,6 +48,9 @@ army:
                  { item: EMERALD, amount: 1, chance: 0.2, rarity: UNCOMMON } ] }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#84cc16:#3f6212>Trophy of Grizznak</gradient>", lore: ["<dark_gray>Proof you bested Grizznak.", "<gray>Mount it on your wall."] }
     # Common
     - { item: EMERALD, amount: "6-12", chance: 1.0, rarity: COMMON }
     - { item: IRON_INGOT, amount: "4-8", chance: 0.9, rarity: COMMON }

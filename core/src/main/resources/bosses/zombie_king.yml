@@ -39,6 +39,9 @@ skills:
   - { trigger: onTimer, interval: 70, interval-max: 120, mechanic: potion, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }, { type: chance, value: 0.6 }], params: { radius: 3, type: SLOWNESS, duration: 70, amplifier: 2 } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: ZOMBIE_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#4ade80:#14532d>Trophy of Mortis</gradient>", lore: ["<dark_gray>Proof you bested Mortis.", "<gray>Mount it on your wall."] }
     # Common
     - { item: ROTTEN_FLESH, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: IRON_INGOT, amount: "2-5", chance: 0.9, rarity: COMMON }

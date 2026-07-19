@@ -41,6 +41,9 @@ skills:
   - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: gaze, targeter: players_in_radius, params: { radius: 16, duration: 90, min-dot: 0.6 } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#34d399:#065f46>Trophy of Medusa</gradient>", lore: ["<dark_gray>Proof you bested Medusa.", "<gray>Mount it on your wall."] }
     # Common
     - { item: PUFFERFISH, amount: "3-6", chance: 1.0, rarity: COMMON }
     - { item: INK_SAC, amount: "4-9", chance: 0.85, rarity: COMMON }

@@ -794,6 +794,9 @@ public final class BossManager {
     // ---- death ----------------------------------------------------------------------------
 
     public void handleDeath(ActiveBoss boss, EntityDeathEvent event) {
+        if (!boss.beginDeath()) {
+            return; // never reward/clean up the same boss twice
+        }
         byEntity.remove(boss.entity().getUniqueId());
         deathBeam(boss.entity().getLocation());
         event.getDrops().clear();

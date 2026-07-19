@@ -44,6 +44,9 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 15, knockback: 1.5, particle: SPLASH } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#38bdf8:#0c4a6e>Trophy of Abyssos</gradient>", lore: ["<dark_gray>Proof you bested Abyssos.", "<gray>Mount it on your wall."] }
     # Common
     - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0, rarity: COMMON }

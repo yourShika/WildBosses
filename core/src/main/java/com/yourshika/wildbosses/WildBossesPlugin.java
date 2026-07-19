@@ -33,6 +33,7 @@ public final class WildBossesPlugin extends JavaPlugin {
     private TerrainManager terrainManager;
     private SpawnScheduler spawnScheduler;
     private ArmyManager armyManager;
+    private com.yourshika.wildbosses.event.LunarEventManager lunarEvents;
 
     @Override
     public void onEnable() {
@@ -66,6 +67,10 @@ public final class WildBossesPlugin extends JavaPlugin {
         // (incl. Multiverse-loaded ones) are available first.
         getServer().getScheduler().runTaskLater(this, bossManager::restoreState, 40L);
 
+        lunarEvents = new com.yourshika.wildbosses.event.LunarEventManager(this);
+        getServer().getPluginManager().registerEvents(lunarEvents, this);
+        lunarEvents.start();
+
         spawnScheduler = new SpawnScheduler(this);
         spawnScheduler.setArmyStarter(armyManager);
         spawnScheduler.start();
@@ -93,6 +98,9 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (lunarEvents != null) {
+            lunarEvents.stop();
+        }
         if (spawnScheduler != null) {
             spawnScheduler.stop();
         }
@@ -154,6 +162,10 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     public BossManager bossManager() {
         return bossManager;
+    }
+
+    public com.yourshika.wildbosses.event.LunarEventManager lunarEvents() {
+        return lunarEvents;
     }
 
     public Broadcaster broadcaster() {

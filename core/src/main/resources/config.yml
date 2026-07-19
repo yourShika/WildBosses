@@ -61,6 +61,28 @@ rewards:
     min: 1
     max: 3
 
+# Terrain theming failsafe: the ONLY block types a boss' terrain/features may ever replace. Anything
+# not listed (ores, logs, chests, player blocks, ...) is always left untouched. Trim this to be stricter
+# (e.g. just [AIR, DIRT, GRASS_BLOCK, GRAVEL, STONE]) - note the built-in bosses also theme SAND and
+# END_STONE, so removing those disables their glade/dais. AIR is always allowed regardless.
+terrain:
+  replaceable-blocks: [AIR, DIRT, GRASS_BLOCK, COARSE_DIRT, PODZOL, ROOTED_DIRT, MOSS_BLOCK, MYCELIUM,
+    MUD, GRAVEL, SAND, RED_SAND, STONE, SANDSTONE, SNOW, SNOW_BLOCK, NETHERRACK, END_STONE,
+    END_STONE_BRICKS, TERRACOTTA, SHORT_GRASS, TALL_GRASS, FERN, LARGE_FERN, DEAD_BUSH]
+
+# Lunar events: on some nights a Blood Moon or Crystal Moon rises. Ambient coloured particles drift
+# around nearby players, every naturally-spawned hostile mob is buffed, and bosses spawn more often.
+# It ends at daybreak (so sleeping through the night also ends it). NOTE: the moon's actual colour
+# can't be changed server-side without a resource pack - the mood is shown via particles + a title.
+lunar-events:
+  enabled: true
+  chance: 0.12                 # chance per night for an event to start (0..1)
+  types: [bloodmoon, crystalmoon]
+  mob-health-multiplier: 1.6   # naturally-spawned hostiles get this much more health
+  mob-strength: 1              # Strength amplifier granted to those mobs (0 = Strength I)
+  mob-speed: 0                 # Speed amplifier (0 = none; 1 = Speed I)
+  boss-extra-attempts: 1       # extra boss-spawn attempts per cycle while an event is active
+
 integrations:
   # Optional Discord webhook URL - posts a message on boss spawn and kill. Leave blank to disable.
   discord-webhook: ""

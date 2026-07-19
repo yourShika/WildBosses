@@ -36,6 +36,9 @@ skills:
   - { trigger: onTimer, interval: 112, interval-max: 162, mechanic: beam, targeter: players_in_radius, params: { radius: 18, damage: 8, particle: DUST_COLOR_TRANSITION } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#f9a8d4:#93c5fd>Trophy of Aurelith</gradient>", lore: ["<dark_gray>Proof you bested Aurelith.", "<gray>Mount it on your wall."] }
     # Common
     - { item: GOLDEN_APPLE, amount: "3-6", chance: 1.0, rarity: COMMON }
     - { item: SUGAR, amount: "4-9", chance: 0.85, rarity: COMMON }

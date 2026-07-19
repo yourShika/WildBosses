@@ -88,6 +88,17 @@ the terrain toggle are editable via `/wb gui → Bosses → shift-click a boss`.
 | `/wb gui` | `wildbosses.gui` | admin GUI (bosses, drops editor, active, settings) |
 | `/wb killall` · `/wb reload` · `/wb restore default` · `/wb update` | `wildbosses.admin` | admin actions |
 
+## Lunar events (Blood Moon / Crystal Moon)
+
+On some nights (`lunar-events.chance`, default 12%) a **Blood Moon** or **Crystal Moon** rises in an
+Overworld with players in it. While active: coloured particles drift around each nearby player, every
+**naturally-spawned hostile mob is buffed** (more health + Strength, and Crystal-Moon mobs glow), and
+**bosses spawn more readily** (`boss-extra-attempts`). It ends at **daybreak** — so sleeping through
+the night ends it too. WildBosses' own mobs are never double-buffed.
+
+> The vanilla moon's colour can't be changed server-side without a resource pack, so the "red/crystal
+> moon" is conveyed through the heavy coloured particles and the on-screen title, not the moon texture.
+
 ## Lag-clearer / anti-mob-clear plugins
 
 Every WildBosses entity (bosses, army minions, summoned adds) is given the scoreboard tag
@@ -107,6 +118,11 @@ Set `terrain.only-ungenerated-chunks: false` to let a terrain boss spawn near pl
 land (still ≥ `min-player-distance` away) instead of restricting it to frontier chunks. Combined with
 `restore-on-end: false` this leaves a permanent landmark — used by **Vespula (Queen Bee)**,
 **Mortarion (The Harvester)** and **Nyxara (Enderman Queen)**.
+
+A global **failsafe allowlist** (`terrain.replaceable-blocks` in `config.yml`) restricts the block
+types terrain may ever replace — ores, logs, chests and player blocks are always left alone. Trim it
+to be stricter (e.g. `[AIR, DIRT, GRASS_BLOCK, GRAVEL, STONE]`); note the bundled bosses also theme
+`SAND`/`END_STONE`, so removing those disables their glade/dais. `AIR` is always allowed.
 
 `terrain.features` scatters small **decorative structures** on top of the re-themed ground (they
 persist with the terrain):

@@ -38,6 +38,9 @@ skills:
   - { trigger: onTimer, interval: 240, interval-max: 360, mechanic: summon, targeter: self_location, conditions: [{ type: time_is, value: NIGHT }], params: { type: WOLF, amount: 2, radius: 5, health: 30 } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#9ca3af:#450a0a>Trophy of Fenrar</gradient>", lore: ["<dark_gray>Proof you bested Fenrar.", "<gray>Mount it on your wall."] }
     # Common
     - { item: LEATHER, amount: "6-12", chance: 1.0, rarity: COMMON }
     - { item: BEEF, amount: "4-9", chance: 0.85, rarity: COMMON }

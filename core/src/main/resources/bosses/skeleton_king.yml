@@ -39,6 +39,9 @@ skills:
   - { trigger: onTimer, interval: 150, interval-max: 210, mechanic: bone_cage, targeter: nearest_player, conditions: [{ type: phase_at_least, phase: 2 }, { type: chance, value: 0.7 }], params: { material: BONE_BLOCK, radius: 1, height: 3, duration: 90 } }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: SKELETON_SKULL, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#e5e7eb:#6b7280>Trophy of Ossaria</gradient>", lore: ["<dark_gray>Proof you bested Ossaria.", "<gray>Mount it on your wall."] }
     # Common
     - { item: BONE, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: BONE_MEAL, amount: "4-9", chance: 0.85, rarity: COMMON }

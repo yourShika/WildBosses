@@ -57,6 +57,9 @@ terrain:
     - { type: pumpkin_patch, count: 4 }
 drops:
   items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: WITHER_SKELETON_SKULL, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#a3a3a3:#111827>Trophy of Mortarion</gradient>", lore: ["<dark_gray>Proof you bested Mortarion.", "<gray>Mount it on your wall."] }
     # Common
     - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
     - { item: BONE, amount: "6-12", chance: 0.85, rarity: COMMON }
