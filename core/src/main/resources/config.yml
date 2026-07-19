@@ -86,7 +86,13 @@ lunar-events:
   mob-health-multiplier: 1.6   # MAX extra health (each mob rolls a random amount up to this)
   mob-strength: 1              # MAX Strength amplifier (randomised per mob; ~2/3 of them get some)
   mob-speed: 0                 # MAX Speed amplifier (0 = never; randomised, only some mobs)
+  mob-gear-chance: 0.35        # chance an empowered mob wears random armour/weapon (modest tiers, no drop)
   boss-extra-attempts: 1       # extra boss-spawn attempts per cycle while an event is active
+  eclipse-darkness: true       # Eclipse dims the sky with an occasional Darkness pulse (set false to disable)
+  hordes: true                 # occasionally spawn a small empowered horde near a player (not on Harvest)
+  horde-chance: 0.03           # per ~second, per event world, chance to spawn a horde
+  horde-size-min: 3
+  horde-size-max: 6
 
 integrations:
   # Optional Discord webhook URL - posts a message on boss spawn and kill. Leave blank to disable.
