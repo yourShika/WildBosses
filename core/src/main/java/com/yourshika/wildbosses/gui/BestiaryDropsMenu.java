@@ -74,7 +74,7 @@ public final class BestiaryDropsMenu extends Menu {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             if (e.name() != null && !e.name().isBlank()) {
-                meta.displayName(Text.mm(e.name()).decoration(TextDecoration.ITALIC, false));
+                meta.displayName(Text.mm(plugin.messages().tr(e.name())).decoration(TextDecoration.ITALIC, false));
             }
             List<Component> lore = new ArrayList<>();
             add(lore, e.rarity().loreLine());

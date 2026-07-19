@@ -64,7 +64,8 @@ public final class ActiveMenu extends Menu {
                 ? "<gray>Flees in <yellow>" + com.yourshika.wildbosses.util.Text.duration(remain / 20)
                 : "<dark_gray>No flee timer";
         return icon(egg != null ? egg : Material.NETHER_STAR,
-                boss.def().name() + " " + boss.def().difficulty().bracketedMini(),
+                plugin.messages().tr(boss.def().name()) + " "
+                        + boss.def().difficulty().bracketedMini(plugin.messages().tr(boss.def().difficulty().label())),
                 "<gray>Health <white>" + (int) Math.ceil(boss.entity().getHealth()) + "<gray>/<white>" + (int) boss.maxHealth(),
                 "<gray>At <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
                 flee,
@@ -76,7 +77,7 @@ public final class ActiveMenu extends Menu {
     private org.bukkit.inventory.ItemStack armyIcon(ArmyEncounter army) {
         Location loc = army.anchor();
         return icon(Material.ZOMBIE_HEAD,
-                army.def().name() + " <gray>(army)",
+                plugin.messages().tr(army.def().name()) + " <gray>(army)",
                 "<gray>Slain <white>" + army.kills(),
                 "<gray>At <yellow>" + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ(),
                 " ",

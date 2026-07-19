@@ -30,6 +30,27 @@ skills:
   - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 3, damage: 9, delay: 25, warn-particle: WAX_ON, particle: CRIT } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 6, radius: 6, health: 12 } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 10, knockback: 0.8, particle: HEART } }
+# She turns the ground into a honeycomb glade with little bee-trees - and it STAYS (restore-on-end: false).
+# Spawns near players (only-ungenerated-chunks: false); player builds are still never overwritten
+# (allowlist + block-entity guard + CoreProtect/region checks).
+terrain:
+  enabled: true
+  radius: 8
+  max-blocks: 2600
+  restore-on-end: false
+  only-ungenerated-chunks: false
+  mappings:
+    GRASS_BLOCK: HONEYCOMB_BLOCK
+    DIRT: HONEYCOMB_BLOCK
+    COARSE_DIRT: HONEYCOMB_BLOCK
+    PODZOL: HONEYCOMB_BLOCK
+    ROOTED_DIRT: HONEYCOMB_BLOCK
+    MOSS_BLOCK: HONEYCOMB_BLOCK
+    SAND: HONEY_BLOCK
+    RED_SAND: HONEY_BLOCK
+  features:
+    - { type: bee_tree, count: 5 }
+    - { type: honey_patch, count: 8 }
 drops:
   items:
     # Common

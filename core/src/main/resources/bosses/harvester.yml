@@ -36,6 +36,23 @@ skills:
   - { trigger: onHealthBelow, value: 60, mechanic: healer_adds, targeter: self, params: { type: WITHER_SKELETON, amount: 2, radius: 4, heal-per-second: 12, name: "<gray>Soul Attendant" } }
   - { trigger: onHealthBelow, value: 30, mechanic: lifesteal, targeter: players_in_radius, params: { radius: 8, amount: 12, heal-ratio: 1.0 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 13, knockback: 1.0, particle: SCULK_SOUL } }
+# Withers the ground into dead soil and leaves a small, abandoned, overgrown pumpkin farm behind -
+# it STAYS (restore-on-end: false). Player builds are never overwritten.
+terrain:
+  enabled: true
+  radius: 9
+  max-blocks: 3200
+  restore-on-end: false
+  only-ungenerated-chunks: false
+  mappings:
+    GRASS_BLOCK: COARSE_DIRT
+    DIRT: COARSE_DIRT
+    PODZOL: COARSE_DIRT
+    ROOTED_DIRT: COARSE_DIRT
+    MOSS_BLOCK: COARSE_DIRT
+    MYCELIUM: COARSE_DIRT
+  features:
+    - { type: pumpkin_patch, count: 4 }
 drops:
   items:
     # Common

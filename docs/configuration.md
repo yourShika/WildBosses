@@ -99,4 +99,33 @@ tagged mobs). Bosses also have `removeWhenFarAway = false` so they don't despawn
 A terrain-changing boss/army replaces natural ground using `terrain.mappings: { FROM: TO }` — you
 choose exactly which block becomes which. Set `terrain.restore-on-end: false` to make the change
 **permanent** (the blocks stay); `true` restores the original ground when the encounter ends. Player
-builds are never touched, and terrain encounters only spawn on never-generated frontier chunks.
+builds are never touched (allowlist + block-entity guard, plus CoreProtect / WorldGuard /
+GriefPrevention checks when present).
+
+Set `terrain.only-ungenerated-chunks: false` to let a terrain boss spawn near players on explored
+land (still ≥ `min-player-distance` away) instead of restricting it to frontier chunks. Combined with
+`restore-on-end: false` this leaves a permanent landmark — used by **Vespula (Queen Bee)**,
+**Mortarion (The Harvester)** and **Nyxara (Enderman Queen)**.
+
+`terrain.features` scatters small **decorative structures** on top of the re-themed ground (they
+persist with the terrain):
+
+```yaml
+terrain:
+  features:
+    - { type: bee_tree, count: 5 }       # small oak tree with a bee nest
+    - { type: honey_patch, count: 8 }    # sticky honey mounds
+    - { type: pumpkin_patch, count: 4 }  # abandoned, overgrown crop plot + scarecrow
+    - { type: crying_obsidian, count: 10 } # crying-obsidian shards + eerie lights
+```
+
+## Drops & the drop editor
+
+Drops **announce in chat by default** (`announce: true`). Toggle a specific drop off in the editor to
+silence just that one. Open a boss' drops with `/wb gui → Bosses → shift-click → Drops`:
+
+- **Left-click** a drop → open the **precise chance editor** (±1/5/10 % and 1–100 % presets).
+- **Right-click** → toggle its announce. **Middle-click** → cycle rarity. **Q** → delete.
+- **Add item from hand** captures the held item 1:1 (name, enchants, NBT).
+
+Every change **saves automatically** to `bosses/<id>.yml` and hot-reloads — there is no save button.

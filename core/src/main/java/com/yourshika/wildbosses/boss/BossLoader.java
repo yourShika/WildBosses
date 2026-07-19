@@ -229,7 +229,7 @@ public final class BossLoader {
                     p.getStringList("enchants"),
                     p.getInt("custom-model-data", -1),
                     p.getBoolean("glow", false),
-                    p.getBoolean("announce", false),
+                    p.getBoolean("announce", true),
                     Rarity.fromString(p.getString("rarity", null), Rarity.COMMON)));
         }
         List<CommandReward> commandRewards = new ArrayList<>();
@@ -253,7 +253,7 @@ public final class BossLoader {
                 org.bukkit.inventory.ItemStack stack =
                         org.bukkit.inventory.ItemStack.deserializeBytes(java.util.Base64.getDecoder().decode(data));
                 rawDrops.add(new RawDrop(stack, clamp01(rp.getDouble("chance", 1.0)),
-                        rp.getBoolean("announce", false),
+                        rp.getBoolean("announce", true),
                         Rarity.fromString(rp.getString("rarity", null), Rarity.RARE)));
             } catch (Exception ex) {
                 logger.warning("Skipping unreadable raw-item drop: " + ex.getMessage());
@@ -280,6 +280,16 @@ public final class BossLoader {
                 mappings.put(from, to);
             }
         }
+        List<TerrainFeature> features = new ArrayList<>();
+        for (Map<?, ?> m : s.getMapList("features")) {
+            Params fp = new Params(toStringMap(m));
+            String type = fp.getString("type", null);
+            if (type == null || type.isBlank()) {
+                continue;
+            }
+            features.add(new TerrainFeature(type.trim().toLowerCase(Locale.ROOT),
+                    Math.max(0, fp.getInt("count", 1))));
+        }
         return new TerrainSettings(
                 enabled,
                 Math.max(0, s.getInt("radius", 6)),
@@ -287,7 +297,8 @@ public final class BossLoader {
                 s.getBoolean("restore-on-end", true),
                 s.getBoolean("require-coreprotect", false),
                 s.getBoolean("only-ungenerated-chunks", true),
-                mappings);
+                mappings,
+                features);
     }
 
     private ArmyDefinition parseArmy(ConfigurationSection s) {

@@ -60,11 +60,11 @@ public final class DropEditorMenu extends Menu {
         int slot = 0;
         // Field-authored drops.
         for (int i = 0; i < items.size() && slot < 45; i++, slot++) {
-            set(slot, fieldIcon(items.get(i)), handler(items, i));
+            set(slot, fieldIcon(items.get(i)), handler(items, "drops.items", i));
         }
         // Hand-captured 1:1 drops.
         for (int i = 0; i < raw.size() && slot < 45; i++, slot++) {
-            set(slot, rawIcon(raw.get(i)), handler(raw, i));
+            set(slot, rawIcon(raw.get(i)), handler(raw, "drops.raw-items", i));
         }
         // Command rewards (pets etc.) - chance/delete editable; the command + announce text stay in YAML.
         for (int i = 0; i < pets.size() && slot < 45; i++, slot++) {
@@ -79,12 +79,12 @@ public final class DropEditorMenu extends Menu {
         set(48, icon(Material.LIME_DYE, "<green><bold>Add item from hand",
                         "<gray>Captures the item you're holding <white>1:1",
                         "<gray>(name, enchants, NBT) as a new drop.",
-                        "<gray>Defaults: <aqua>Rare<gray>, 50% chance."),
+                        "<gray>Defaults: <aqua>Rare<gray>, 50% chance, announce on."),
                 e -> addFromHand((Player) e.getWhoClicked()));
-        set(50, icon(Material.LIME_CONCRETE, "<green><bold>Save",
-                        "<gray>Write all drops to <yellow>bosses/" + bossId + ".yml",
-                        "<gray>and reload."),
-                e -> save((Player) e.getWhoClicked()));
+        set(50, icon(Material.WRITABLE_BOOK, "<green>Changes save automatically",
+                        "<gray>Every edit is written to",
+                        "<yellow>bosses/" + bossId + ".yml <gray>and reloaded."),
+                null);
         filler(Material.BLACK_STAINED_GLASS_PANE);
     }
 
@@ -92,11 +92,13 @@ public final class DropEditorMenu extends Menu {
 
     private ItemStack fieldIcon(Map<String, Object> it) {
         Material mat = matOf(it.get("item"));
-        String name = it.get("name") != null ? String.valueOf(it.get("name")) : "<white>" + Text.titleCase(mat.name());
+        String name = it.get("name") != null
+                ? plugin.messages().tr(String.valueOf(it.get("name")))
+                : "<white>" + Text.titleCase(mat.name());
         List<String> lore = new ArrayList<>();
         lore.add(rarityOf(it).loreLine());
         lore.add("<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
-        lore.add("<gray>Announce: " + (Boolean.TRUE.equals(it.get("announce")) ? "<green>on" : "<red>off"));
+        lore.add("<gray>Announce: " + (announceOn(it) ? "<green>on" : "<red>off"));
         for (Object en : listOf(it.get("enchants"))) {
             lore.add("<dark_gray>• <aqua>" + prettyEnchant(String.valueOf(en)));
         }
@@ -117,7 +119,7 @@ public final class DropEditorMenu extends Menu {
             add(lore, "<gray>» <white>captured 1:1 from hand");
             add(lore, rarityOf(it).loreLine());
             add(lore, "<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
-            add(lore, "<gray>Announce: " + (Boolean.TRUE.equals(it.get("announce")) ? "<green>on" : "<red>off"));
+            add(lore, "<gray>Announce: " + (announceOn(it) ? "<green>on" : "<red>off"));
             List<String> ctrl = new ArrayList<>();
             appendControls(ctrl);
             for (String c : ctrl) {
@@ -131,16 +133,16 @@ public final class DropEditorMenu extends Menu {
 
     private void appendControls(List<String> lore) {
         lore.add(" ");
-        lore.add("<gray>Left-click <green>+5% <gray>· Right-click <red>-5%");
+        lore.add("<gray>Left-click <aqua>edit chance (precise)");
+        lore.add("<gray>Right-click <aqua>toggle announce");
         lore.add("<gray>Middle-click <light_purple>cycle rarity");
-        lore.add("<gray>Shift-click <aqua>toggle announce");
         lore.add("<gray>Drop key (Q) <red>delete");
     }
 
     // ---- interaction ----------------------------------------------------------------------
 
     private java.util.function.Consumer<org.bukkit.event.inventory.InventoryClickEvent> handler(
-            List<Map<String, Object>> list, int index) {
+            List<Map<String, Object>> list, String section, int index) {
         return e -> {
             if (index >= list.size()) {
                 return;
@@ -148,21 +150,24 @@ public final class DropEditorMenu extends Menu {
             ClickType click = e.getClick();
             if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
                 list.remove(index);
+                autoSave();
+                rebuild();
             } else if (click == ClickType.MIDDLE) {
                 Map<String, Object> it = list.get(index);
                 Rarity[] all = Rarity.values();
                 it.put("rarity", all[(rarityOf(it).ordinal() + 1) % all.length].name());
-            } else if (e.isShiftClick()) {
-                Map<String, Object> it = list.get(index);
-                it.put("announce", !Boolean.TRUE.equals(it.get("announce")));
+                autoSave();
+                rebuild();
             } else if (e.isRightClick()) {
                 Map<String, Object> it = list.get(index);
-                it.put("chance", round2(Math.max(0.0, toDouble(it.get("chance"), 1.0) - 0.05)));
+                it.put("announce", !announceOn(it));
+                autoSave();
+                rebuild();
             } else {
-                Map<String, Object> it = list.get(index);
-                it.put("chance", round2(Math.min(1.0, toDouble(it.get("chance"), 1.0) + 0.05)));
+                // Left-click opens the precise chance editor for this drop.
+                autoSave();
+                new ChanceEditorMenu(plugin, bossId, section, index).open((Player) e.getWhoClicked());
             }
-            rebuild();
         };
     }
 
@@ -173,7 +178,7 @@ public final class DropEditorMenu extends Menu {
                 "<gray>Command: <white>" + cmd,
                 "<gray>Chance: <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%",
                 " ",
-                "<gray>Left-click <green>+5% <gray>· Right-click <red>-5%",
+                "<gray>Left-click <aqua>edit chance (precise)",
                 "<gray>Drop key (Q) <red>delete",
                 "<dark_gray>(command + announce text: edit in the YAML)");
     }
@@ -184,15 +189,15 @@ public final class DropEditorMenu extends Menu {
                 return;
             }
             ClickType click = e.getClick();
-            Map<String, Object> it = pets.get(index);
             if (click == ClickType.DROP || click == ClickType.CONTROL_DROP) {
                 pets.remove(index);
-            } else if (e.isRightClick()) {
-                it.put("chance", round2(Math.max(0.0, toDouble(it.get("chance"), 1.0) - 0.05)));
-            } else if (e.isLeftClick()) {
-                it.put("chance", round2(Math.min(1.0, toDouble(it.get("chance"), 1.0) + 0.05)));
+                autoSave();
+                rebuild();
+            } else {
+                autoSave();
+                new ChanceEditorMenu(plugin, bossId, "drops.command-rewards", index)
+                        .open((Player) e.getWhoClicked());
             }
-            rebuild();
         };
     }
 
@@ -206,27 +211,32 @@ public final class DropEditorMenu extends Menu {
         entry.put("data", Base64.getEncoder().encodeToString(hand.serializeAsBytes()));
         entry.put("chance", 0.5);
         entry.put("rarity", "RARE");
-        entry.put("announce", false);
+        entry.put("announce", true);
         raw.add(entry);
-        player.sendMessage(Text.mm("<green>Added <white>" + Text.plain(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(hand.effectiveName())) + "<green> as a drop (remember to Save)."));
+        player.sendMessage(Text.mm("<green>Added <white>" + Text.plain(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(hand.effectiveName())) + "<green> as a drop."));
+        autoSave();
         rebuild();
     }
 
-    private void save(Player player) {
-        yml.set("drops.items", items);
+    /** Persist the current drops to the boss file and hot-reload, silently (the editor auto-saves). */
+    private void autoSave() {
+        yml.set("drops.items", items.isEmpty() ? null : items);
         yml.set("drops.raw-items", raw.isEmpty() ? null : raw);
         yml.set("drops.command-rewards", pets.isEmpty() ? null : pets);
         try {
             yml.save(file);
             plugin.reloadAll();
-            player.sendMessage(Text.mm("<green>Saved drops for <yellow>" + bossId + "<green> and reloaded."));
-            new DropEditorMenu(plugin, bossId).open(player);
         } catch (IOException ex) {
-            player.sendMessage(Text.mm("<red>Failed to save: " + ex.getMessage()));
+            plugin.getLogger().warning("Drop auto-save failed for " + bossId + ": " + ex.getMessage());
         }
     }
 
     // ---- helpers --------------------------------------------------------------------------
+
+    /** Drops announce by default; only an explicit {@code announce: false} silences one. */
+    private static boolean announceOn(Map<String, Object> it) {
+        return !Boolean.FALSE.equals(it.get("announce"));
+    }
 
     private static void add(List<Component> lore, String mini) {
         lore.add(Text.mm(mini).decoration(TextDecoration.ITALIC, false));

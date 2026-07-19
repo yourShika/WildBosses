@@ -2,6 +2,7 @@ package com.yourshika.wildbosses.boss;
 
 import org.bukkit.Material;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,9 +20,10 @@ public record TerrainSettings(
         boolean restoreOnEnd,
         boolean requireCoreProtect,
         boolean onlyUngeneratedChunks,
-        Map<Material, Material> mappings
+        Map<Material, Material> mappings,
+        List<TerrainFeature> features
 ) {
     public static TerrainSettings disabled() {
-        return new TerrainSettings(false, 0, 0, true, false, true, Map.of());
+        return new TerrainSettings(false, 0, 0, true, false, true, Map.of(), List.of());
     }
 }

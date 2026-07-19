@@ -47,9 +47,10 @@ public final class BossListMenu extends Menu {
     private org.bukkit.inventory.ItemStack iconFor(BossDefinition def) {
         Material egg = Material.matchMaterial(def.baseEntity().name().toUpperCase(Locale.ROOT) + "_SPAWN_EGG");
         Material material = egg != null ? egg : Material.NETHER_STAR;
-        String title = def.title() == null ? "" : def.title();
+        String title = def.title() == null ? "" : plugin.messages().tr(def.title());
         return icon(material,
-                def.name() + " " + def.difficulty().bracketedMini(),
+                plugin.messages().tr(def.name()) + " "
+                        + def.difficulty().bracketedMini(plugin.messages().tr(def.difficulty().label())),
                 "<gray>" + title,
                 "<dark_gray>Health <gray>" + (int) def.stats().health()
                         + " <dark_gray>Armor <gray>" + (int) def.stats().armor(),

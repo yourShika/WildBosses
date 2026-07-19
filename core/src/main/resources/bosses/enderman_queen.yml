@@ -32,6 +32,19 @@ skills:
   - { trigger: onTimer, interval: 190, interval-max: 260, mechanic: say, targeter: nearest_player, params: { radius: 50, lines: ["Come closer, little star.", "There is no escape from the dark.", "Blink. I dare you."] } }
   - { trigger: onHealthBelow, value: 60, mechanic: buff, targeter: self, params: { type: SPEED, duration: 300, amplifier: 1 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.0, particle: DRAGON_BREATH } }
+# Warps the End-stone beneath her into an obsidian dais veined with crying obsidian and eerie lights -
+# it STAYS (restore-on-end: false). Kept modest so it never becomes an obsidian fortress.
+terrain:
+  enabled: true
+  radius: 7
+  max-blocks: 1800
+  restore-on-end: false
+  only-ungenerated-chunks: false
+  mappings:
+    END_STONE: OBSIDIAN
+    END_STONE_BRICKS: OBSIDIAN
+  features:
+    - { type: crying_obsidian, count: 10 }
 drops:
   items:
     # Common

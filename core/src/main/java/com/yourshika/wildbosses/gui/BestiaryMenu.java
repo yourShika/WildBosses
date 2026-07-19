@@ -39,8 +39,9 @@ public final class BestiaryMenu extends Menu {
         Material egg = Material.matchMaterial(def.baseEntity().name().toUpperCase(Locale.ROOT) + "_SPAWN_EGG");
         int drops = def.drops().items().size() + def.drops().rawDrops().size() + def.drops().commandRewards().size();
         return icon(egg != null ? egg : Material.NETHER_STAR,
-                def.name() + " " + def.difficulty().bracketedMini(),
-                def.title() == null ? "<gray>" : "<gray><italic>" + stripTags(def.title()),
+                plugin.messages().tr(def.name()) + " "
+                        + def.difficulty().bracketedMini(plugin.messages().tr(def.difficulty().label())),
+                def.title() == null ? "<gray>" : "<gray><italic>" + stripTags(plugin.messages().tr(def.title())),
                 " ",
                 "<gray>Health <white>" + (int) def.stats().health()
                         + " <gray>· Armor <white>" + (int) def.stats().armor(),

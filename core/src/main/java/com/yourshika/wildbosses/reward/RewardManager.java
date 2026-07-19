@@ -86,12 +86,12 @@ public final class RewardManager implements BossDeathListener {
                     ? Text.mm(plugin.messages().tr(entry.name())).decoration(TextDecoration.ITALIC, false)
                     : stack.effectiveName();
             (ThreadLocalRandom.current().nextDouble() < entry.chance() ? winners : losers)
-                    .add(new Candidate(entry.chance(), stack, entry.rarity(), base));
+                    .add(new Candidate(entry.chance(), stack, entry.rarity(), base, entry.announce()));
         }
         for (com.yourshika.wildbosses.boss.RawDrop raw : drops.rawDrops()) {
             ItemStack stack = raw.stack().clone();
             (ThreadLocalRandom.current().nextDouble() < raw.chance() ? winners : losers)
-                    .add(new Candidate(raw.chance(), stack, raw.rarity(), stack.effectiveName()));
+                    .add(new Candidate(raw.chance(), stack, raw.rarity(), stack.effectiveName(), raw.announce()));
         }
 
         int max = plugin.config().maxDrops();
@@ -118,7 +118,9 @@ public final class RewardManager implements BossDeathListener {
             org.bukkit.entity.Item dropped = world.dropItemNaturally(loc.clone().add(0, 0.5, 0), c.stack);
             dropped.setGlowing(true);   // only a few drop now, so make them all easy to see
             dropped.setWillAge(false);
-            announceItem(boss, c.base, c.stack, c.rarity, finderName); // every dropped item is announced
+            if (c.announce) { // drops announce by default; the GUI toggle can silence a specific drop
+                announceItem(boss, c.base, c.stack, c.rarity, finderName);
+            }
         }
         rollCommandRewards(drops, boss, finder);
     }
@@ -148,12 +150,15 @@ public final class RewardManager implements BossDeathListener {
         final ItemStack stack;
         final com.yourshika.wildbosses.boss.Rarity rarity;
         final Component base;
+        final boolean announce;
 
-        Candidate(double weight, ItemStack stack, com.yourshika.wildbosses.boss.Rarity rarity, Component base) {
+        Candidate(double weight, ItemStack stack, com.yourshika.wildbosses.boss.Rarity rarity,
+                  Component base, boolean announce) {
             this.weight = weight;
             this.stack = stack;
             this.rarity = rarity;
             this.base = base;
+            this.announce = announce;
         }
     }
 
