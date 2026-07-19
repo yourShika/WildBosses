@@ -36,6 +36,8 @@ skills:
   - { trigger: onHealthBelow, value: 60, mechanic: healer_adds, targeter: self, params: { type: WITHER_SKELETON, amount: 2, radius: 4, heal-per-second: 12, name: "<gray>Soul Attendant" } }
   - { trigger: onHealthBelow, value: 30, mechanic: lifesteal, targeter: players_in_radius, params: { radius: 8, amount: 12, heal-ratio: 1.0 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 13, knockback: 1.0, particle: SCULK_SOUL } }
+  # Soul-Harvest (Signature): from phase 2 every reap mends him - focus him, not his attendants.
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: lifesteal, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { radius: 6, amount: 8, heal-ratio: 1.0 } }
 # Withers the ground into dead soil and leaves a small, abandoned, overgrown pumpkin farm behind -
 # it STAYS (restore-on-end: false). Player builds are never overwritten.
 terrain:

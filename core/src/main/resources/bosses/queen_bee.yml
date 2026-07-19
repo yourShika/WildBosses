@@ -30,6 +30,10 @@ skills:
   - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 3, damage: 9, delay: 25, warn-particle: WAX_ON, particle: CRIT } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: BEE, amount: 6, radius: 6, health: 12 } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 10, knockback: 0.8, particle: HEART } }
+  # Swarm-Wrath (Signature): once the hive is enraged her fury builds - faster, angrier, more bees.
+  - { trigger: onTimer, interval: 70, mechanic: buff, targeter: self, conditions: [{ type: phase_at_least, phase: 1 }], params: { type: SPEED, duration: 90, amplifier: 1 } }
+  - { trigger: onTimer, interval: 72, mechanic: buff, targeter: self, conditions: [{ type: phase_at_least, phase: 1 }], params: { type: STRENGTH, duration: 90, amplifier: 0 } }
+  - { trigger: onTimer, interval: 130, interval-max: 180, mechanic: summon, targeter: self_location, conditions: [{ type: phase_at_least, phase: 1 }], params: { type: BEE, amount: 3, radius: 5, health: 12 } }
 # She turns the ground into a honeycomb glade with little bee-trees - and it STAYS (restore-on-end: false).
 # Spawns near players (only-ungenerated-chunks: false); player builds are still never overwritten
 # (allowlist + block-entity guard + CoreProtect/region checks).

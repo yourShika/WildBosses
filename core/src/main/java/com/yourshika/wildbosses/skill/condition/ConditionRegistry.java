@@ -34,6 +34,15 @@ public final class ConditionRegistry {
             return false;
         });
         register("players_in_radius", (ctx, p) -> countPlayers(ctx, p.getDouble("radius", 16)) >= p.getInt("count", 1));
+        register("time_is", (ctx, p) -> {
+            String want = p.getString("value", "NIGHT").trim().toUpperCase(Locale.ROOT);
+            if (want.equals("ANY")) {
+                return true;
+            }
+            long time = ctx.world().getTime() % 24000;
+            boolean day = time < 12300 || time > 23850;
+            return want.equals("DAY") ? day : !day;
+        });
     }
 
     public void register(String key, Condition condition) {

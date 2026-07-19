@@ -98,7 +98,8 @@ skills:
 ### Conditions
 
 `health_below`/`health_above` (`value`), `phase_equals`/`phase_at_least` (`phase`),
-`chance` (`value` 0-1), `world_is` (`value: [OVERWORLD, ...]`), `players_in_radius` (`radius`, `count`).
+`chance` (`value` 0-1), `world_is` (`value: [OVERWORLD, ...]`), `players_in_radius` (`radius`, `count`),
+`time_is` (`value: DAY|NIGHT|ANY`).
 
 ### Mechanics
 
@@ -132,6 +133,8 @@ skills:
 | `arrow_rain` | `count`, `spread`, `height`, `damage`, `fire` — arrows fall from the sky onto targets |
 | `throw_potion` | `type`, `duration`, `amplifier`, `lingering` (bool), `velocity` — throws a splash/lingering potion |
 | `petrify` | `duration` — heavy slowness + mining fatigue + blindness ("turn to stone") |
+| `gaze` | `duration`, `min-dot` (0-1) — petrifies only players **looking at** the boss (look away to break it) |
+| `bone_cage` | `material`, `radius`, `height`, `duration` — a temporary hollow cage around a target; only fills empty space and is **guaranteed** to be removed (timer + crash-safe restore) |
 | `lifesteal` | `amount`, `heal-ratio` — damage targets and heal the boss |
 | `fly` | `duration`, `lift` — the boss lifts off and hovers/drifts toward its target (plays the `fly` animation) |
 | `radial` / `axe_throw` | `count`, `velocity`, `type`, `particle` — launches projectiles evenly in all directions |

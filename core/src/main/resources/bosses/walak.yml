@@ -35,6 +35,14 @@ skills:
   - { trigger: onHealthBelow, value: 60, mechanic: lightning, targeter: players_in_radius, params: { damage: true } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.2, particle: SOUL_FIRE_FLAME } }
   - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: RESISTANCE, duration: 200, amplifier: 1 } }
+  # Grimoire Cycle (Signature): her active school of magic shifts with each phase.
+  # Phase 1 - Fire.
+  - { trigger: onTimer, interval: 85, interval-max: 130, mechanic: projectile, targeter: nearest_player, conditions: [{ type: phase_equals, phase: 0 }], params: { type: FIREBALL, velocity: 1.3, fire: true, yield: 0 } }
+  # Phase 2 - Frost.
+  - { trigger: onTimer, interval: 85, interval-max: 130, mechanic: radial, targeter: self, conditions: [{ type: phase_equals, phase: 1 }], params: { count: 10, velocity: 1.1, type: SNOWBALL, particle: SNOWFLAKE } }
+  - { trigger: onTimer, interval: 88, interval-max: 133, mechanic: potion, targeter: players_in_radius, conditions: [{ type: phase_equals, phase: 1 }], params: { radius: 8, type: SLOWNESS, duration: 120, amplifier: 2 } }
+  # Phase 3 - Storm.
+  - { trigger: onTimer, interval: 80, interval-max: 120, mechanic: lightning, targeter: players_in_radius, conditions: [{ type: phase_equals, phase: 2 }], params: { damage: true } }
 drops:
   items:
     # Common

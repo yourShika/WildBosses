@@ -30,6 +30,9 @@ skills:
   # Final detonation: a huge blast that also kills Kaboomicus (kill-caster). Still no block damage.
   - { trigger: onHealthBelow, value: 15, mechanic: say, targeter: players_in_radius, params: { radius: 40, lines: ["IF I FALL... YOU FALL WITH ME!"] } }
   - { trigger: onHealthBelow, value: 15, mechanic: explode, targeter: self_location, params: { power: 8.0, fire: false, kill-caster: true } }
+  # Sprengsaat (Signature): once overcharged he sows slow, telegraphed proximity mines (no block damage).
+  - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: say, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { radius: 40, lines: ["Mind the eggs.", "Sssurprise underfoot."] } }
+  - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: danger_zone, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { radius: 3, damage: 9, knockback: 1.2, delay: 60, warn-particle: FLAME, particle: EXPLOSION_EMITTER } }
 drops:
   items:
     # Common

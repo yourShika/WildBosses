@@ -32,6 +32,10 @@ skills:
   - { trigger: onTimer, interval: 320, interval-max: 520, mechanic: summon, targeter: self_location, params: { type: WOLF, amount: 2, radius: 5, health: 30 } }
   - { trigger: onHealthBelow, value: 50, mechanic: buff, targeter: self, params: { type: SPEED, duration: 300, amplifier: 2 } }
   - { trigger: onHealthBelow, value: 50, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["BLOOD MOON!", "Now you die."] } }
+  # Bloodmoon Frenzy (Signature): under the night sky Fenrar works himself into a killing frenzy.
+  - { trigger: onTimer, interval: 100, mechanic: buff, targeter: self, conditions: [{ type: time_is, value: NIGHT }], params: { type: SPEED, duration: 130, amplifier: 1 } }
+  - { trigger: onTimer, interval: 102, mechanic: buff, targeter: self, conditions: [{ type: time_is, value: NIGHT }, { type: phase_at_least, phase: 1 }], params: { type: STRENGTH, duration: 130, amplifier: 1 } }
+  - { trigger: onTimer, interval: 240, interval-max: 360, mechanic: summon, targeter: self_location, conditions: [{ type: time_is, value: NIGHT }], params: { type: WOLF, amount: 2, radius: 5, health: 30 } }
 drops:
   items:
     # Common

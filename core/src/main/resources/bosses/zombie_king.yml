@@ -34,6 +34,9 @@ skills:
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 9, knockback: 1.2, particle: SCULK_CHARGE } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: HUSK, amount: 4, radius: 5 } }
   - { trigger: onHealthBelow, value: 25, mechanic: shockwave, targeter: self, params: { radius: 8, damage: 12, knockup: 0.9, particle: EXPLOSION } }
+  # Grave-Hands (Signature): from phase 2, rotting hands claw up from the ground to grab and slow.
+  - { trigger: onTimer, interval: 70, interval-max: 120, mechanic: danger_zone, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }, { type: chance, value: 0.6 }], params: { radius: 3, damage: 7, knockback: 0.3, delay: 26, warn-particle: SCULK_CHARGE_POP, particle: SCULK_SOUL } }
+  - { trigger: onTimer, interval: 70, interval-max: 120, mechanic: potion, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }, { type: chance, value: 0.6 }], params: { radius: 3, type: SLOWNESS, duration: 70, amplifier: 2 } }
 drops:
   items:
     # Common

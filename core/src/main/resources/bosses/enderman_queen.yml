@@ -32,6 +32,9 @@ skills:
   - { trigger: onTimer, interval: 190, interval-max: 260, mechanic: say, targeter: nearest_player, params: { radius: 50, lines: ["Come closer, little star.", "There is no escape from the dark.", "Blink. I dare you."] } }
   - { trigger: onHealthBelow, value: 60, mechanic: buff, targeter: self, params: { type: SPEED, duration: 300, amplifier: 1 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.0, particle: DRAGON_BREATH } }
+  # Shadow Double (Signature): at 30% she splits off a fleeting, weaker shadow that hunts alongside her.
+  - { trigger: onHealthBelow, value: 30, mechanic: say, targeter: players_in_radius, params: { radius: 50, lines: ["Which of us is real?"] } }
+  - { trigger: onHealthBelow, value: 30, mechanic: summon, targeter: self_location, params: { type: ENDERMAN, amount: 1, radius: 2, health: 120, name: "<dark_purple>Shadow of Nyxara" } }
 # Warps the End-stone beneath her into an obsidian dais veined with crying obsidian and eerie lights -
 # it STAYS (restore-on-end: false). Kept modest so it never becomes an obsidian fortress.
 terrain:

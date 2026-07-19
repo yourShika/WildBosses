@@ -37,6 +37,8 @@ skills:
   - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: summon, targeter: self_location, params: { type: DROWNED, amount: 3, radius: 5 } }
   - { trigger: onHealthBelow, value: 55, mechanic: petrify, targeter: players_in_radius, params: { radius: 14, duration: 120 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SNEEZE } }
+  # Petrifying Gaze (Signature): meet her eyes and you seize up - look away to break the gaze.
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: gaze, targeter: players_in_radius, params: { radius: 16, duration: 90, min-dot: 0.6 } }
 drops:
   items:
     # Common

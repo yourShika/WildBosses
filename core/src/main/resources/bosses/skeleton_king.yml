@@ -34,6 +34,9 @@ skills:
   - { trigger: onTimer, interval: 190, interval-max: 260, mechanic: say, targeter: nearest_player, params: { radius: 40, lines: ["Look up.", "Nowhere to hide.", "Rain of bone!"] } }
   - { trigger: onHealthBelow, value: 60, mechanic: shield, targeter: self, params: { duration: 120, amplifier: 1 } }
   - { trigger: onHealthBelow, value: 30, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 16, count: 40, spread: 8, height: 22, damage: 7, fire: true } }
+  # Bone Cage (Signature): from her arrow-storm phase she snaps a short bone prison around a target.
+  # Guaranteed cleanup: the cage is removed on a timer AND restored on the next start if the server crashes.
+  - { trigger: onTimer, interval: 150, interval-max: 210, mechanic: bone_cage, targeter: nearest_player, conditions: [{ type: phase_at_least, phase: 2 }, { type: chance, value: 0.7 }], params: { material: BONE_BLOCK, radius: 1, height: 3, duration: 90 } }
 drops:
   items:
     # Common

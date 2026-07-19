@@ -292,6 +292,7 @@ public final class ArmyEncounter {
                 if (army.bossChance() < 1.0
                         && java.util.concurrent.ThreadLocalRandom.current().nextDouble() > army.bossChance()) {
                     announceNearby("<green>The horde is broken - no leader dared to show itself.");
+                    smokeBomb(); // no boss: the survivors throw a smoke bomb and scatter
                     despawnMinions();
                     break;
                 }
@@ -306,10 +307,37 @@ public final class ArmyEncounter {
                 }
                 despawnMinions();
             }
-            case FLEE -> flee();
-            case CLEARED -> despawnMinions();
+            case FLEE -> {
+                smokeBomb();
+                flee();
+            }
+            case CLEARED -> {
+                smokeBomb();
+                despawnMinions();
+            }
         }
         end();
+    }
+
+    /** A parting smoke-bomb: heavy smoke, a hiss, and a brief blind/slow to cover the retreat. */
+    private void smokeBomb() {
+        World world = anchor.getWorld();
+        if (world == null) {
+            return;
+        }
+        Location at = anchor.clone().add(0, 1, 0);
+        world.spawnParticle(org.bukkit.Particle.LARGE_SMOKE, at, 140, 3.5, 1.6, 3.5, 0.02);
+        world.spawnParticle(org.bukkit.Particle.CAMPFIRE_COSY_SMOKE, at, 40, 3.0, 2.0, 3.0, 0.01);
+        world.playSound(anchor, "entity.tnt.primed", 1.4f, 1.3f);
+        world.playSound(anchor, "block.fire.extinguish", 1.6f, 0.7f);
+        double rSq = 10 * 10;
+        for (Player pl : world.getPlayers()) {
+            if (pl.getLocation().distanceSquared(anchor) <= rSq) {
+                pl.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0, false, true, true));
+                pl.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 0, false, true, true));
+            }
+        }
+        announceNearby("<gray>The survivors hurl a smoke bomb and scatter into the wild!");
     }
 
     private void flee() {

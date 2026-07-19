@@ -76,6 +76,8 @@ public final class MechanicRegistry {
         register("arrow_rain", MechanicRegistry::arrowRain);
         register("throw_potion", MechanicRegistry::throwPotion);
         register("petrify", MechanicRegistry::petrify);
+        register("gaze", MechanicRegistry::gaze);
+        register("bone_cage", MechanicRegistry::boneCage);
         register("lifesteal", MechanicRegistry::lifesteal);
         register("fly", MechanicRegistry::fly);
         register("radial", MechanicRegistry::radial);
@@ -421,6 +423,48 @@ public final class MechanicRegistry {
                 t.entity().addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, 5, false, true, true));
                 t.entity().addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, duration, 2, false, true, true));
                 t.entity().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, Math.min(duration, 60), 0, false, true, true));
+            }
+        }
+    }
+
+    /**
+     * Petrifies only players who are actually looking at the boss (their crosshair is roughly on it),
+     * so <em>looking away counters it</em>. {@code min-dot} is the alignment threshold (1 = dead-on).
+     */
+    private static void gaze(SkillContext ctx, List<Target> targets, Params p) {
+        int duration = p.getInt("duration", 100);
+        double minDot = p.getDouble("min-dot", 0.6);
+        Location eye = ctx.self().getEyeLocation();
+        for (Target t : targets) {
+            if (!(t.entity() instanceof Player pl) || pl == ctx.self()) {
+                continue;
+            }
+            Vector toBoss = eye.toVector().subtract(pl.getEyeLocation().toVector());
+            if (toBoss.lengthSquared() < 1.0E-4) {
+                continue;
+            }
+            if (pl.getEyeLocation().getDirection().dot(toBoss.normalize()) >= minDot) {
+                pl.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, 5, false, true, true));
+                pl.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, duration, 2, false, true, true));
+                pl.getWorld().playSound(pl.getLocation(), "block.stone.place", 1.0f, 0.6f);
+            }
+        }
+    }
+
+    /**
+     * Cages a target inside a temporary hollow wall (only ever filling empty space, never overwriting
+     * a block/build). Cleanup is guaranteed: the blocks are snapshotted to disk and restored after the
+     * duration - and also restored on the next server start if the server crashed while they stood.
+     */
+    private static void boneCage(SkillContext ctx, List<Target> targets, Params p) {
+        Material mat = enumOr(Material.class, p.getString("material", "BONE_BLOCK"), Material.BONE_BLOCK);
+        int radius = Math.max(1, p.getInt("radius", 2));
+        int height = Math.max(1, p.getInt("height", 3));
+        int duration = Math.max(20, p.getInt("duration", 100));
+        for (Target t : targets) {
+            if (t.entity() != null && t.entity() != ctx.self()) {
+                ctx.plugin().terrainManager().temporaryCage(ctx.boss().encounterId(),
+                        t.entity().getLocation(), mat, radius, height, duration);
             }
         }
     }

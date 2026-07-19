@@ -31,6 +31,9 @@ skills:
   - { trigger: onHealthBelow, value: 33, mechanic: fly, targeter: nearest_player, params: { duration: 140, lift: 0.6 } }
   - { trigger: onHealthBelow, value: 33, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 7, damage: 12, knockback: 1.0, particle: TOTEM_OF_UNDYING } }
   - { trigger: onPhaseChange, phase: 2, mechanic: buff, targeter: self, params: { type: SPEED, duration: 400, amplifier: 1 } }
+  # Prism Sweep (Signature): a rotating fan of prism-bolts, then beams that rake everyone nearby.
+  - { trigger: onTimer, interval: 110, interval-max: 160, mechanic: radial, targeter: self, params: { count: 12, velocity: 1.3, type: SNOWBALL, particle: DUST_COLOR_TRANSITION } }
+  - { trigger: onTimer, interval: 112, interval-max: 162, mechanic: beam, targeter: players_in_radius, params: { radius: 18, damage: 8, particle: DUST_COLOR_TRANSITION } }
 drops:
   items:
     # Common

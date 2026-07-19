@@ -37,6 +37,8 @@ skills:
   - { trigger: onHealthBelow, value: 65, mechanic: throw_potion, targeter: nearest_player, params: { type: WITHER, duration: 100, amplifier: 0, velocity: 0.9 } }
   - { trigger: onHealthBelow, value: 35, mechanic: potion_cloud, targeter: self_location, params: { type: POISON, duration: 160, amplifier: 1, radius: 5, cloud-duration: 200 } }
   - { trigger: onHealthBelow, value: 15, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SCULK_SOUL } }
+  # Contagion (Signature): the plague jumps host to host - a poison cloud blooms on each of you.
+  - { trigger: onTimer, interval: 120, interval-max: 170, mechanic: potion_cloud, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { type: POISON, duration: 120, amplifier: 1, radius: 3, cloud-duration: 140 } }
 army:
   stages: [10, 16, 22, 28]
   wave-size: 6

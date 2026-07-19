@@ -5,6 +5,7 @@ import com.yourshika.wildbosses.boss.ActiveBoss;
 import com.yourshika.wildbosses.boss.EncounterHook;
 import com.yourshika.wildbosses.boss.TerrainFeature;
 import com.yourshika.wildbosses.boss.TerrainSettings;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -352,6 +353,51 @@ public final class TerrainManager implements EncounterHook {
 
     private File snapshotFile(String encounterId) {
         return new File(directory, encounterId + ".yml");
+    }
+
+    private int cageSeq;
+
+    /**
+     * Build a temporary hollow wall of {@code material} around {@code center} that is guaranteed to be
+     * removed: it is snapshotted to disk immediately (so a crash mid-cage is undone on the next start
+     * via {@link #restorePersisted()}) and restored after {@code durationTicks}. Only empty/passable
+     * space is filled - existing blocks and player builds are never overwritten.
+     */
+    public void temporaryCage(String encounterId, Location center, Material material,
+                              int radius, int height, int durationTicks) {
+        World world = center.getWorld();
+        if (world == null) {
+            return;
+        }
+        String id = encounterId + "-cage-" + (++cageSeq);
+        TerrainSnapshot snapshot = new TerrainSnapshot(id, world.getUID());
+        int cx = center.getBlockX();
+        int cy = center.getBlockY();
+        int cz = center.getBlockZ();
+        for (int y = 0; y < height; y++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dz = -radius; dz <= radius; dz++) {
+                    if (Math.abs(dx) != radius && Math.abs(dz) != radius) {
+                        continue; // hollow: only the ring wall
+                    }
+                    Block b = world.getBlockAt(cx + dx, cy + y, cz + dz);
+                    if (b.getType().isAir() || b.isPassable()) {
+                        setBlock(snapshot, b, material); // only fills empty space
+                    }
+                }
+            }
+        }
+        if (snapshot.size() == 0) {
+            return;
+        }
+        File file = snapshotFile(id);
+        snapshot.save(file, plugin.getLogger()); // on disk now -> crash-safe
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            snapshot.restore();
+            if (file.exists() && !file.delete()) {
+                plugin.getLogger().warning("Could not delete cage snapshot " + file.getName());
+            }
+        }, durationTicks);
     }
 
     /**
