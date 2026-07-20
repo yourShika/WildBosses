@@ -1,7 +1,9 @@
 name: WildBosses
 version: '${version}'
 main: com.yourshika.wildbosses.WildBossesPlugin
-api-version: '1.21'
+# Minimum API generation required. 26.1 keeps the plugin loadable on 26.1.x AND 26.2+
+# (it is built against the 26.2 API). Set to '26.2' to hard-require a 26.2 server.
+api-version: '26.1'
 author: yourShika
 description: Random custom world bosses with phases, abilities, AoEs, armies, custom drops, terrain theming and optional BetterModel custom models.
 website: https://github.com/yourShika/WildBosses

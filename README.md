@@ -1,6 +1,6 @@
 # WildBosses
 
-**Random custom world bosses for Paper/Spigot — Minecraft 26.1.2.**
+**Random custom world bosses for Paper/Spigot — Minecraft 26.2.**
 
 WildBosses spawns unique, configurable bosses at random across the Overworld, Nether and End,
 announces where they appear, and fights the players with phases, boss bars, custom abilities, AoEs,
@@ -38,8 +38,8 @@ custom drops, and army encounters — a MythicMobs-style engine where every boss
 
 | | |
 |---|---|
-| Server | Paper (or a Paper fork: Purpur, Folia, etc.) for **Minecraft 26.1.2** |
-| Java | **25+** (required by MC 26.1) |
+| Server | Paper (or a Paper fork: Purpur, Folia, etc.) — built against **Minecraft 26.2**, runs on **26.1.x – 26.2** |
+| Java | **25+** (required by MC 26.1+) |
 | Optional | CoreProtect / WorldGuard / GriefPrevention (extra terrain protection); PlaceholderAPI (placeholders) |
 
 ## Installation
