@@ -49,11 +49,43 @@ public final class ActiveMenu extends Menu {
                 }
             });
         }
-        if (slot == 0) {
+        // Active lunar events (Blood/Crystal/Harvest/Eclipse) - one entry per world.
+        int lunarSlot = 45;
+        for (var entry : plugin.lunarEvents() == null
+                ? java.util.Map.<org.bukkit.World, String>of().entrySet()
+                : plugin.lunarEvents().activeEvents().entrySet()) {
+            if (lunarSlot > 47) {
+                break;
+            }
+            set(lunarSlot++, lunarIcon(entry.getKey(), entry.getValue()), null);
+        }
+
+        if (slot == 0 && lunarSlot == 45) {
             set(22, icon(Material.BARRIER, "<gray>No active encounters"), null);
         }
         set(49, icon(Material.ARROW, "<yellow>Back"), e -> new MainMenu(plugin).open((Player) e.getWhoClicked()));
         filler(Material.BLACK_STAINED_GLASS_PANE);
+    }
+
+    private org.bukkit.inventory.ItemStack lunarIcon(org.bukkit.World world, String type) {
+        var lunar = plugin.lunarEvents();
+        long remain = lunar.remainingSeconds(world);
+        Material mat = switch (type) {
+            case "crystalmoon" -> Material.AMETHYST_CLUSTER;
+            case "harvestmoon" -> Material.GOLDEN_CARROT;
+            case "eclipse" -> Material.BLACK_CONCRETE;
+            default -> Material.REDSTONE_BLOCK;
+        };
+        return icon(mat, lunar.displayName(type),
+                "<gray>" + tr("Lunar event") + " <dark_gray>(" + type + ")",
+                "<gray>" + tr("World") + " <yellow>" + world.getName(),
+                remain >= 0
+                        ? "<gray>" + tr("Ends in") + " <yellow>"
+                                + com.yourshika.wildbosses.util.Text.duration(remain)
+                        : "<dark_gray>No time cap",
+                lunar.isForced(world) ? "<dark_gray>(started by an admin)" : "<dark_gray>(natural)",
+                " ",
+                "<dark_gray>Stop with /wb lunar stop " + world.getName());
     }
 
     private org.bukkit.inventory.ItemStack bossIcon(ActiveBoss boss) {

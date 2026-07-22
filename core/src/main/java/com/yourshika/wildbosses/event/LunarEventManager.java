@@ -109,6 +109,46 @@ public final class LunarEventManager implements Listener {
         return world == null ? null : activeByWorld.get(world.getUID());
     }
 
+    /** Every world that currently has a lunar event running, mapped to its event type. */
+    public Map<World, String> activeEvents() {
+        Map<World, String> out = new java.util.LinkedHashMap<>();
+        for (Map.Entry<UUID, String> e : activeByWorld.entrySet()) {
+            World w = plugin.getServer().getWorld(e.getKey());
+            if (w != null) {
+                out.put(w, e.getValue());
+            }
+        }
+        return out;
+    }
+
+    /** Whether the event in this world was started by an admin via {@code /wb lunar}. */
+    public boolean isForced(World world) {
+        return world != null && forced.contains(world.getUID());
+    }
+
+    /** Seconds until the active event hits its hard cap, or -1 if unknown/uncapped. */
+    public long remainingSeconds(World world) {
+        if (world == null) {
+            return -1;
+        }
+        Long start = startedAt.get(world.getUID());
+        if (start == null) {
+            return -1;
+        }
+        int capMin = isForced(world)
+                ? plugin.getConfig().getInt("lunar-events.forced-max-minutes", 60)
+                : plugin.getConfig().getInt("lunar-events.max-minutes", 20);
+        if (capMin <= 0) {
+            return -1;
+        }
+        return Math.max(0, (capMin * 60_000L - (System.currentTimeMillis() - start)) / 1000L);
+    }
+
+    /** A display name for an event type, e.g. for the /wb active menu. */
+    public String displayName(String type) {
+        return prettyName(type);
+    }
+
     /** Admin trigger: start an event now (any time of day) that only ends via {@link #forceStop}. */
     public void forceStart(World world, String type) {
         if (world == null || world.getEnvironment() != World.Environment.NORMAL) {

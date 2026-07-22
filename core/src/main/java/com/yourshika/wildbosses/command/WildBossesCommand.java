@@ -201,11 +201,26 @@ public final class WildBossesCommand implements TabExecutor {
     }
 
     private void active(CommandSender sender) {
+        // Players get the live overview menu (bosses, armies AND lunar events, with coordinates).
+        if (sender instanceof Player player) {
+            new com.yourshika.wildbosses.gui.ActiveMenu(plugin).open(player);
+            return;
+        }
         List<ActiveBoss> bosses = plugin.bossManager().active();
         var armies = plugin.armyManager().active();
-        if (bosses.isEmpty() && armies.isEmpty()) {
+        var lunar = plugin.lunarEvents() == null
+                ? java.util.Map.<World, String>of()
+                : plugin.lunarEvents().activeEvents();
+        if (bosses.isEmpty() && armies.isEmpty() && lunar.isEmpty()) {
             plugin.messages().send(sender, "no-active");
             return;
+        }
+        for (var e : lunar.entrySet()) {
+            long remain = plugin.lunarEvents().remainingSeconds(e.getKey());
+            sender.sendMessage(Text.mm("<gray> - </gray>")
+                    .append(Text.mm(plugin.lunarEvents().displayName(e.getValue())))
+                    .append(Text.mm("<gray> in <yellow>" + e.getKey().getName()
+                            + (remain >= 0 ? "<gray> (ends in <yellow>" + Text.duration(remain) + "<gray>)" : ""))));
         }
         plugin.messages().send(sender, "active-header", Text.num("count", bosses.size() + armies.size()));
         long now = plugin.bossManager().currentTick();

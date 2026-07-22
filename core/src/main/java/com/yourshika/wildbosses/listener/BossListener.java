@@ -40,11 +40,15 @@ public final class BossListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        // A boss nobody has fought yet is invulnerable to NON-player damage: a freshly-spawned,
-        // far-away boss must not be instantly killed by the environment (lava/cactus/etc.) or a
-        // mob-clearing plugin's damage before any player can reach it. Player hits pass through
-        // (and "engage" it), after which normal damage rules apply.
-        if (!boss.engaged()
+        // The void and admin/plugin kills always go through, so a boss can never get stuck below the
+        // world or survive a deliberate /kill.
+        boolean bypass = cause.equals("VOID") || cause.equals("CUSTOM")
+                || cause.equals("KILL") || cause.equals("SUICIDE");
+        // A boss only ever takes damage that traces back to a PLAYER. That means its own explosions,
+        // fall damage, its own lightning, fire/lava, cacti, its own minions etc. never hurt it - while
+        // player-attributable damage (melee, arrows, player-lit TNT, splash potions, thorns, pets)
+        // still works normally.
+        if (!bypass
                 && !(event instanceof EntityDamageByEntityEvent ede && isPlayerSource(ede.getDamager()))) {
             event.setCancelled(true);
             return;
@@ -86,12 +90,28 @@ public final class BossListener implements Listener {
         }
     }
 
+    /**
+     * Whether this damage traces back to a player: a direct hit, a projectile they shot, TNT they lit,
+     * a lingering cloud they threw, or a pet they tamed. Anything else (the boss' own explosion, its
+     * minions, mob-clearing plugins, ...) is treated as non-player and cannot hurt a boss.
+     */
     private static boolean isPlayerSource(org.bukkit.entity.Entity damager) {
         if (damager instanceof org.bukkit.entity.Player) {
             return true;
         }
-        return damager instanceof org.bukkit.entity.Projectile proj
-                && proj.getShooter() instanceof org.bukkit.entity.Player;
+        if (damager instanceof org.bukkit.entity.Projectile proj) {
+            return proj.getShooter() instanceof org.bukkit.entity.Player;
+        }
+        if (damager instanceof org.bukkit.entity.TNTPrimed tnt) {
+            return tnt.getSource() instanceof org.bukkit.entity.Player;
+        }
+        if (damager instanceof org.bukkit.entity.AreaEffectCloud cloud) {
+            return cloud.getSource() instanceof org.bukkit.entity.Player;
+        }
+        if (damager instanceof org.bukkit.entity.Tameable pet) {
+            return pet.isTamed() && pet.getOwner() instanceof org.bukkit.entity.Player;
+        }
+        return false;
     }
 
     private static boolean isImmune(BossDefinition def, String cause) {
