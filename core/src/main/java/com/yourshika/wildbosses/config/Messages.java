@@ -45,39 +45,94 @@ public final class Messages {
         }
         String code = plugin.getConfig().getString("settings.language", "en").trim().toLowerCase(Locale.ROOT);
 
-        // Load the BUNDLED language files straight from the jar so newly-shipped messages and terms are
-        // always current, even if the on-disk lang file was written by an older plugin version. The
-        // on-disk file then overrides them, so an admin's own edits still win.
-        FileConfiguration enBundled = fromJar("lang/en.yml");
-        FileConfiguration chosenBundled = code.equals("en") ? enBundled : fromJar("lang/" + code + ".yml");
-        FileConfiguration base = chosenBundled != null ? chosenBundled : enBundled;
-        if (base != null && base != enBundled && enBundled != null) {
-            base.setDefaults(enBundled); // chosen bundled -> English fallback
-        }
-        FileConfiguration disk = YamlConfiguration.loadConfiguration(
-                new File(plugin.getDataFolder(), "lang/" + code + ".yml"));
-        if (base != null) {
-            disk.setDefaults(base); // on-disk value -> bundled (chosen lang) -> English
-        }
-        lang = disk;
-        prefix = lang.getString("prefix", "");
+        // Loading the language files must never be able to disable the plugin: any parse error degrades
+        // to English (or an empty config) with a warning instead of throwing out of onEnable.
+        try {
+            // Load the BUNDLED language files straight from the jar so newly-shipped messages and terms
+            // are always current, even if the on-disk lang file was written by an older plugin version.
+            // The on-disk file then overrides them, so an admin's own edits still win.
+            FileConfiguration enBundled = fromJar("lang/en.yml");
+            FileConfiguration chosenBundled = code.equals("en") ? enBundled : fromJar("lang/" + code + ".yml");
+            FileConfiguration base = chosenBundled != null ? chosenBundled : enBundled;
+            if (base != null && base != enBundled && enBundled != null) {
+                base.setDefaults(enBundled); // chosen bundled -> English fallback
+            }
+            FileConfiguration disk = loadYaml(new File(plugin.getDataFolder(), "lang/" + code + ".yml"));
+            if (base != null) {
+                disk.setDefaults(base); // on-disk value -> bundled (chosen lang) -> English
+            }
+            lang = disk;
+            prefix = lang.getString("prefix", "");
 
-        // Terms: bundled (jar, always up to date) first, then the on-disk file overrides.
-        terms.clear();
-        if (base != null) {
-            putTerms(base.getConfigurationSection("terms"));
+            // Terms: bundled (jar, always up to date) first, then the on-disk file overrides.
+            terms.clear();
+            if (base != null) {
+                putTerms(base.getConfigurationSection("terms"));
+            }
+            putTerms(disk.getConfigurationSection("terms"));
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Could not load language '" + code + "'; falling back to English. "
+                    + "Cause: " + ex);
+            FileConfiguration en = fromJar("lang/en.yml");
+            lang = en != null ? en : newYaml();
+            prefix = lang.getString("prefix", "");
+            terms.clear();
         }
-        putTerms(disk.getConfigurationSection("terms"));
     }
 
-    /** Load a YAML resource straight from the plugin jar, or {@code null} if it isn't bundled. */
+    /**
+     * A YamlConfiguration whose path separator is a character that never appears in a key. Our
+     * {@code terms:} keys are whole English sentences (dialogue, lore, tooltips) and many end in '.';
+     * with the default '.' separator Bukkit splits them into a path and a trailing empty segment,
+     * which throws {@code IllegalArgumentException: Cannot set to an empty path} while parsing. Using a
+     * NUL separator makes every key literal. No key in these files uses dotted nesting, so nothing else
+     * is affected.
+     */
+    private static YamlConfiguration newYaml() {
+        YamlConfiguration cfg = new YamlConfiguration();
+        cfg.options().pathSeparator('\u0000');
+        return cfg;
+    }
+
+    /** Parse YAML from a reader into a {@link #newYaml()} config, or {@code null} on any failure. */
+    private FileConfiguration parse(java.io.Reader reader, String what) {
+        YamlConfiguration cfg = newYaml();
+        try {
+            cfg.load(reader);
+        } catch (Exception ex) {
+            plugin.getLogger().warning("Could not parse " + what + ": " + ex.getMessage());
+            return null;
+        }
+        return cfg;
+    }
+
+    /** Load a YAML resource straight from the plugin jar, or {@code null} if it isn't bundled/parseable. */
     private FileConfiguration fromJar(String path) {
         java.io.InputStream in = plugin.getResource(path);
         if (in == null) {
             return null;
         }
-        return YamlConfiguration.loadConfiguration(
-                new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+        try (java.io.Reader r = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8)) {
+            return parse(r, path + " (bundled)");
+        } catch (java.io.IOException ex) {
+            return null;
+        }
+    }
+
+    /** Load an on-disk YAML file, or an empty (never-null) config if it's absent/unparseable. */
+    private FileConfiguration loadYaml(File file) {
+        if (file.exists()) {
+            try (java.io.Reader r = new java.io.InputStreamReader(
+                    new java.io.FileInputStream(file), java.nio.charset.StandardCharsets.UTF_8)) {
+                FileConfiguration parsed = parse(r, file.getName());
+                if (parsed != null) {
+                    return parsed;
+                }
+            } catch (java.io.IOException ignored) {
+                // fall through to an empty config
+            }
+        }
+        return newYaml();
     }
 
     private void putTerms(org.bukkit.configuration.ConfigurationSection section) {
