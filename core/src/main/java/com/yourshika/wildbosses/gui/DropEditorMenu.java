@@ -134,6 +134,7 @@ public final class DropEditorMenu extends Menu {
     private void appendControls(List<String> lore) {
         lore.add(" ");
         lore.add("<gray>Left-click <aqua>edit chance (precise)");
+        lore.add("<gray>Shift-click <aqua>edit amount (1-64)");
         lore.add("<gray>Right-click <aqua>toggle announce");
         lore.add("<gray>Middle-click <light_purple>cycle rarity");
         lore.add("<gray>Drop key (Q) <red>delete");
@@ -158,6 +159,10 @@ public final class DropEditorMenu extends Menu {
                 it.put("rarity", all[(rarityOf(it).ordinal() + 1) % all.length].name());
                 autoSave();
                 rebuild();
+            } else if (e.isShiftClick()) {
+                // Shift-click opens the amount (1-64) editor for this drop.
+                autoSave();
+                new AmountEditorMenu(plugin, bossId, section, index).open((Player) e.getWhoClicked());
             } else if (e.isRightClick()) {
                 Map<String, Object> it = list.get(index);
                 it.put("announce", !announceOn(it));

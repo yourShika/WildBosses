@@ -327,3 +327,7 @@ terms:
   "Lunar event": "Mond-Event"
   "World": "Welt"
   "Ends in": "Endet in"
+  "Amount": "Menge"
+  "WildBosses - Amount": "<dark_gray>WildBosses <gray>- Menge"
+  "Min": "Min"
+  "Max": "Max"
