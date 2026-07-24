@@ -59,7 +59,7 @@ drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.
     - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
-        name: "<gradient:#fde047:#a16207>Trophy of Vespula</gradient>", lore: ["<dark_gray>Proof you bested Vespula.", "<gray>Mount it on your wall."] }
+        name: "<gradient:#fde047:#a16207>Trophy of Vespula</gradient>", lore: ["<dark_gray>Proof you bested Vespula.", "<gray>Mount it on your wall."], head-texture: "ewogICJ0aW1lc3RhbXAiIDogMTc4NDkwNjkyODU5MSwKICAicHJvZmlsZUlkIiA6ICJlZmM3NTVhZjNkNzE0YjVhODhkNjU0ZDgyY2RiMDY3MSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfQmVlIiwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzQ0MjBjOWM0M2UwOTU4ODBkY2QyZTI4MWM4MWY0N2IxNjNiNDc4ZjU4YTU4NGJiNjFmOTNlNmUxMGExNTVmMzEiLAogICAgICAibWV0YWRhdGEiIDogewogICAgICAgICJtb2RlbCIgOiAic2xpbSIKICAgICAgfQogICAgfSwKICAgICJDQVBFIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yMzQwYzBlMDNkZDI0YTExYjE1YThiMzNjMmE3ZTllMzJhYmIyMDUxYjI0ODFkMGJhN2RlZmQ2MzVjYTdhOTMzIgogICAgfQogIH0KfQ==" }
     # Common
     - { item: HONEYCOMB, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: HONEY_BOTTLE, amount: "4-8", chance: 0.9, rarity: COMMON }

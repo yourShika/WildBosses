@@ -38,7 +38,7 @@ drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.
     - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
-        name: "<gradient:#f9a8d4:#93c5fd>Trophy of Aurelith</gradient>", lore: ["<dark_gray>Proof you bested Aurelith.", "<gray>Mount it on your wall."] }
+        name: "<gradient:#f9a8d4:#93c5fd>Trophy of Aurelith</gradient>", lore: ["<dark_gray>Proof you bested Aurelith.", "<gray>Mount it on your wall."], head-texture: "ewogICJ0aW1lc3RhbXAiIDogMTc4NDkwNjkyODkxNCwKICAicHJvZmlsZUlkIiA6ICJkZmU3ZjQ1NjFmZDU0NDhjYjg1ODlmNmJjZDlhMGRlMCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfSG9yc2UiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjk5MDgyMTk1MWZkOWFiOTMwMWFlYmY1ZDc2YTliNjBmMTVlYmY2MTllMWM5ZThkNjY4OTE5ZDM5NGQ5YTkzMyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9" }
     # Common
     - { item: GOLDEN_APPLE, amount: "3-6", chance: 1.0, rarity: COMMON }
     - { item: SUGAR, amount: "4-9", chance: 0.85, rarity: COMMON }

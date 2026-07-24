@@ -44,7 +44,7 @@ drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.
     - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
-        name: "<gradient:#9ca3af:#374151>Trophy of Golakar</gradient>", lore: ["<dark_gray>Proof you bested Golakar.", "<gray>Mount it on your wall."] }
+        name: "<gradient:#9ca3af:#374151>Trophy of Golakar</gradient>", lore: ["<dark_gray>Proof you bested Golakar.", "<gray>Mount it on your wall."], head-texture: "ewogICJ0aW1lc3RhbXAiIDogMTc4NDkwNjgyNDQwNywKICAicHJvZmlsZUlkIiA6ICI3NTdmOTBiMjIzNDQ0YjhkOGRhYzgyNDIzMmUyY2VjZSIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfR29sZW0iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWM2Y2Q3MjAyYzM0ZTc4ZjMwNzMwOTAzNDlmN2Q5NzNiMjg4YWY1ZTViNzMzNGRkMjQ5MDEwYjNmMjcwNzhmOSIKICAgIH0KICB9Cn0=" }
     # Common
     - { item: STONE, amount: "16-32", chance: 1.0, rarity: COMMON }
     - { item: RAW_IRON, amount: "6-12", chance: 0.9, rarity: COMMON }

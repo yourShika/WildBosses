@@ -47,7 +47,7 @@ drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.
     - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
-        name: "<gradient:#7c3aed:#2e1065>Trophy of Walak</gradient>", lore: ["<dark_gray>Proof you bested Walak.", "<gray>Mount it on your wall."] }
+        name: "<gradient:#7c3aed:#2e1065>Trophy of Walak</gradient>", lore: ["<dark_gray>Proof you bested Walak.", "<gray>Mount it on your wall."], head-texture: "ewogICJ0aW1lc3RhbXAiIDogMTc4NDkwNjgyNDYzNiwKICAicHJvZmlsZUlkIiA6ICJiZDQ4MjczOTc2N2M0NWRjYTFmOGMzM2M0MDUzMDk1MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfVmlsbGFnZXIiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjRiZDgzMjgxM2FjMzhlNjg2NDg5MzhkN2EzMmY2YmEyOTgwMWFhZjMxNzQwNDM2N2YyMTRiNzhiNGQ0NzU0YyIKICAgIH0KICB9Cn0=" }
     # Common
     - { item: DIAMOND, amount: "5-9", chance: 1.0, rarity: COMMON }
     - { item: SPIDER_EYE, amount: "3-7", chance: 0.85, rarity: COMMON }

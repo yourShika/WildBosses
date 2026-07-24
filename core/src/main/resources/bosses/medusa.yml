@@ -43,7 +43,7 @@ drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.
     - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
-        name: "<gradient:#34d399:#065f46>Trophy of Medusa</gradient>", lore: ["<dark_gray>Proof you bested Medusa.", "<gray>Mount it on your wall."] }
+        name: "<gradient:#34d399:#065f46>Trophy of Medusa</gradient>", lore: ["<dark_gray>Proof you bested Medusa.", "<gray>Mount it on your wall."], head-texture: "ewogICJ0aW1lc3RhbXAiIDogMTc4NDkwNjkyOTI3MSwKICAicHJvZmlsZUlkIiA6ICJkMmViZjI0ZGY1NzE0OTU3YmMzZDg5NWFmYzgxMDFiZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfUHVmZmVyZmlzaCIsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS80ZjkyMDBhMDFiZDFhNzgzMDY4MzcwYzM1MWIzYmM3Zjk3MTcxNmNlM2Y1MTJiYWI0Yjc4OWNhNDgzZGRkZDg3IgogICAgfQogIH0KfQ==" }
     # Common
     - { item: PUFFERFISH, amount: "3-6", chance: 1.0, rarity: COMMON }
     - { item: INK_SAC, amount: "4-9", chance: 0.85, rarity: COMMON }

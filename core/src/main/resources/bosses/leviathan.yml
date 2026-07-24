@@ -46,7 +46,7 @@ drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.
     - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
-        name: "<gradient:#38bdf8:#0c4a6e>Trophy of Abyssos</gradient>", lore: ["<dark_gray>Proof you bested Abyssos.", "<gray>Mount it on your wall."] }
+        name: "<gradient:#38bdf8:#0c4a6e>Trophy of Abyssos</gradient>", lore: ["<dark_gray>Proof you bested Abyssos.", "<gray>Mount it on your wall."], head-texture: "ewogICJ0aW1lc3RhbXAiIDogMTc4NDkwNjkyOTU5MSwKICAicHJvZmlsZUlkIiA6ICIxNWFhMGM2YmQxNjU0ZmI2YmZiYzZlYjUzNDgxNTdkZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJNSEZfR3VhcmRpYW4iLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmExMTViYWM5ZWUxMWNmYWY5YzlkNjIzYTM4MjNiMjFjZmJkZGMxYjM3MzRmNzFjZjY3ZmUyYWMwYWVkMTc1YyIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9" }
     # Common
     - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0, rarity: COMMON }
     - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0, rarity: COMMON }
