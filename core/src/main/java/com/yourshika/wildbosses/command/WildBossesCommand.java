@@ -297,7 +297,7 @@ public final class WildBossesCommand implements TabExecutor {
         }
         var lunar = plugin.lunarEvents();
         if (lunar == null) {
-            sender.sendMessage(Text.mm("<red>Lunar events are not available."));
+            sender.sendMessage(Text.mm("<red>" + plugin.messages().tr("Lunar events are not available.")));
             return;
         }
         String type = args.length > 1 ? args[1].toLowerCase(Locale.ROOT) : "bloodmoon";

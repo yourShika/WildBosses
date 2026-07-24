@@ -191,7 +191,7 @@ public final class RewardManager implements BossDeathListener {
         if (!plugin.config().dropBroadcastEnabled()) {
             return;
         }
-        Component display = Text.mm(rarity.inline())
+        Component display = Text.mm(plugin.messages().tr(rarity.inline()))
                 .append(Component.text(" "))
                 .append(Component.text("["))
                 .append(base)
@@ -213,9 +213,9 @@ public final class RewardManager implements BossDeathListener {
             meta.displayName(Text.mm(plugin.messages().tr(entry.name())).decoration(TextDecoration.ITALIC, false));
         }
         List<Component> lore = new ArrayList<>();
-        lore.add(Text.mm(entry.rarity().loreLine()).decoration(TextDecoration.ITALIC, false));
+        lore.add(Text.mm(plugin.messages().tr(entry.rarity().loreLine())).decoration(TextDecoration.ITALIC, false));
         for (String line : entry.lore()) {
-            lore.add(Text.mm(line).decoration(TextDecoration.ITALIC, false));
+            lore.add(Text.mm(plugin.messages().tr(line)).decoration(TextDecoration.ITALIC, false));
         }
         meta.lore(lore);
         for (String token : entry.enchants()) {

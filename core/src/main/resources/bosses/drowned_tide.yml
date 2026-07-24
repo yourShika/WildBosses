@@ -59,7 +59,7 @@ army:
 drops:
   items:
     # Trophy (Mythical)
-    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+    - { item: ZOMBIE_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
         name: "<gradient:#1e3a8a:#0c4a6e>Trophy of Tempestas</gradient>", lore: ["<dark_gray>Proof you bested the Drowned King.", "<gray>Mount it on your wall."] }
     # Common
     - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0, rarity: COMMON }

@@ -82,10 +82,10 @@ public final class ActiveMenu extends Menu {
                 remain >= 0
                         ? "<gray>" + tr("Ends in") + " <yellow>"
                                 + com.yourshika.wildbosses.util.Text.duration(remain)
-                        : "<dark_gray>No time cap",
-                lunar.isForced(world) ? "<dark_gray>(started by an admin)" : "<dark_gray>(natural)",
+                        : "<dark_gray>" + tr("No time cap"),
+                "<dark_gray>" + tr(lunar.isForced(world) ? "(started by an admin)" : "(natural)"),
                 " ",
-                "<dark_gray>Stop with /wb lunar stop " + world.getName());
+                "<dark_gray>" + tr("Stop with /wb lunar stop") + " " + world.getName());
     }
 
     private org.bukkit.inventory.ItemStack bossIcon(ActiveBoss boss) {

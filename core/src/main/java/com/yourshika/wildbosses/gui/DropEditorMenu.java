@@ -96,7 +96,7 @@ public final class DropEditorMenu extends Menu {
                 ? plugin.messages().tr(String.valueOf(it.get("name")))
                 : "<white>" + Text.titleCase(mat.name());
         List<String> lore = new ArrayList<>();
-        lore.add(rarityOf(it).loreLine());
+        lore.add(tr(rarityOf(it).loreLine()));
         lore.add("<gray>" + tr("Chance:") + " <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
         lore.add("<gray>" + tr("Announce:") + " " + (announceOn(it) ? "<green>" + tr("on") : "<red>" + tr("off")));
         for (Object en : listOf(it.get("enchants"))) {
@@ -117,7 +117,7 @@ public final class DropEditorMenu extends Menu {
             List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.empty());
             add(lore, "<gray>» <white>captured 1:1 from hand");
-            add(lore, rarityOf(it).loreLine());
+            add(lore, tr(rarityOf(it).loreLine()));
             add(lore, "<gray>" + tr("Chance:") + " <yellow>" + Math.round(toDouble(it.get("chance"), 1.0) * 100) + "%");
             add(lore, "<gray>" + tr("Announce:") + " " + (announceOn(it) ? "<green>" + tr("on") : "<red>" + tr("off")));
             List<String> ctrl = new ArrayList<>();
@@ -209,7 +209,7 @@ public final class DropEditorMenu extends Menu {
     private void addFromHand(Player player) {
         ItemStack hand = player.getInventory().getItemInMainHand();
         if (hand == null || hand.getType().isAir()) {
-            player.sendMessage(Text.mm("<red>Hold the item you want to add in your main hand first."));
+            player.sendMessage(Text.mm("<red>" + plugin.messages().tr("Hold the item you want to add in your main hand first.")));
             return;
         }
         Map<String, Object> entry = new LinkedHashMap<>();

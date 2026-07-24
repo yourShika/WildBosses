@@ -63,7 +63,7 @@ army:
 drops:
   items:
     # Trophy (Mythical)
-    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+    - { item: WITHER_SKELETON_SKULL, amount: 1, chance: 0.03, rarity: MYTHICAL,
         name: "<gradient:#e5e7eb:#4c1d95>Trophy of Morghul</gradient>", lore: ["<dark_gray>Proof you bested the Bone Mage.", "<gray>Mount it on your wall."] }
     # Common
     - { item: BONE, amount: "12-24", chance: 1.0, rarity: COMMON }

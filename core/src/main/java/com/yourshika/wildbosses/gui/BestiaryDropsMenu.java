@@ -77,8 +77,11 @@ public final class BestiaryDropsMenu extends Menu {
                 meta.displayName(Text.mm(plugin.messages().tr(e.name())).decoration(TextDecoration.ITALIC, false));
             }
             List<Component> lore = new ArrayList<>();
-            add(lore, e.rarity().loreLine());
+            add(lore, tr(e.rarity().loreLine()));
             add(lore, "<gray>" + tr("Chance:") + " <yellow>" + pct(e.chance()) + "%");
+            for (String line : e.lore()) {
+                add(lore, tr(line));
+            }
             for (String token : e.enchants()) {
                 add(lore, "<dark_gray>• <aqua>" + prettyEnchant(token));
                 applyEnchant(meta, token);
@@ -98,7 +101,7 @@ public final class BestiaryDropsMenu extends Menu {
         if (meta != null) {
             List<Component> lore = meta.hasLore() ? new ArrayList<>(meta.lore()) : new ArrayList<>();
             lore.add(Component.empty());
-            add(lore, r.rarity().loreLine());
+            add(lore, tr(r.rarity().loreLine()));
             add(lore, "<gray>" + tr("Chance:") + " <yellow>" + pct(r.chance()) + "%");
             meta.lore(lore);
             item.setItemMeta(meta);
