@@ -18,11 +18,16 @@ import java.util.logging.Logger;
  */
 public final class BossRegistry {
 
-    /** Bundled default boss files copied to the data folder on first run. */
+    /**
+     * Fallback list of bundled boss files, used only if the jar can't be scanned (e.g. running from an
+     * exploded classes dir in dev). Normally {@link #bundledBossIds()} discovers them from the jar so
+     * newly-added bosses are always deployed - no need to keep this list in sync.
+     */
     private static final List<String> DEFAULTS = List.of(
             "goblin_army", "infected_army", "zombie_king", "skeleton_king",
             "creeper_king", "enderman_queen", "magical_unicorn", "warthoglin",
-            "walak", "werewolf", "queen_bee", "leviathan", "medusa", "harvester");
+            "walak", "werewolf", "queen_bee", "leviathan", "medusa", "harvester",
+            "golakar", "spider_swarm", "drowned_tide", "undead_legion");
 
     private final Plugin plugin;
     private final Logger logger;
@@ -65,13 +70,44 @@ public final class BossRegistry {
         return bosses.size();
     }
 
+    /**
+     * The ids of every boss YAML bundled in the jar, discovered at runtime so a plugin update always
+     * deploys newly-added bosses. Falls back to {@link #DEFAULTS} if the jar can't be read.
+     */
+    private List<String> bundledBossIds() {
+        try {
+            java.net.URL loc = plugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+            File jar = new File(loc.toURI());
+            if (jar.isFile()) {
+                List<String> out = new java.util.ArrayList<>();
+                try (java.util.zip.ZipFile zf = new java.util.zip.ZipFile(jar)) {
+                    var entries = zf.entries();
+                    while (entries.hasMoreElements()) {
+                        String n = entries.nextElement().getName();
+                        // Only direct children of bosses/ (skip sub-folders), ending in .yml.
+                        if (n.startsWith("bosses/") && n.endsWith(".yml") && n.indexOf('/', 7) < 0) {
+                            out.add(n.substring("bosses/".length(), n.length() - ".yml".length()));
+                        }
+                    }
+                }
+                if (!out.isEmpty()) {
+                    return out;
+                }
+            }
+        } catch (Exception ex) {
+            logger.warning("Could not scan the jar for bundled bosses (" + ex.getMessage()
+                    + "); using the built-in list.");
+        }
+        return DEFAULTS;
+    }
+
     /** Write out any bundled default boss file that is missing from the data folder (never overwrites). */
     public void restoreMissing() {
         File dir = new File(plugin.getDataFolder(), "bosses");
         if (!dir.exists() && !dir.mkdirs()) {
             logger.warning("Could not create bosses/ directory.");
         }
-        for (String name : DEFAULTS) {
+        for (String name : bundledBossIds()) {
             if (disabled.contains(name)) {
                 continue; // don't re-create a boss the admin turned off
             }
@@ -92,7 +128,7 @@ public final class BossRegistry {
             logger.warning("Could not create bosses/ directory.");
         }
         int n = 0;
-        for (String name : DEFAULTS) {
+        for (String name : bundledBossIds()) {
             if (disabled.contains(name)) {
                 continue; // leave disabled bosses off even on a factory reset
             }
