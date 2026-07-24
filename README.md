@@ -46,8 +46,9 @@ custom drops, and army encounters — a MythicMobs-style engine where every boss
 
 1. Download `WildBosses-x.y.z.jar` (from the [Actions](../../actions) build artifacts or a release).
 2. Drop it into your server's `plugins/` folder.
-3. Start the server. Default config, language file and the 8 example bosses are written to
-   `plugins/WildBosses/`.
+3. Start the server. Default config, language files and the bundled bosses/armies are written to
+   `plugins/WildBosses/` (18 encounters: 13 bosses + 5 armies, including the Spider Swarm, the
+   Drowned Tide, the Undead Legion and Golakar, the Living Mountain).
 
 ## Commands & permissions
 

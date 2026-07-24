@@ -1,0 +1,86 @@
+# The Drowned Tide - ULTRA_HARD army that surges from the sea and culminates in Tempestas, the Drowned
+# King. Spear volleys, a dragging maelstrom, crashing waves and summoned guardians. Best fought in/near
+# water. Immune to drowning/dry-out so he never just expires. Pet reward uses a BetterPets id.
+id: drowned_tide
+name: "<gradient:#1e3a8a:#0c4a6e>Tempestas, the Drowned King</gradient>"
+title: "<gray>Sovereign of the Sunken"
+difficulty: ULTRA_HARD
+base-entity: DROWNED
+stats: { health: 700, armor: 12, knockback-resistance: 0.6, damage: 13, speed: 0.32, follow-range: 52, scale: 1.6 }
+equipment: { hand: TRIDENT }
+bossbar: { color: BLUE, style: NOTCHED_10 }
+immunities: [DROWNING, DRYOUT, FREEZE]
+enrage-timer: { enabled: true, after-seconds: 320, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.04 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 12
+  min-players-distance: 44
+  y: { min: 40, max: 72 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+  near-water: true
+  biomes: [OCEAN, RIVER, BEACH, SWAMP]
+phases:
+  - { at-health-percent: 100, message: "<aqua>The tide turns black - Tempestas, the Drowned King, rises!" }
+  - { at-health-percent: 55, message: "<blue>Tempestas calls the drowned host!" }
+  - { at-health-percent: 25, enrage: true, message: "<blue>Tempestas drags the whole sea down with him!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 50, lines: ["The sea keeps what it takes.", "Kneel, or drown.", "You breathe on borrowed time."] } }
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.elder_guardian.curse", volume: 1.8, pitch: 0.8 } }
+  - { trigger: onTimer, interval: 12, mechanic: particle, targeter: self_location, params: { particle: BUBBLE_COLUMN_UP, count: 10, spread: 1.0, offset-y: 1.2 } }
+  # Spear volley: a hail of thrown tridents (arrows).
+  - { trigger: onTimer, interval: 80, interval-max: 120, mechanic: arrow_volley, targeter: nearest_player, params: { count: 6, spread: 0.25, velocity: 2.0 } }
+  # Maelstrom: drags everyone toward him, then a crashing wave.
+  - { trigger: onTimer, interval: 110, interval-max: 160, mechanic: sound, targeter: self_location, params: { sound: "item.bucket.empty", volume: 2.0, pitch: 0.6 } }
+  - { trigger: onTimer, interval: 110, interval-max: 160, mechanic: pull, targeter: players_in_radius, params: { radius: 14, strength: 1.4 } }
+  - { trigger: onTimer, interval: 140, interval-max: 200, mechanic: danger_zone, targeter: players_in_radius, params: { radius: 5, damage: 13, knockback: 1.2, delay: 30, warn-particle: BUBBLE_POP, particle: SPLASH } }
+  - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: MINING_FATIGUE, duration: 200, amplifier: 2 } }
+  - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: summon, targeter: self_location, params: { type: GUARDIAN, amount: 3, radius: 6 } }
+  - { trigger: onHealthBelow, value: 55, mechanic: summon, targeter: self_location, params: { type: DROWNED, amount: 4, radius: 6, name: "<aqua>Tide-Guard" } }
+  - { trigger: onHealthBelow, value: 25, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 15, knockback: 1.4, particle: SPLASH } }
+army:
+  stages: [10, 16, 22, 28]
+  wave-size: 6
+  max-alive: 22
+  reinforce-interval-ticks: 120
+  radius: 12
+  outcome: SPAWN_BOSS
+  end-boss: drowned_tide
+  boss-chance: 0.6            # 60% chance the Drowned King emerges from the final wave (else cleared)
+  minions:
+    - { type: DROWNED, weight: 3, health: 22, name: "<aqua>Drowned Raider",
+        drops: [ { item: ROTTEN_FLESH, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: COPPER_INGOT, amount: 1, chance: 0.3, rarity: COMMON } ] }
+    - { type: DROWNED, weight: 2, health: 26, name: "<aqua>Trident Drowned",
+        drops: [ { item: PRISMARINE_SHARD, amount: "1-2", chance: 0.4, rarity: COMMON },
+                 { item: NAUTILUS_SHELL, amount: 1, chance: 0.08, rarity: UNCOMMON } ] }
+    - { type: GUARDIAN, weight: 1, health: 24, name: "<aqua>Reef Guardian",
+        drops: [ { item: PRISMARINE_CRYSTALS, amount: "1-3", chance: 0.5, rarity: COMMON } ] }
+drops:
+  items:
+    # Trophy (Mythical)
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#1e3a8a:#0c4a6e>Trophy of Tempestas</gradient>", lore: ["<dark_gray>Proof you bested the Drowned King.", "<gray>Mount it on your wall."] }
+    # Common
+    - { item: PRISMARINE_CRYSTALS, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: PRISMARINE_SHARD, amount: "8-16", chance: 1.0, rarity: COMMON }
+    - { item: COPPER_INGOT, amount: "6-12", chance: 0.85, rarity: COMMON }
+    - { item: COD, amount: "4-9", chance: 0.7, rarity: COMMON }
+    - { item: DIAMOND, amount: "4-8", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: NAUTILUS_SHELL, amount: "1-2", chance: 0.5, rarity: UNCOMMON }
+    - { item: SPONGE, amount: "1-2", chance: 0.4, rarity: UNCOMMON }
+    # Rare
+    - { item: HEART_OF_THE_SEA, amount: 1, chance: 0.4, rarity: RARE, name: "<gradient:#1e3a8a:#0c4a6e>Tempestas' Pearl</gradient>" }
+    # Legendary
+    - { item: TRIDENT, amount: 1, chance: 0.2, rarity: LEGENDARY,
+        name: "<gradient:#1e3a8a:#0c4a6e>Stormtide</gradient>",
+        lore: ["<dark_gray>Pulled from the drowned throne.", "<aqua>The storm answers it."],
+        enchants: ["IMPALING:6", "LOYALTY:4", "CHANNELING:1", "UNBREAKING:5", "MENDING:1"] }
+    # Mythical
+    - { item: CONDUIT, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Crown of the Sunken</gradient>", lore: ["<dark_gray>It hums with the voice of the deep."] }
+  command-rewards:
+    # Mythical
+    - { command: "pets give guardian 1 %player%", chance: 0.05, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#1e3a8a:#0c4a6e>a Guardian pet from the Drowned King!</gradient>" }
+  xp: 1100

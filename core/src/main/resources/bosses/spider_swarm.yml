@@ -1,0 +1,80 @@
+# The Spider Swarm - HARD overworld army of spiders that culminates in the Broodmother. She spins
+# temporary cobweb prisons (guaranteed to be removed, even after a crash/restart), spits venom and
+# births endless spiderlings. Pet reward uses a BetterPets id - adjust "spider" to match your setup.
+id: spider_swarm
+name: "<gradient:#7f1d1d:#111827>Arachnessa, the Broodmother</gradient>"
+title: "<gray>Mother of a Thousand Legs"
+difficulty: HARD
+base-entity: SPIDER
+stats: { health: 540, armor: 6, knockback-resistance: 0.4, damage: 10, speed: 0.4, follow-range: 48, scale: 2.6 }
+bossbar: { color: RED, style: NOTCHED_10 }
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.05 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 14
+  min-players-distance: 40
+  y: { min: 40, max: 120 }
+  cooldown-seconds: 2400
+  max-concurrent: 1
+phases:
+  - { at-health-percent: 100, message: "<red>The webs tremble - Arachnessa, the Broodmother, descends!" }
+  - { at-health-percent: 50, enrage: true, message: "<dark_red>Arachnessa's egg-sacs burst open!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["My children are hungry.", "Come, be wrapped in silk.", "You are caught already."] } }
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.spider.ambient", volume: 1.6, pitch: 0.6 } }
+  - { trigger: onTimer, interval: 14, mechanic: particle, targeter: self_location, params: { particle: FALLING_DUST, count: 5, spread: 0.8, offset-y: 1.0 } }
+  # Spiderlings: she keeps birthing small, fast spiders.
+  - { trigger: onTimer, interval: 110, interval-max: 160, mechanic: summon, targeter: self_location, params: { type: CAVE_SPIDER, amount: 4, radius: 5, health: 8, name: "<gray>Spiderling" } }
+  # Venom: lingering poison and a splash of it.
+  - { trigger: onTimer, interval: 80, interval-max: 130, mechanic: potion_cloud, targeter: players_in_radius, params: { type: POISON, duration: 140, amplifier: 1, radius: 3, cloud-duration: 160 } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: throw_potion, targeter: nearest_player, params: { type: POISON, duration: 160, amplifier: 1, velocity: 1.0 } }
+  # Web pull + web prison: drags a target in, then snaps a temporary cobweb cage around them.
+  - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: pull, targeter: players_in_radius, params: { radius: 12, strength: 1.2 } }
+  - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: bone_cage, targeter: nearest_player, conditions: [{ type: chance, value: 0.7 }], params: { material: COBWEB, radius: 1, height: 3, duration: 80 } }
+  - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: leap, targeter: nearest_player, params: { power: 1.4, vertical: 0.5 } }
+  - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: SPIDER, amount: 4, radius: 6, name: "<gray>Broodguard" } }
+  - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 10, knockback: 0.8, particle: CRIT } }
+army:
+  stages: [10, 15, 20, 26]
+  wave-size: 7
+  max-alive: 24
+  reinforce-interval-ticks: 110
+  radius: 12
+  outcome: SPAWN_BOSS
+  end-boss: spider_swarm
+  boss-chance: 0.6            # 60% chance the Broodmother emerges from the final wave (else cleared)
+  minions:
+    - { type: CAVE_SPIDER, weight: 3, health: 10, name: "<green>Venom Spider", effects: ["SPEED:99999:0"],
+        drops: [ { item: STRING, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: SPIDER_EYE, amount: 1, chance: 0.4, rarity: COMMON } ] }
+    - { type: SPIDER, weight: 2, health: 16, name: "<green>Web Spinner",
+        drops: [ { item: STRING, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: FERMENTED_SPIDER_EYE, amount: 1, chance: 0.15, rarity: UNCOMMON } ] }
+drops:
+  items:
+    # Trophy (Mythical)
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#7f1d1d:#111827>Trophy of Arachnessa</gradient>", lore: ["<dark_gray>Proof you bested the Broodmother.", "<gray>Mount it on your wall."] }
+    # Common
+    - { item: STRING, amount: "12-24", chance: 1.0, rarity: COMMON }
+    - { item: SPIDER_EYE, amount: "4-9", chance: 0.9, rarity: COMMON }
+    - { item: COBWEB, amount: "4-9", chance: 0.7, rarity: COMMON }
+    - { item: FERMENTED_SPIDER_EYE, amount: "2-4", chance: 0.6, rarity: COMMON }
+    - { item: DIAMOND, amount: "3-6", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: EMERALD, amount: "3-7", chance: 0.7, rarity: UNCOMMON }
+    - { item: POISONOUS_POTATO, amount: "1-3", chance: 0.5, rarity: UNCOMMON }
+    # Rare
+    - { item: SPIDER_EYE, amount: "2-4", chance: 0.45, rarity: RARE, name: "<gradient:#7f1d1d:#450a0a>Broodmother's Eye</gradient>", lore: ["<gray>It still watches."] }
+    # Legendary
+    - { item: NETHERITE_SWORD, amount: 1, chance: 0.16, rarity: LEGENDARY,
+        name: "<gradient:#7f1d1d:#111827>Silkspinner</gradient>",
+        lore: ["<dark_gray>Cut from a fang.", "<red>Drips with venom."],
+        enchants: ["BANE_OF_ARTHROPODS:6", "SHARPNESS:6", "UNBREAKING:5", "MENDING:1"] }
+    # Mythical
+    - { item: SNIFFER_EGG, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Broodmother's Egg-Sac</gradient>", lore: ["<dark_gray>Something inside is moving."] }
+  command-rewards:
+    # Mythical
+    - { command: "pets give spider 1 %player%", chance: 0.05, announce: "<gradient:#ff6bd6:#c86bff>✦ Mythical</gradient> <gray>-</gray> <gradient:#7f1d1d:#111827>a Spider pet from the Broodmother!</gradient>" }
+  xp: 720

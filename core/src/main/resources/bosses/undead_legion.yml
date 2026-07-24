@@ -1,0 +1,85 @@
+# The Undead Legion - ULTRA_HARD army of skeletons and wither-skeletons that culminates in Morghul,
+# the Bone Mage (a lich). Signature: relentless arrow-storms from the sky, raised undead, wither hexes
+# and a bone prison (guaranteed to be removed, even after a crash/restart). Boss skeletons never burn
+# in daylight, and like every boss he only takes player damage and can't be one-shot.
+id: undead_legion
+name: "<gradient:#e5e7eb:#4c1d95>Morghul, the Bone Mage</gradient>"
+title: "<gray>Lich of the Endless Tomb"
+difficulty: ULTRA_HARD
+base-entity: WITHER_SKELETON
+stats: { health: 660, armor: 10, armor-toughness: 4, knockback-resistance: 0.6, damage: 11, speed: 0.28, follow-range: 50, scale: 1.5 }
+equipment: { hand: BLAZE_ROD }
+bossbar: { color: PURPLE, style: NOTCHED_10 }
+immunities: [WITHER, FALL]
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.12, speed-mult: 1.05 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 12
+  min-players-distance: 44
+  y: { min: 30, max: 110 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+  time: NIGHT                # the legion marches under cover of night
+phases:
+  - { at-health-percent: 100, message: "<white>Bones rise from the earth - Morghul, the Bone Mage, commands the dead!" }
+  - { at-health-percent: 60, message: "<gray>Morghul raises a wall of bone!" }
+  - { at-health-percent: 30, enrage: true, message: "<dark_purple>Morghul calls down an endless storm of arrows!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["Death is only the beginning.", "Join my legion... you will not be asked twice.", "Your bones will serve me."] } }
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.wither.spawn", volume: 1.2, pitch: 1.2 } }
+  - { trigger: onTimer, interval: 16, mechanic: particle, targeter: self_location, params: { particle: SOUL, count: 6, spread: 0.7, offset-y: 1.4 } }
+  # Arrow-storms: repeated rains of arrows from the sky (his signature).
+  - { trigger: onTimer, interval: 90, interval-max: 130, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["Look up.", "The sky is bone."] } }
+  - { trigger: onTimer, interval: 90, interval-max: 130, mechanic: arrow_rain, targeter: players_in_radius, params: { radius: 14, count: 18, spread: 5, height: 20, damage: 6 } }
+  - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: arrow_volley, targeter: nearest_player, params: { radius: 40, count: 6, spread: 0.2, velocity: 2.0 } }
+  # Raise the dead.
+  - { trigger: onTimer, interval: 140, interval-max: 200, mechanic: summon, targeter: self_location, params: { type: SKELETON, amount: 3, radius: 5, name: "<gray>Risen Archer" } }
+  - { trigger: onTimer, interval: 170, interval-max: 240, mechanic: summon, targeter: self_location, params: { type: WITHER_SKELETON, amount: 2, radius: 5, name: "<gray>Tomb Guard" } }
+  # Dark magic: wither hex and life-drain.
+  - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: throw_potion, targeter: nearest_player, params: { type: WITHER, duration: 120, amplifier: 1, velocity: 1.0 } }
+  - { trigger: onTimer, interval: 130, interval-max: 190, mechanic: lifesteal, targeter: players_in_radius, params: { radius: 6, amount: 8, heal-ratio: 0.8 } }
+  # Bone prison (guaranteed cleanup).
+  - { trigger: onHealthBelow, value: 60, mechanic: shield, targeter: self, params: { duration: 140, amplifier: 1 } }
+  - { trigger: onTimer, interval: 160, interval-max: 220, mechanic: bone_cage, targeter: nearest_player, conditions: [{ type: health_below, value: 60 }, { type: chance, value: 0.7 }], params: { material: BONE_BLOCK, radius: 1, height: 3, duration: 90 } }
+  - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.0, particle: SCULK_SOUL } }
+army:
+  stages: [10, 16, 22, 28]
+  wave-size: 6
+  max-alive: 22
+  reinforce-interval-ticks: 120
+  radius: 12
+  outcome: SPAWN_BOSS
+  end-boss: undead_legion
+  boss-chance: 0.65          # 65% chance the Bone Mage emerges from the final wave (else cleared)
+  minions:
+    - { type: SKELETON, weight: 3, health: 22, name: "<gray>Risen Skeleton",
+        drops: [ { item: BONE, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: ARROW, amount: "2-5", chance: 0.6, rarity: COMMON } ] }
+    - { type: WITHER_SKELETON, weight: 2, health: 26, name: "<gray>Tomb Guard",
+        drops: [ { item: BONE, amount: "1-3", chance: 0.8, rarity: COMMON },
+                 { item: COAL, amount: "1-3", chance: 0.5, rarity: COMMON } ] }
+    - { type: STRAY, weight: 1, health: 22, name: "<gray>Frost Archer",
+        drops: [ { item: ARROW, amount: "2-6", chance: 0.6, rarity: COMMON } ] }
+drops:
+  items:
+    # Trophy (Mythical)
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#e5e7eb:#4c1d95>Trophy of Morghul</gradient>", lore: ["<dark_gray>Proof you bested the Bone Mage.", "<gray>Mount it on your wall."] }
+    # Common
+    - { item: BONE, amount: "12-24", chance: 1.0, rarity: COMMON }
+    - { item: BONE_MEAL, amount: "6-12", chance: 0.85, rarity: COMMON }
+    - { item: ARROW, amount: "12-24", chance: 0.9, rarity: COMMON }
+    - { item: COAL, amount: "6-12", chance: 0.75, rarity: COMMON }
+    - { item: DIAMOND, amount: "4-8", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: SOUL_SAND, amount: "4-9", chance: 0.6, rarity: UNCOMMON }
+    - { item: TIPPED_ARROW, amount: "8-16", chance: 0.4, rarity: UNCOMMON, name: "<gradient:#e5e7eb:#9ca3af>Bonebolt Quiver</gradient>" }
+    # Rare
+    - { item: WITHER_SKELETON_SKULL, amount: "1-2", chance: 0.5, rarity: RARE, name: "<gradient:#e5e7eb:#4c1d95>Morghul's Skull</gradient>" }
+    # Legendary
+    - { item: BOW, amount: 1, chance: 0.18, rarity: LEGENDARY, name: "<gradient:#e5e7eb:#4c1d95>Stormcaller Bow</gradient>",
+        lore: ["<dark_gray>It never runs dry.", "<white>The sky obeys it."], enchants: ["POWER:6", "PUNCH:3", "FLAME:1", "INFINITY:1", "UNBREAKING:5"] }
+    # Mythical
+    - { item: TOTEM_OF_UNDYING, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Morghul's Phylactery</gradient>", lore: ["<dark_gray>His soul is bound within."] }
+  xp: 1100

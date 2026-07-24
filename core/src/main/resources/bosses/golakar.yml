@@ -1,0 +1,68 @@
+# Golakar, the Living Mountain - ULTRA_HARD overworld boss. A colossal stone golem of the highlands:
+# ground-shattering slams, hurled boulders and animated living-stone. Immune to knockback; like every
+# boss it only ever takes damage from a player (never its own slams, fall damage, etc.) and can't be
+# one-shot.
+id: golakar
+name: "<gradient:#9ca3af:#374151>Golakar, the Living Mountain</gradient>"
+title: "<gray>The Peak That Walks"
+difficulty: ULTRA_HARD
+base-entity: IRON_GOLEM
+stats: { health: 820, armor: 18, armor-toughness: 8, knockback-resistance: 1.0, damage: 16, speed: 0.22, follow-range: 44, scale: 2.2 }
+bossbar: { color: WHITE, style: NOTCHED_10 }
+immunities: [KNOCKBACK, FALL]
+enrage-timer: { enabled: true, after-seconds: 300, interval-seconds: 45, damage-mult: 1.1, speed-mult: 1.03 }
+spawn:
+  worlds: [OVERWORLD]
+  weight: 9
+  min-players-distance: 44
+  y: { min: 60, max: 240 }
+  cooldown-seconds: 3000
+  max-concurrent: 1
+  # Highlands only. Clear this list to let Golakar spawn anywhere in the Overworld.
+  biomes: [PEAK, SLOPE, WINDSWEPT, GROVE, MEADOW, HILLS, PLATEAU]
+phases:
+  - { at-health-percent: 100, message: "<gray>The ground heaves - Golakar, the Living Mountain, rises!" }
+  - { at-health-percent: 50, enrage: true, message: "<dark_gray>Golakar sheds boulders in a grinding rage!" }
+  - { at-health-percent: 20, enrage: true, message: "<dark_gray>Golakar quakes to its very core!" }
+skills:
+  - { trigger: onSpawn, mechanic: say, targeter: nearest_player, params: { radius: 45, lines: ["The mountain wakes.", "You climb where you should not.", "I am older than your kind."] } }
+  - { trigger: onSpawn, mechanic: sound, targeter: self_location, params: { sound: "entity.iron_golem.damage", volume: 1.8, pitch: 0.5 } }
+  - { trigger: onTimer, interval: 16, mechanic: particle, targeter: self_location, params: { particle: FALLING_DUST, count: 6, spread: 1.0, offset-y: 1.4 } }
+  # Ground slam: a telegraphed shockwave that launches everyone nearby.
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: sound, targeter: self_location, params: { sound: "entity.iron_golem.attack", volume: 1.8, pitch: 0.7 } }
+  - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: shockwave, targeter: self, params: { radius: 7, damage: 12, knockup: 1.0, particle: BLOCK_CRUMBLE } }
+  # Boulder barrage: rocks crash down from above around the target (block-safe).
+  - { trigger: onTimer, interval: 130, interval-max: 190, mechanic: say, targeter: players_in_radius, params: { radius: 30, lines: ["Rockfall!", "The mountain throws its bones."] } }
+  - { trigger: onTimer, interval: 130, interval-max: 190, mechanic: meteor, targeter: players_in_radius, params: { count: 5, radius: 6, height: 22, damage: 12, delay: 30 } }
+  # Living stone: animated silverfish crawl from the golem.
+  - { trigger: onTimer, interval: 160, interval-max: 230, mechanic: summon, targeter: self_location, params: { type: SILVERFISH, amount: 4, radius: 4, name: "<gray>Living Stone" } }
+  - { trigger: onTimer, interval: 80, interval-max: 130, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 4, damage: 10, knockback: 1.0, particle: CRIT } }
+  - { trigger: onHealthBelow, value: 50, mechanic: shield, targeter: self, params: { duration: 160, amplifier: 1 } }
+  - { trigger: onHealthBelow, value: 20, mechanic: shockwave, targeter: self, params: { radius: 9, damage: 14, knockup: 1.1, particle: EXPLOSION } }
+  - { trigger: onHealthBelow, value: 20, mechanic: summon, targeter: self_location, params: { type: SILVERFISH, amount: 6, radius: 5, name: "<gray>Living Stone" } }
+drops:
+  items:
+    # Trophy (Mythical) - a wall-mountable proof of the kill.
+    - { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+        name: "<gradient:#9ca3af:#374151>Trophy of Golakar</gradient>", lore: ["<dark_gray>Proof you bested Golakar.", "<gray>Mount it on your wall."] }
+    # Common
+    - { item: STONE, amount: "16-32", chance: 1.0, rarity: COMMON }
+    - { item: RAW_IRON, amount: "6-12", chance: 0.9, rarity: COMMON }
+    - { item: DEEPSLATE, amount: "8-16", chance: 0.8, rarity: COMMON }
+    - { item: TUFF, amount: "6-12", chance: 0.7, rarity: COMMON }
+    - { item: DIAMOND, amount: "4-8", chance: 1.0, rarity: COMMON }
+    # Uncommon
+    - { item: IRON_BLOCK, amount: "1-3", chance: 0.6, rarity: UNCOMMON }
+    - { item: EMERALD, amount: "4-9", chance: 0.7, rarity: UNCOMMON }
+    # Rare
+    - { item: IRON_BLOCK, amount: "2-4", chance: 0.4, rarity: RARE, name: "<gradient:#9ca3af:#374151>Heart of the Mountain</gradient>", lore: ["<gray>Still warm from the deep earth."] }
+    - { item: NETHERITE_SCRAP, amount: "1-2", chance: 0.3, rarity: RARE }
+    # Legendary
+    - { item: MACE, amount: 1, chance: 0.16, rarity: LEGENDARY,
+        name: "<gradient:#9ca3af:#374151>Golakar's Maul</gradient>",
+        lore: ["<dark_gray>A peak, forged into a weapon.", "<gray>It falls like a mountain."],
+        enchants: ["DENSITY:5", "BREACH:4", "UNBREAKING:5", "MENDING:1"] }
+    # Mythical
+    - { item: HEAVY_CORE, amount: 1, chance: 0.05, rarity: MYTHICAL,
+        name: "<gradient:#ff6bd6:#c86bff>Core of the Living Mountain</gradient>", lore: ["<dark_gray>The heartbeat of the highlands."] }
+  xp: 1150
