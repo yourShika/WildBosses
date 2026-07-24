@@ -255,6 +255,7 @@ public final class BossManager {
         if (le instanceof Mob mob) {
             mob.setAware(true);
         }
+        com.yourshika.wildbosses.util.Mobs.forceAdult(le); // bosses are never baby variants
         if (le instanceof org.bukkit.entity.Zombie zombie) {
             zombie.setShouldBurnInDay(false); // bosses shouldn't die to sunlight
         }

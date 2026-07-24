@@ -162,6 +162,7 @@ public final class ArmyEncounter {
             entity.setPersistent(false); // don't let minions survive a restart as untracked mobs
             if (entity instanceof LivingEntity le) {
                 le.setRemoveWhenFarAway(false);
+                com.yourshika.wildbosses.util.Mobs.forceAdult(le); // army minions are never babies
                 if (template.health() > 0) {
                     AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
                     if (max != null) {

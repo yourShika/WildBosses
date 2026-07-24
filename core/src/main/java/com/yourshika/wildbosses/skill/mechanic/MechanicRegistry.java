@@ -212,9 +212,7 @@ public final class MechanicRegistry {
                     le.addPotionEffect(eff);
                 }
             }
-            if (baby && e instanceof org.bukkit.entity.Ageable ageable) {
-                ageable.setBaby();
-            }
+            com.yourshika.wildbosses.util.Mobs.setBaby(e, baby); // adults by default; baby only if asked
             if (e instanceof Mob mob && ctx.boss().target() != null) {
                 mob.setTarget(ctx.boss().target());
             }
