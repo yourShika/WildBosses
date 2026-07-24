@@ -227,8 +227,24 @@ public final class RewardManager implements BossDeathListener {
         if (entry.customModelData() >= 0) {
             meta.setCustomModelData(entry.customModelData());
         }
+        applyHeadTexture(meta, entry.headTexture());
         item.setItemMeta(meta);
         return item;
+    }
+
+    /** Apply a base64 skin value to a PLAYER_HEAD's profile so the trophy shows a custom texture. */
+    private void applyHeadTexture(ItemMeta meta, String base64) {
+        if (base64 == null || base64.isBlank() || !(meta instanceof org.bukkit.inventory.meta.SkullMeta skull)) {
+            return;
+        }
+        try {
+            com.destroystokyo.paper.profile.PlayerProfile profile =
+                    Bukkit.createProfile(java.util.UUID.randomUUID());
+            profile.setProperty(new com.destroystokyo.paper.profile.ProfileProperty("textures", base64.trim()));
+            skull.setPlayerProfile(profile);
+        } catch (Throwable t) {
+            plugin.getLogger().warning("Failed to apply head-texture to a drop: " + t.getMessage());
+        }
     }
 
     private void applyEnchant(ItemMeta meta, String token) {

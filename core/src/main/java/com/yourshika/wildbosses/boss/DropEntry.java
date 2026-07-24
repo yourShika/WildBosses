@@ -18,6 +18,7 @@ import java.util.List;
  * @param glow             force an enchantment glint
  * @param announce         always broadcast this drop, regardless of the global rarity threshold
  * @param rarity           loot tier (colours the lore + broadcast; drives glow/announce defaults)
+ * @param headTexture      optional base64 skin value for a PLAYER_HEAD (from any head database), nullable
  */
 public record DropEntry(
         Material material,
@@ -29,6 +30,7 @@ public record DropEntry(
         int customModelData,
         boolean glow,
         boolean announce,
-        Rarity rarity
+        Rarity rarity,
+        String headTexture
 ) {
 }

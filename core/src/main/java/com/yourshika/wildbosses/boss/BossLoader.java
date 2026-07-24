@@ -230,7 +230,8 @@ public final class BossLoader {
                     p.getInt("custom-model-data", -1),
                     p.getBoolean("glow", false),
                     p.getBoolean("announce", true),
-                    Rarity.fromString(p.getString("rarity", null), Rarity.COMMON)));
+                    Rarity.fromString(p.getString("rarity", null), Rarity.COMMON),
+                    p.getString("head-texture", null)));
         }
         List<CommandReward> commandRewards = new ArrayList<>();
         for (Map<?, ?> m : s.getMapList("command-rewards")) {

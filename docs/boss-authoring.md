@@ -222,6 +222,19 @@ so the danger area forms in the air above the target instead of on the floor (us
 so nothing ever spawns or teleports inside a block. **Drop chances** are set per item with `chance`
 (`0.0`–`1.0`); notable drops glow and are announced.
 
+**Custom head trophies.** A `PLAYER_HEAD` drop can carry a `head-texture:` (a base64 skin *Value*,
+e.g. copied from [minecraft-heads.com](https://minecraft-heads.com)) so the trophy shows a real skin
+instead of the default Steve head:
+
+```yaml
+- { item: PLAYER_HEAD, amount: 1, chance: 0.03, rarity: MYTHICAL,
+    name: "<gradient:#f9a8d4:#93c5fd>Trophy of Aurelith</gradient>",
+    head-texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6..." }
+```
+
+(Alternatively, hold a head that already has the texture and use **Add item from hand** in the drop
+editor — it captures the skin 1:1.)
+
 **In-game drop editor** — `/wb gui` → Bosses → (shift-click a boss) → **Drops**:
 - Left / right-click a drop to adjust its chance, middle-click to cycle rarity, shift-click to toggle
   its announcement, and **drop key (Q)** to delete it. Enchants are shown in each drop's tooltip.
