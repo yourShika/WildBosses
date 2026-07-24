@@ -101,23 +101,111 @@ public final class BossRegistry {
         return DEFAULTS;
     }
 
-    /** Write out any bundled default boss file that is missing from the data folder (never overwrites). */
+    /**
+     * Write out any missing bundled boss file, AND update the ones the admin hasn't locally edited to
+     * the current bundled version (so a plugin update delivers new content like head textures). A
+     * per-file content hash is stored: if the on-disk file no longer matches what we last wrote, it's
+     * treated as edited and left alone. Disable with {@code settings.auto-update-default-bosses: false}.
+     */
     public void restoreMissing() {
         File dir = new File(plugin.getDataFolder(), "bosses");
         if (!dir.exists() && !dir.mkdirs()) {
             logger.warning("Could not create bosses/ directory.");
         }
+        boolean autoUpdate = plugin.getConfig().getBoolean("settings.auto-update-default-bosses", true);
+        File store = new File(plugin.getDataFolder(), ".default-boss-hashes.properties");
+        java.util.Properties hashes = new java.util.Properties();
+        if (store.exists()) {
+            try (var in = new java.io.FileInputStream(store)) {
+                hashes.load(in);
+            } catch (java.io.IOException ignored) {
+                // start fresh
+            }
+        }
+        boolean changed = false;
+        int updated = 0;
         for (String name : bundledBossIds()) {
             if (disabled.contains(name)) {
-                continue; // don't re-create a boss the admin turned off
+                continue; // don't re-create/update a boss the admin turned off
             }
-            if (!new File(dir, name + ".yml").exists()) {
-                try {
-                    plugin.saveResource("bosses/" + name + ".yml", false);
-                } catch (IllegalArgumentException ex) {
-                    logger.warning("Bundled boss resource missing: bosses/" + name + ".yml");
+            byte[] bundled = resourceBytes("bosses/" + name + ".yml");
+            if (bundled == null) {
+                logger.warning("Bundled boss resource missing: bosses/" + name + ".yml");
+                continue;
+            }
+            String bundledHash = sha256(bundled);
+            File f = new File(dir, name + ".yml");
+            if (!f.exists()) {
+                writeBytes(f, bundled);
+                hashes.setProperty(name, bundledHash);
+                changed = true;
+                continue;
+            }
+            if (!autoUpdate) {
+                continue;
+            }
+            String onDiskHash;
+            try {
+                onDiskHash = sha256(java.nio.file.Files.readAllBytes(f.toPath()));
+            } catch (java.io.IOException ex) {
+                continue;
+            }
+            if (onDiskHash.equals(bundledHash)) {
+                if (!bundledHash.equals(hashes.getProperty(name))) {
+                    hashes.setProperty(name, bundledHash);
+                    changed = true;
                 }
+                continue; // already current
             }
+            String recorded = hashes.getProperty(name);
+            if (recorded == null || recorded.equals(onDiskHash)) {
+                // unedited since we last wrote it (or first sync) -> refresh to the bundled version
+                writeBytes(f, bundled);
+                hashes.setProperty(name, bundledHash);
+                changed = true;
+                updated++;
+            }
+            // else: locally edited -> left untouched
+        }
+        if (updated > 0) {
+            logger.info("Updated " + updated + " default boss file(s) to the new bundled version "
+                    + "(locally-edited files were kept).");
+        }
+        if (changed) {
+            try (var out = new java.io.FileOutputStream(store)) {
+                hashes.store(out, "WildBosses default-boss content hashes - do not edit");
+            } catch (java.io.IOException ignored) {
+                // non-fatal
+            }
+        }
+    }
+
+    private byte[] resourceBytes(String path) {
+        try (var in = plugin.getResource(path)) {
+            return in == null ? null : in.readAllBytes();
+        } catch (java.io.IOException ex) {
+            return null;
+        }
+    }
+
+    private void writeBytes(File f, byte[] data) {
+        try {
+            java.nio.file.Files.write(f.toPath(), data);
+        } catch (java.io.IOException ex) {
+            logger.warning("Could not write " + f.getName() + ": " + ex.getMessage());
+        }
+    }
+
+    private static String sha256(byte[] data) {
+        try {
+            byte[] h = java.security.MessageDigest.getInstance("SHA-256").digest(data);
+            StringBuilder sb = new StringBuilder(h.length * 2);
+            for (byte b : h) {
+                sb.append(Character.forDigit((b >> 4) & 0xF, 16)).append(Character.forDigit(b & 0xF, 16));
+            }
+            return sb.toString();
+        } catch (Exception ex) {
+            return Integer.toHexString(java.util.Arrays.hashCode(data));
         }
     }
 

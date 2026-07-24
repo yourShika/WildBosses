@@ -44,21 +44,48 @@ public final class Messages {
             }
         }
         String code = plugin.getConfig().getString("settings.language", "en").trim().toLowerCase(Locale.ROOT);
-        FileConfiguration en = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "lang/en.yml"));
-        File chosen = new File(plugin.getDataFolder(), "lang/" + code + ".yml");
-        if (chosen.exists()) {
-            lang = YamlConfiguration.loadConfiguration(chosen);
-            lang.setDefaults(en); // English fills any key the chosen language is missing
-        } else {
-            lang = en;
+
+        // Load the BUNDLED language files straight from the jar so newly-shipped messages and terms are
+        // always current, even if the on-disk lang file was written by an older plugin version. The
+        // on-disk file then overrides them, so an admin's own edits still win.
+        FileConfiguration enBundled = fromJar("lang/en.yml");
+        FileConfiguration chosenBundled = code.equals("en") ? enBundled : fromJar("lang/" + code + ".yml");
+        FileConfiguration base = chosenBundled != null ? chosenBundled : enBundled;
+        if (base != null && base != enBundled && enBundled != null) {
+            base.setDefaults(enBundled); // chosen bundled -> English fallback
         }
+        FileConfiguration disk = YamlConfiguration.loadConfiguration(
+                new File(plugin.getDataFolder(), "lang/" + code + ".yml"));
+        if (base != null) {
+            disk.setDefaults(base); // on-disk value -> bundled (chosen lang) -> English
+        }
+        lang = disk;
         prefix = lang.getString("prefix", "");
+
+        // Terms: bundled (jar, always up to date) first, then the on-disk file overrides.
         terms.clear();
-        var section = lang.getConfigurationSection("terms");
-        if (section != null) {
-            for (String key : section.getKeys(false)) {
-                terms.put(key, section.getString(key));
-            }
+        if (base != null) {
+            putTerms(base.getConfigurationSection("terms"));
+        }
+        putTerms(disk.getConfigurationSection("terms"));
+    }
+
+    /** Load a YAML resource straight from the plugin jar, or {@code null} if it isn't bundled. */
+    private FileConfiguration fromJar(String path) {
+        java.io.InputStream in = plugin.getResource(path);
+        if (in == null) {
+            return null;
+        }
+        return YamlConfiguration.loadConfiguration(
+                new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private void putTerms(org.bukkit.configuration.ConfigurationSection section) {
+        if (section == null) {
+            return;
+        }
+        for (String key : section.getKeys(false)) {
+            terms.put(key, section.getString(key));
         }
     }
 

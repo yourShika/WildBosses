@@ -6,7 +6,7 @@
 
 # Internal - do NOT edit. When the plugin updates, any NEW options are merged into your config
 # automatically (your existing values are kept) and this number is bumped.
-config-version: 3
+config-version: 4
 
 settings:
   # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
@@ -40,6 +40,9 @@ settings:
   # Bosses listed here are switched OFF: never loaded, never auto-restored (survives /wb reload
   # and /wb restore default). Use lowercase ids, e.g. [zombie_king, medusa].
   disabled-bosses: []
+  # On a plugin update, refresh bundled boss files you HAVEN'T edited so new content (e.g. head
+  # textures) reaches you; files you changed in-game or by hand are kept. Set false to never touch them.
+  auto-update-default-bosses: true
   # Bosses/armies that are never defeated eventually flee (with a broadcast). A random lifetime
   # between min and max minutes is chosen per encounter.
   boss-lifetime:
