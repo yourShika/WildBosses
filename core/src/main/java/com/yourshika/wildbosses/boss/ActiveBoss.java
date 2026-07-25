@@ -202,6 +202,31 @@ public final class ActiveBoss {
         healers.add(uuid);
     }
 
+    private final Set<UUID> summons = new HashSet<>();
+
+    public void addSummon(UUID uuid) {
+        summons.add(uuid);
+    }
+
+    /** Count of still-alive summoned adds + healers (prunes dead/removed entries as it counts). */
+    public int liveAddCount() {
+        return pruneAlive(summons) + pruneAlive(healers);
+    }
+
+    private static int pruneAlive(Set<UUID> set) {
+        int n = 0;
+        Iterator<UUID> it = set.iterator();
+        while (it.hasNext()) {
+            org.bukkit.entity.Entity e = Bukkit.getEntity(it.next());
+            if (e == null || e.isDead()) {
+                it.remove();
+            } else {
+                n++;
+            }
+        }
+        return n;
+    }
+
     public double healerHealPerTick() {
         return healerHealPerTick;
     }
@@ -254,6 +279,62 @@ public final class ActiveBoss {
 
     public Map<UUID, Double> damageByPlayer() {
         return damageByPlayer;
+    }
+
+    // ---- interruptible cast / channel -----------------------------------------------------
+
+    private boolean casting;
+    private long castEndTick;
+    private double castInterruptDamage;
+    private double castDamageTaken;
+    private Runnable castPayload;
+    private String castParticle;
+
+    public boolean isCasting() {
+        return casting;
+    }
+
+    public long castEndTick() {
+        return castEndTick;
+    }
+
+    public String castParticle() {
+        return castParticle;
+    }
+
+    /** Begin a channel that runs {@code payload} at {@code endTick} unless interrupted first. */
+    public void startCast(long endTick, double interruptDamage, Runnable payload, String particle) {
+        this.casting = true;
+        this.castEndTick = endTick;
+        this.castInterruptDamage = interruptDamage;
+        this.castDamageTaken = 0;
+        this.castPayload = payload;
+        this.castParticle = particle;
+    }
+
+    /** Feed damage taken during a channel; returns true if it now exceeds the interrupt threshold. */
+    public boolean addCastDamage(double amount) {
+        if (!casting) {
+            return false;
+        }
+        castDamageTaken += amount;
+        return castInterruptDamage > 0 && castDamageTaken >= castInterruptDamage;
+    }
+
+    /** Cancel the channel (interrupted) - the payload never runs. */
+    public void interruptCast() {
+        casting = false;
+        castPayload = null;
+    }
+
+    /** Finish the channel and run its payload (if any). */
+    public void completeCast() {
+        Runnable payload = castPayload;
+        casting = false;
+        castPayload = null;
+        if (payload != null) {
+            payload.run();
+        }
     }
 
     // ---- skill timers ---------------------------------------------------------------------

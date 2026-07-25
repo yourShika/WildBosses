@@ -33,6 +33,7 @@ public final class WildBossesPlugin extends JavaPlugin {
     private TerrainManager terrainManager;
     private SpawnScheduler spawnScheduler;
     private ArmyManager armyManager;
+    private DefaultSkillEngine skillEngine;
     private com.yourshika.wildbosses.event.LunarEventManager lunarEvents;
 
     @Override
@@ -47,7 +48,8 @@ public final class WildBossesPlugin extends JavaPlugin {
         bossManager = new BossManager(this, registry, broadcaster);
         terrainManager = new TerrainManager(this);
 
-        bossManager.setSkillEngine(new DefaultSkillEngine(this));
+        skillEngine = new DefaultSkillEngine(this);
+        bossManager.setSkillEngine(skillEngine);
         bossManager.setDeathListener(new RewardManager(this));
         bossManager.setEncounterHook(terrainManager);
         terrainManager.restorePersisted();
@@ -211,6 +213,10 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     public PluginConfig config() {
         return pluginConfig;
+    }
+
+    public DefaultSkillEngine skillEngine() {
+        return skillEngine;
     }
 
     public Messages messages() {

@@ -607,7 +607,67 @@ public final class BossManager {
         if (boss.entity() instanceof org.bukkit.entity.Bee bee) {
             bee.setHasStung(false); // a boss bee must not die to its own sting
         }
+        if (boss.isCasting()) {
+            processCast(boss);
+            return; // the boss is channeling - don't fire other skills this tick
+        }
         skillEngine.onTick(boss, tick);
+    }
+
+    /** Drive a boss' interruptible channel: telegraph particles, then run the payload at the end. */
+    private void processCast(ActiveBoss boss) {
+        LivingEntity e = boss.entity();
+        World w = e.getWorld();
+        if (w != null && tick % 3 == 0) {
+            Particle particle = parseParticle(boss.castParticle(), Particle.SOUL_FIRE_FLAME);
+            w.spawnParticle(particle, e.getLocation().add(0, 1.3, 0), 12, 0.4, 0.6, 0.4, 0.02);
+        }
+        if (tick >= boss.castEndTick()) {
+            boss.completeCast();
+        }
+    }
+
+    /** Cancel a channel that took too much damage - staggers the boss and clears the channel root. */
+    private void interruptCast(ActiveBoss boss) {
+        boss.interruptCast();
+        LivingEntity e = boss.entity();
+        World w = e.getWorld();
+        if (w != null) {
+            w.playSound(e.getLocation(), "block.anvil.land", 1.2f, 1.4f);
+            w.spawnParticle(Particle.CRIT, e.getLocation().add(0, 1.5, 0), 30, 0.5, 0.5, 0.5, 0.1);
+        }
+        e.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS); // drop the long channel root
+        e.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.SLOWNESS, 30, 2, false, true, true)); // brief stagger
+        announceNearby(boss, Text.mm("<green>" + plugin.messages().tr("The channel is interrupted!")));
+    }
+
+    private static Particle parseParticle(String name, Particle fallback) {
+        if (name == null) {
+            return fallback;
+        }
+        try {
+            return Particle.valueOf(name.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            return fallback;
+        }
+    }
+
+    /** The boss just killed a player: fire ON_KILL_PLAYER skills + a small built-in "emboldened" roar. */
+    public void onBossKilledPlayer(ActiveBoss boss, Player victim) {
+        skillEngine.onKillPlayer(boss, victim);
+        LivingEntity e = boss.entity();
+        if (e == null || !e.isValid() || e.getWorld() == null) {
+            return;
+        }
+        e.getWorld().playSound(e.getLocation(), "entity.ender_dragon.growl", 2.0f, 0.85f);
+        e.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, e.getLocation().add(0, 2, 0), 12, 0.5, 0.5, 0.5, 0);
+        e.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                org.bukkit.potion.PotionEffectType.STRENGTH, 100, 0, false, false, false));
+        boss.flashEnrage(tick + 30);
+        boss.refreshBar(tick);
+        announceNearby(boss, Text.mm(plugin.messages().tr(boss.def().name()) + " <red>"
+                + plugin.messages().tr("grows emboldened!")));
     }
 
     private final Map<UUID, Long> lastTickErrorTick = new java.util.HashMap<>();
@@ -962,6 +1022,10 @@ public final class BossManager {
             // During the window, keep matching the boss to the (growing) attacking crowd - take the max.
             if (tick <= boss.scaleLockTick()) {
                 engageScale(boss);
+            }
+            // Player damage during a channel can interrupt it.
+            if (boss.isCasting() && boss.addCastDamage(amount)) {
+                interruptCast(boss);
             }
         }
         skillEngine.onDamaged(boss, damager, amount);

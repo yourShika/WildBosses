@@ -87,7 +87,12 @@ public final class MechanicRegistry {
         register("meteor", MechanicRegistry::meteor);
         register("meteor_rain", MechanicRegistry::meteor);
         register("healer_adds", MechanicRegistry::healerAdds);
+        register("cast", MechanicRegistry::cast);
+        register("channel", MechanicRegistry::cast);
     }
+
+    // Rate-limit repeated mechanic warnings so one broken ON_TIMER skill can't spam the console.
+    private final Map<String, Long> lastWarnMs = new HashMap<>();
 
     public void register(String key, Mechanic mechanic) {
         mechanics.put(key.toLowerCase(Locale.ROOT), mechanic);
@@ -100,14 +105,24 @@ public final class MechanicRegistry {
     public void run(String key, SkillContext ctx, List<Target> targets, Params params) {
         Mechanic m = mechanics.get(key == null ? "" : key.toLowerCase(Locale.ROOT));
         if (m == null) {
-            ctx.plugin().getLogger().warning("Unknown mechanic: " + key);
+            warnOnce(ctx, "unknown:" + key, "Unknown mechanic: " + key);
             return;
         }
         try {
             m.run(ctx, targets, params);
         } catch (Exception ex) {
-            ctx.plugin().getLogger().warning("Mechanic '" + key + "' failed for boss "
-                    + ctx.boss().def().id() + ": " + ex.getMessage());
+            warnOnce(ctx, ctx.boss().def().id() + ":" + key,
+                    "Mechanic '" + key + "' failed for boss " + ctx.boss().def().id() + ": " + ex.getMessage());
+        }
+    }
+
+    /** Log {@code msg} at most once every 30s per {@code dedupKey}. */
+    private void warnOnce(SkillContext ctx, String dedupKey, String msg) {
+        long now = System.currentTimeMillis();
+        Long last = lastWarnMs.get(dedupKey);
+        if (last == null || now - last >= 30_000L) {
+            lastWarnMs.put(dedupKey, now);
+            ctx.plugin().getLogger().warning(msg);
         }
     }
 
@@ -185,6 +200,12 @@ public final class MechanicRegistry {
     private static void summon(SkillContext ctx, List<Target> targets, Params p) {
         EntityType type = enumOr(EntityType.class, p.getString("type", "ZOMBIE"), EntityType.ZOMBIE);
         int amount = Math.max(1, (int) Math.round(p.getInt("amount", 3) * ctx.boss().addMultiplier()));
+        // Respect the live add cap so a long fight never piles up dozens of adds (pacing + lag).
+        int room = ctx.plugin().config().maxAddsPerBoss() - ctx.boss().liveAddCount();
+        amount = Math.min(amount, Math.max(0, room));
+        if (amount <= 0) {
+            return;
+        }
         double radius = p.getDouble("radius", 3);
         double health = p.getDouble("health", 0);
         boolean baby = p.getBoolean("baby", false);
@@ -218,6 +239,7 @@ public final class MechanicRegistry {
                 }
             }
             com.yourshika.wildbosses.util.Mobs.setBaby(e, baby); // adults by default; baby only if asked
+            ctx.boss().addSummon(e.getUniqueId()); // track for the live add cap
             if (e instanceof Mob mob && ctx.boss().target() != null) {
                 mob.setTarget(ctx.boss().target());
             }
@@ -665,25 +687,40 @@ public final class MechanicRegistry {
         }
         LivingEntity self = ctx.self();
         var plugin = ctx.plugin();
-        // Pulse a filled warning disc so players clearly see (and can leave) the danger area.
-        for (int t = 0; t < delay; t += 3) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> spots.forEach(loc -> disc(loc, radius, warn)), t);
-        }
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            for (Location loc : spots) {
-                emit(loc.getWorld(), hit, loc.clone().add(0, 0.5, 0), 40, radius / 2, 0.05);
-                loc.getWorld().playSound(loc, "entity.generic.explode", 1.0f, 1.2f);
-                double rSq = radius * radius;
-                for (Player pl : loc.getWorld().getPlayers()) {
-                    if (pl.getLocation().distanceSquared(loc) <= rSq) {
-                        pl.damage(damage, self);
-                        if (knockback > 0) {
-                            pushAway(pl, loc, knockback, 0.4);
+        // One self-cancelling timer instead of dozens of one-shot tasks: pulse a filled warning disc so
+        // players can leave the area, then detonate. If the boss died mid-telegraph, the AoE still lands
+        // (already telegraphed) but with a null damage source.
+        new org.bukkit.scheduler.BukkitRunnable() {
+            int elapsed = 0;
+
+            @Override
+            public void run() {
+                if (elapsed >= delay) {
+                    LivingEntity src = self.isValid() ? self : null;
+                    double rSq = radius * radius;
+                    for (Location loc : spots) {
+                        org.bukkit.World w = loc.getWorld();
+                        if (w == null) {
+                            continue;
+                        }
+                        emit(w, hit, loc.clone().add(0, 0.5, 0), 40, radius / 2, 0.05);
+                        w.playSound(loc, "entity.generic.explode", 1.0f, 1.2f);
+                        for (Player pl : w.getPlayers()) {
+                            if (pl.getLocation().distanceSquared(loc) <= rSq) {
+                                pl.damage(damage, src);
+                                if (knockback > 0) {
+                                    pushAway(pl, loc, knockback, 0.4);
+                                }
+                            }
                         }
                     }
+                    cancel();
+                    return;
                 }
+                spots.forEach(loc -> disc(loc, radius, warn));
+                elapsed += 3;
             }
-        }, delay);
+        }.runTaskTimer(plugin, 0L, 3L);
     }
 
     private static void shockwave(SkillContext ctx, List<Target> targets, Params p) {
@@ -723,36 +760,57 @@ public final class MechanicRegistry {
         World w = base.getWorld();
         LivingEntity self = ctx.self();
         var plugin = ctx.plugin();
+        int dropAt = Math.max(0, delay - 8);
         for (int i = 0; i < count; i++) {
             Location spot = base.clone().add(rand(radius), 0, rand(radius));
-            for (int t = 0; t < delay; t += 3) {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> disc(spot, 2.5, Particle.FLAME), t);
-            }
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                SmallFireball fb = w.spawn(spot.clone().add(0, height, 0), SmallFireball.class);
-                fb.setVelocity(new Vector(0, -2, 0));
-                fb.setYield(0f);
-                fb.setIsIncendiary(fire);
-                fb.setShooter(self);
-            }, delay - 8L);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                emit(w, Particle.EXPLOSION_EMITTER, spot.clone().add(0, 0.5, 0), 20, 1.5, 0.02);
-                w.playSound(spot, "entity.generic.explode", 1.2f, 1.0f);
-                for (Player pl : w.getPlayers()) {
-                    if (pl.getLocation().distanceSquared(spot) <= 9) {
-                        pl.damage(damage, self);
-                        if (fire) {
-                            pl.setFireTicks(60);
+            // One self-cancelling timer per meteor (telegraph -> drop the fireball -> impact) instead of
+            // ~delay/3 + 2 separate one-shot tasks each.
+            new org.bukkit.scheduler.BukkitRunnable() {
+                int elapsed = 0;
+
+                @Override
+                public void run() {
+                    if (elapsed == dropAt) {
+                        SmallFireball fb = w.spawn(spot.clone().add(0, height, 0), SmallFireball.class);
+                        fb.setVelocity(new Vector(0, -2, 0));
+                        fb.setYield(0f);
+                        fb.setIsIncendiary(fire);
+                        if (self.isValid()) {
+                            fb.setShooter(self);
                         }
                     }
+                    if (elapsed >= delay) {
+                        LivingEntity src = self.isValid() ? self : null;
+                        emit(w, Particle.EXPLOSION_EMITTER, spot.clone().add(0, 0.5, 0), 20, 1.5, 0.02);
+                        w.playSound(spot, "entity.generic.explode", 1.2f, 1.0f);
+                        for (Player pl : w.getPlayers()) {
+                            if (pl.getLocation().distanceSquared(spot) <= 9) {
+                                pl.damage(damage, src);
+                                if (fire) {
+                                    pl.setFireTicks(60);
+                                }
+                            }
+                        }
+                        cancel();
+                        return;
+                    }
+                    if (elapsed % 3 == 0) {
+                        disc(spot, 2.5, Particle.FLAME);
+                    }
+                    elapsed++;
                 }
-            }, delay);
+            }.runTaskTimer(plugin, 0L, 1L);
         }
     }
 
     private static void healerAdds(SkillContext ctx, List<Target> targets, Params p) {
         EntityType type = enumOr(EntityType.class, p.getString("type", "VEX"), EntityType.VEX);
         int amount = Math.max(1, p.getInt("amount", 2));
+        int room = ctx.plugin().config().maxAddsPerBoss() - ctx.boss().liveAddCount();
+        amount = Math.min(amount, Math.max(0, room));
+        if (amount <= 0) {
+            return;
+        }
         double radius = p.getDouble("radius", 5);
         String name = p.getString("name", "<green>Attendant");
         double hps = p.getDouble("heal-per-second", ctx.boss().maxHealth() * 0.02);
@@ -774,6 +832,47 @@ public final class MechanicRegistry {
                 le.setCustomNameVisible(true);
             }
             ctx.boss().addHealer(e.getUniqueId());
+        }
+    }
+
+    /**
+     * An interruptible channel: telegraphs for {@code duration} ticks (root + sound), then runs the
+     * {@code payload} mechanic - UNLESS players deal {@code interrupt-damage} total to the boss during
+     * the channel, which cancels it. The payload reads its params from THIS same block, e.g.
+     * {@code {duration:80, interrupt-damage:120, payload:heal, amount:200, message:"..."}}.
+     */
+    private static void cast(SkillContext ctx, List<Target> targets, Params p) {
+        var boss = ctx.boss();
+        if (boss.isCasting()) {
+            return; // already channeling
+        }
+        int duration = Math.max(20, p.getInt("duration", 100));
+        double interrupt = p.getDouble("interrupt-damage", boss.maxHealth() * 0.12);
+        String payload = p.getString("payload", "aoe_damage");
+        String payloadTargeter = p.getString("payload-targeter", "players_in_radius");
+        boolean root = p.getBoolean("root", true);
+        String particle = p.getString("particle", "SOUL_FIRE_FLAME");
+        var plugin = ctx.plugin();
+        long endTick = plugin.bossManager().currentTick() + duration;
+        boss.startCast(endTick, interrupt,
+                () -> plugin.skillEngine().runMechanicNow(boss, payload, payloadTargeter, p), particle);
+        LivingEntity self = ctx.self();
+        if (root) {
+            self.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, duration, 5, false, false, false));
+        }
+        World world = self.getWorld();
+        if (world != null) {
+            world.playSound(self.getLocation(), p.getString("sound", "entity.evoker.prepare_summon"), 2.0f, 0.8f);
+            String message = p.getString("message", null);
+            if (message != null) {
+                var comp = Text.mm(plugin.messages().tr(message));
+                double rSq = 40 * 40;
+                for (Player pl : world.getPlayers()) {
+                    if (pl.getLocation().distanceSquared(ctx.location()) <= rSq) {
+                        pl.sendMessage(comp);
+                    }
+                }
+            }
         }
     }
 

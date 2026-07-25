@@ -21,6 +21,10 @@ public interface SkillEngine {
 
     void onDeath(ActiveBoss boss);
 
+    /** When the boss kills a player (fires ON_KILL_PLAYER skills). Default no-op. */
+    default void onKillPlayer(ActiveBoss boss, org.bukkit.entity.Player victim) {
+    }
+
     SkillEngine NOOP = new SkillEngine() {
         @Override
         public void onSpawn(ActiveBoss boss) {

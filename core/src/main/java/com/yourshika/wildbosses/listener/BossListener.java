@@ -176,6 +176,34 @@ public final class BossListener implements Listener {
         }
     }
 
+    /** Fire ON_KILL_PLAYER (+ the built-in "emboldened" roar) when a boss kills a player. */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(org.bukkit.event.entity.PlayerDeathEvent event) {
+        org.bukkit.entity.Player victim = event.getEntity();
+        org.bukkit.entity.Entity killer = killerEntity(victim);
+        if (killer == null) {
+            return;
+        }
+        ActiveBoss boss = manager.get(killer);
+        if (boss != null) {
+            manager.onBossKilledPlayer(boss, victim);
+        }
+    }
+
+    /** The entity that dealt the fatal blow (resolving a projectile back to its shooter), or null. */
+    private static org.bukkit.entity.Entity killerEntity(org.bukkit.entity.Player victim) {
+        EntityDamageEvent cause = victim.getLastDamageCause();
+        if (cause instanceof EntityDamageByEntityEvent ede) {
+            org.bukkit.entity.Entity d = ede.getDamager();
+            if (d instanceof org.bukkit.entity.Projectile proj
+                    && proj.getShooter() instanceof org.bukkit.entity.Entity shooter) {
+                return shooter;
+            }
+            return d;
+        }
+        return null;
+    }
+
     /**
      * Stop a boss Creeper from self-detonating (and dying) when a player gets close. The boss only
      * "explodes" through its scripted skills; its own vanilla ignition is cancelled so the fight lasts.

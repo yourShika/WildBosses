@@ -21,6 +21,8 @@ public enum TriggerType {
     ON_HEALTH_BELOW,
     /** When a player enters {@code radius} of the boss (rate-limited by cooldown). */
     ON_TARGET_IN_RANGE,
+    /** When the boss kills a player. */
+    ON_KILL_PLAYER,
     /** When the boss dies. */
     ON_DEATH;
 

@@ -118,6 +118,21 @@ public final class DefaultSkillEngine implements SkillEngine {
         fireByTrigger(boss, TriggerType.ON_DEATH, null, 0);
     }
 
+    @Override
+    public void onKillPlayer(ActiveBoss boss, Player victim) {
+        fireByTrigger(boss, TriggerType.ON_KILL_PLAYER, victim, 0);
+    }
+
+    /**
+     * Resolve targets and run a single mechanic right now with a fresh context - used by the {@code cast}
+     * mechanic to fire its payload when a channel completes.
+     */
+    public void runMechanicNow(ActiveBoss boss, String mechanic, String targeter, com.yourshika.wildbosses.util.Params params) {
+        SkillContext ctx = new SkillContext(plugin, boss, plugin.bossManager().currentTick());
+        List<Target> targets = targeters.resolve(targeter, ctx, params);
+        mechanics.run(mechanic, ctx, targets, params);
+    }
+
     // ---- internals ------------------------------------------------------------------------
 
     private void fireByTrigger(ActiveBoss boss, TriggerType type, Entity trigger, double amount) {
