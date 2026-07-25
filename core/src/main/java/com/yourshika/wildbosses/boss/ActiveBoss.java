@@ -354,7 +354,9 @@ public final class ActiveBoss {
      * scan - so it can run a few times a second without the per-tick cost of {@link #refreshViewers()}.
      */
     public void refreshBar(long tick) {
-        bossBar.progress((float) Math.max(0, Math.min(1, entity.getHealth() / maxHealth)));
+        float progress = maxHealth <= 0 ? 0f
+                : (float) Math.max(0, Math.min(1, entity.getHealth() / maxHealth));
+        bossBar.progress(progress);
         boolean flashing = tick < enrageFlashUntil;
         double pct = healthPercent();
         String base = barBaseName != null ? barBaseName : def.name();

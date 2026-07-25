@@ -38,6 +38,20 @@ help:
 
 # Translations for authored names/titles/items (keyed by their English text).
 terms:
+  "is enraged!": "wpada w szał!"
+  "grows emboldened!": "nabiera śmiałości!"
+  "The channel is interrupted!": "Kanałowanie przerwane!"
+  "You dealt": "Zadałeś"
+  "of the damage": "obrażeń"
+  "rank": "miejsce"
+  "A boss has appeared:": "Pojawił się boss:"
+  "Compass now points to": "Kompas wskazuje teraz"
+  "Distance": "Odległość"
+  "another world": "inny świat"
+  "Undiscovered": "Nieodkryty"
+  "Defeat this boss to reveal it.": "Pokonaj tego bossa, aby go odkryć."
+  "Defeated": "Pokonano"
+  "times": "razy"
   "Easy": "Łatwy"
   "Medium": "Średni"
   "Hard": "Trudny"

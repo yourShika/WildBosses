@@ -139,8 +139,11 @@ public final class SpawnScheduler {
         boolean frontier = def.hasTerrain() && def.terrain().onlyUngeneratedChunks();
         if (frontier) {
             // Async: generate candidate chunks off-thread, spawn in the callback (no main-thread stall).
+            // Re-check the caps AND time-of-day in the callback: several frontier attempts in one cycle
+            // (esp. during a lunar event's extra attempts) would otherwise each pass the pre-dispatch
+            // check and all spawn, overshooting max-active/max-concurrent.
             findFrontierLocationAsync(anchor, def, loc -> {
-                if (loc == null || !spacedFarEnough(loc)) {
+                if (loc == null || capReached(def) || !timeOk(def, loc.getWorld()) || !spacedFarEnough(loc)) {
                     return;
                 }
                 spawnResolved(def, loc);
@@ -153,6 +156,17 @@ public final class SpawnScheduler {
             return false;
         }
         return spawnResolved(def, loc);
+    }
+
+    /** Whether the global or this boss' per-definition active cap is already reached (async re-check). */
+    private boolean capReached(BossDefinition def) {
+        PluginConfig cfg = plugin.config();
+        if (plugin.bossManager().count() + plugin.armyManager().count() >= cfg.maxActiveBosses()) {
+            return true;
+        }
+        int active = def.isArmy() ? plugin.armyManager().countOfDefinition(def.id())
+                : plugin.bossManager().countOfDefinition(def.id());
+        return active >= def.spawn().maxConcurrent();
     }
 
     /** New encounters must be at least min-distance from every active boss AND army anchor. */

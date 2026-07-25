@@ -160,8 +160,11 @@ public final class BossManager {
         if (plugin.isEnabled() && !stateSaving) {
             stateSaving = true;
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                writeState(yml, file);
-                stateSaving = false;
+                try {
+                    writeState(yml, file);
+                } finally {
+                    stateSaving = false; // never strand the flag, even on an unexpected error
+                }
             });
         } else if (!plugin.isEnabled()) {
             writeState(yml, file);

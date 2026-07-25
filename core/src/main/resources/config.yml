@@ -6,7 +6,7 @@
 
 # Internal - do NOT edit. When the plugin updates, any NEW options are merged into your config
 # automatically (your existing values are kept) and this number is bumped.
-config-version: 4
+config-version: 5
 
 settings:
   # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
@@ -37,6 +37,12 @@ settings:
   # A single hit can never take more than this fraction of a boss' max health (prevents one-shots).
   # 0.5 = at most 50% per hit (>= 2 hits to kill). Set to 1.0 to allow one-shots.
   max-hit-damage-percent: 0.5
+  # Live cap on how many summoned adds + healers a single boss may have at once (long fights won't
+  # pile up dozens of mobs). Summons over the cap are simply skipped until some die.
+  max-adds-per-boss: 30
+  # When true, the /wb list bestiary hides a boss' stats/drops (shown as "???") until the viewing
+  # player has defeated it at least once - a collection/discovery goal. Kill counts are per-player.
+  bestiary-discovery-lock: false
   # Bosses listed here are switched OFF: never loaded, never auto-restored (survives /wb reload
   # and /wb restore default). Use lowercase ids, e.g. [zombie_king, medusa].
   disabled-bosses: []
@@ -61,6 +67,9 @@ settings:
 rewards:
   # If true, every player who damaged the boss gets their own loot roll (no loot stealing).
   participation-loot: true
+  # With participation-loot, scale each contributor's number of loot rolls by their share of the
+  # damage dealt (heavy hitters get more, tiny contributors fewer). false = everyone rolls equally.
+  weight-by-damage: false
   # How many items actually drop per kill. Each item still rolls its own chance, but the result is
   # capped to a random count in [min, max] (the rarest winners are kept), and topped up to min.
   # Every dropped item is announced in chat (with its amount). Pets are separate bonus rewards.
@@ -118,11 +127,15 @@ integrations:
     max-distance: 3000
     attempts: 24
 
-# Enable/disable spawning per dimension.
+# Enable/disable spawning per dimension, plus optional per-world-NAME control on top of it.
 worlds:
   OVERWORLD: true
   NETHER: true
   THE_END: true
+  # Worlds (by name) bosses may NEVER spawn in - e.g. a hub/creative/build world. Case-insensitive.
+  blacklist: []
+  # If non-empty, bosses spawn ONLY in these worlds (by name). Leave empty to allow all enabled worlds.
+  whitelist: []
 
 broadcast:
   enabled: true
@@ -143,6 +156,11 @@ broadcast:
     announce-threshold: 0.5
   # Sound played to EVERY online player when a boss is slain (blank = off).
   death-sound: "ui.toast.challenge_complete"
+  # Show every online player a brief action-bar alert when a boss spawns (so far-away spawns aren't
+  # missed). The coordinates are included. Set false to disable.
+  spawn-alert: true
+  # Optional sound played to every online player on a boss spawn (blank = none). e.g. "event.raid.horn".
+  spawn-sound: ""
 
 # Override the look of each difficulty tier. Bar colours: PINK, BLUE, RED, GREEN, YELLOW, PURPLE, WHITE.
 difficulties:
