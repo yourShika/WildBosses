@@ -201,9 +201,12 @@ public final class WildBossesCommand implements TabExecutor {
     }
 
     private void active(CommandSender sender) {
-        // Players get the live overview menu (bosses, armies AND lunar events, with coordinates).
+        // Everyone may see the live overview (bosses, armies AND lunar events, with coordinates), but
+        // only players who may use the admin GUI get the interactive controls (teleport / remove / the
+        // Back button into the admin menu). Normal players get a purely read-only view.
         if (sender instanceof Player player) {
-            new com.yourshika.wildbosses.gui.ActiveMenu(plugin).open(player);
+            boolean manage = player.hasPermission("wildbosses.gui");
+            new com.yourshika.wildbosses.gui.ActiveMenu(plugin, manage).open(player);
             return;
         }
         List<ActiveBoss> bosses = plugin.bossManager().active();
