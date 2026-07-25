@@ -39,6 +39,8 @@ public final class PluginConfig {
     private int frontierAttempts = 24;
 
     private final Map<World.Environment, Boolean> worldEnabled = new EnumMap<>(World.Environment.class);
+    private final Set<String> worldBlacklist = new java.util.HashSet<>();
+    private final Set<String> worldWhitelist = new java.util.HashSet<>();
 
     private boolean broadcastEnabled = true;
     private String broadcastBossSpawn = "";
@@ -149,6 +151,19 @@ public final class PluginConfig {
         worldEnabled.put(World.Environment.NORMAL, c.getBoolean("worlds.OVERWORLD", true));
         worldEnabled.put(World.Environment.NETHER, c.getBoolean("worlds.NETHER", true));
         worldEnabled.put(World.Environment.THE_END, c.getBoolean("worlds.THE_END", true));
+        // Per-world-name control (in addition to the per-dimension toggles above).
+        worldBlacklist.clear();
+        for (String s : c.getStringList("worlds.blacklist")) {
+            if (s != null && !s.isBlank()) {
+                worldBlacklist.add(s.trim().toLowerCase(Locale.ROOT));
+            }
+        }
+        worldWhitelist.clear();
+        for (String s : c.getStringList("worlds.whitelist")) {
+            if (s != null && !s.isBlank()) {
+                worldWhitelist.add(s.trim().toLowerCase(Locale.ROOT));
+            }
+        }
 
         broadcastEnabled = c.getBoolean("broadcast.enabled", true);
         broadcastBossSpawn = c.getString("broadcast.boss-spawn", "");
@@ -242,6 +257,22 @@ public final class PluginConfig {
 
     public boolean isWorldEnabled(World.Environment env) {
         return worldEnabled.getOrDefault(env, false);
+    }
+
+    /**
+     * Whether bosses may spawn in this specific world: its dimension is enabled, it isn't on the
+     * name blacklist, and (if a whitelist is set) it is on the whitelist. Lets an owner exclude a
+     * hub/creative overworld or restrict spawns to specific worlds by name.
+     */
+    public boolean isWorldAllowed(World world) {
+        if (world == null || !isWorldEnabled(world.getEnvironment())) {
+            return false;
+        }
+        String name = world.getName().toLowerCase(Locale.ROOT);
+        if (worldBlacklist.contains(name)) {
+            return false;
+        }
+        return worldWhitelist.isEmpty() || worldWhitelist.contains(name);
     }
 
     public boolean broadcastEnabled() {

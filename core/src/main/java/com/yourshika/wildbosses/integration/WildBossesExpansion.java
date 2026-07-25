@@ -62,6 +62,36 @@ public final class WildBossesExpansion extends PlaceholderExpansion {
                     yield (boss == null || !(player instanceof Player p)) ? "-1"
                             : String.valueOf((int) p.getLocation().distance(boss.location()));
                 }
+                case "nearest_health" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield boss == null ? "-1" : String.valueOf((int) Math.ceil(boss.entity().getHealth()));
+                }
+                case "nearest_health_percent" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield boss == null ? "-1" : String.valueOf((int) Math.round(boss.healthPercent()));
+                }
+                case "nearest_world" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield boss == null ? "none" : Text.worldName(boss.location());
+                }
+                case "nearest_x" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield boss == null ? "-1" : String.valueOf(boss.location().getBlockX());
+                }
+                case "nearest_z" -> {
+                    ActiveBoss boss = nearest(player);
+                    yield boss == null ? "-1" : String.valueOf(boss.location().getBlockZ());
+                }
+                case "lunar", "lunar_active" -> {
+                    var lunar = plugin.lunarEvents();
+                    if (lunar == null || !(player instanceof Player p)) {
+                        yield "none";
+                    }
+                    String t = lunar.activeType(p.getWorld());
+                    yield t == null ? "none" : t;
+                }
+                case "next_spawn" -> plugin.spawnScheduler() == null ? "-1"
+                        : String.valueOf(plugin.spawnScheduler().secondsToNextCycle());
                 default -> null;
             };
         } catch (Exception ex) {

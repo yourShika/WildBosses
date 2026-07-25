@@ -190,11 +190,16 @@ public final class SpawnScheduler {
         List<Player> players = new ArrayList<>(plugin.getServer().getOnlinePlayers());
         Collections.shuffle(players);
         for (Player p : players) {
-            if (plugin.config().isWorldEnabled(p.getWorld().getEnvironment())) {
+            if (plugin.config().isWorldAllowed(p.getWorld())) {
                 return p;
             }
         }
         return null;
+    }
+
+    /** Seconds until the next spawn cycle (for the {@code %wildbosses_next_spawn%} placeholder). */
+    public long secondsToNextCycle() {
+        return Math.max(0, (nextCycleMillis - System.currentTimeMillis()) / 1000);
     }
 
     private BossDefinition pickWeightedBoss(World.Environment env) {

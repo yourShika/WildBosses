@@ -95,10 +95,11 @@ public final class Broadcaster {
                 Text.unparsed("player", player),
                 Text.num("amount", amount),
                 Text.component("item", display)));
-        DiscordWebhook.send(plugin, ":gift: **" + Text.plain(bossName(def)) + "** -> "
-                + PlainTextComponentSerializer.plainText().serialize(display)
-                + (amount > 1 ? " x" + amount : "")
-                + (finderName == null || finderName.isBlank() ? "" : " (" + finderName + ")"));
+        DiscordWebhook.sendEmbed(plugin, Text.plain(bossName(def)),
+                ":gift: " + PlainTextComponentSerializer.plainText().serialize(display)
+                        + (amount > 1 ? " x" + amount : "")
+                        + (finderName == null || finderName.isBlank() ? "" : " (" + finderName + ")"),
+                0xffd700);
     }
 
     // ---- helpers --------------------------------------------------------------------------
@@ -139,7 +140,18 @@ public final class Broadcaster {
                     .replace("%x%", String.valueOf(loc.getBlockX()))
                     .replace("%z%", String.valueOf(loc.getBlockZ()));
         }
-        DiscordWebhook.send(plugin, t);
+        DiscordWebhook.sendEmbed(plugin, Text.plain(bossName(def)), t, difficultyColor(def));
+    }
+
+    /** A Discord embed accent colour per difficulty. */
+    private static int difficultyColor(BossDefinition def) {
+        return switch (def.difficulty()) {
+            case EASY -> 0x2ecc71;
+            case MEDIUM -> 0xf1c40f;
+            case HARD -> 0xe67e22;
+            case ULTRA_HARD -> 0xe74c3c;
+            case MAGICAL -> 0x9b59b6;
+        };
     }
 
     private void broadcastSimple(String fmt, BossDefinition def) {

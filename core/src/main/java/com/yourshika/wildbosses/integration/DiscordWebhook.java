@@ -21,11 +21,20 @@ public final class DiscordWebhook {
     }
 
     public static void send(WildBossesPlugin plugin, String content) {
+        post(plugin, "{\"content\":\"" + escape(content) + "\"}");
+    }
+
+    /** Post a single rich embed (coloured by difficulty/rarity) instead of a flat content line. */
+    public static void sendEmbed(WildBossesPlugin plugin, String title, String description, int color) {
+        post(plugin, "{\"embeds\":[{\"title\":\"" + escape(title) + "\",\"description\":\""
+                + escape(description) + "\",\"color\":" + color + "}]}");
+    }
+
+    private static void post(WildBossesPlugin plugin, String json) {
         String url = plugin.config().discordWebhook();
         if (url == null || url.isBlank()) {
             return;
         }
-        String json = "{\"content\":\"" + escape(content) + "\"}";
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                     .header("Content-Type", "application/json")
