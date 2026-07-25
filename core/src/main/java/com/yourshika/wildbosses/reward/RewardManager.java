@@ -49,21 +49,32 @@ public final class RewardManager implements BossDeathListener {
         var contributors = boss.damageByPlayer();
         boolean droppedAny = false;
         if (plugin.config().participationLoot() && !contributors.isEmpty()) {
-            // Everyone who dealt damage and is still online in this world gets their OWN 1-3 loot roll
-            // at their feet (no loot stealing, announced under their name). Absent/offline contributors
+            // Everyone who dealt damage and is still online in this world gets their OWN loot roll at
+            // their feet (no loot stealing, announced under their name). Absent/offline contributors
             // are skipped so no phantom second pile is dropped at the boss.
+            boolean weighted = plugin.config().weightRewardsByDamage();
+            double total = 0;
+            if (weighted) {
+                for (double d : contributors.values()) {
+                    total += d;
+                }
+            }
+            int n = contributors.size();
             for (java.util.UUID id : contributors.keySet()) {
                 Player p = Bukkit.getPlayer(id);
                 if (p == null || !p.getWorld().equals(world)) {
                     continue;
                 }
-                rollDrops(drops, p.getLocation(), boss, p, p.getName());
+                // weight 1.0 = normal. When weighting, each share is scaled so the AVERAGE roll count
+                // stays the same but heavy hitters get more rolls and tiny contributors fewer.
+                double weight = (weighted && total > 0) ? (contributors.get(id) / total) * n : 1.0;
+                rollDrops(drops, p.getLocation(), boss, p, p.getName(), weight);
                 droppedAny = true;
             }
         }
         // Fallback (participation off, or nobody eligible was online): a single roll at the boss.
         if (!droppedAny) {
-            rollDrops(drops, loc, boss, killer, killer != null ? killer.getName() : null);
+            rollDrops(drops, loc, boss, killer, killer != null ? killer.getName() : null, 1.0);
         }
 
         if (drops.xp() > 0) {
@@ -78,7 +89,8 @@ public final class RewardManager implements BossDeathListener {
         }
     }
 
-    private void rollDrops(DropTable drops, Location loc, ActiveBoss boss, Player finder, String finderName) {
+    private void rollDrops(DropTable drops, Location loc, ActiveBoss boss, Player finder, String finderName,
+                           double weight) {
         World world = loc.getWorld();
         if (world == null) {
             return;
@@ -100,8 +112,9 @@ public final class RewardManager implements BossDeathListener {
                     .add(new Candidate(raw.chance(), stack, raw.rarity(), stack.effectiveName(), raw.announce()));
         }
 
-        int max = plugin.config().maxDrops();
-        int min = plugin.config().minDrops();
+        // Scale the roll-count window by this finder's damage weight (1.0 = unweighted).
+        int max = Math.max(1, (int) Math.round(plugin.config().maxDrops() * weight));
+        int min = Math.min(max, (int) Math.round(plugin.config().minDrops() * weight));
         // Too many rolled? Keep only the rarest ones (highest rarity, then lowest chance).
         if (winners.size() > max) {
             winners.sort((a, b) -> {

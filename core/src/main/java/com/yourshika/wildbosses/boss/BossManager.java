@@ -970,6 +970,7 @@ public final class BossManager {
         }
         broadcaster.bossDeath(boss.def(), slayerNames(boss, killer));
         playDeathSound();
+        sendDamageSummaries(boss);
         encounterHook.onEnd(boss);
         // Remove the fight's summoned adds/healers BEFORE on-death skills run, so a future ON_DEATH
         // summon (death-throes adds, sharing the boss' encounter id) isn't nuked by this same sweep.
@@ -977,6 +978,34 @@ public final class BossManager {
         skillEngine.onDeath(boss);
         boss.releaseChunkTicket(plugin);
         boss.cleanup(false);
+    }
+
+    /** Privately tell each online contributor their share of the damage and their rank at the kill. */
+    private void sendDamageSummaries(ActiveBoss boss) {
+        Map<UUID, Double> dmg = boss.damageByPlayer();
+        if (dmg.isEmpty()) {
+            return;
+        }
+        double total = 0;
+        for (double d : dmg.values()) {
+            total += d;
+        }
+        if (total <= 0) {
+            return;
+        }
+        List<Map.Entry<UUID, Double>> ranked = new ArrayList<>(dmg.entrySet());
+        ranked.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        int m = ranked.size();
+        for (int i = 0; i < m; i++) {
+            Player p = Bukkit.getPlayer(ranked.get(i).getKey());
+            if (p == null) {
+                continue;
+            }
+            int share = (int) Math.round(ranked.get(i).getValue() / total * 100.0);
+            p.sendMessage(Text.mm("<gray>" + plugin.messages().tr("You dealt") + " <yellow>" + share
+                    + "%<gray> " + plugin.messages().tr("of the damage") + " <dark_gray>("
+                    + plugin.messages().tr("rank") + " " + (i + 1) + "/" + m + ")"));
+        }
     }
 
     /** Comma-separated names of everyone who damaged the boss (most damage first, max 5). */

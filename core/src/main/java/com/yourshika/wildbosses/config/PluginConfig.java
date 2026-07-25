@@ -49,6 +49,8 @@ public final class PluginConfig {
     private boolean dropBroadcastEnabled = true;
     private double dropBroadcastThreshold = 0.5;
     private String deathSound = "ui.toast.challenge_complete";
+    private boolean spawnAlert = true;
+    private String spawnSound = "";
 
     private boolean bossLifetimeEnabled = true;
     private int bossLifetimeMinMinutes = 30;
@@ -61,6 +63,7 @@ public final class PluginConfig {
     private int scalingEngageWindowSeconds = 10;
 
     private boolean participationLoot = true;
+    private boolean weightRewardsByDamage = false;
     private int minDrops = 1;
     private int maxDrops = 3;
     private String discordWebhook = "";
@@ -112,6 +115,7 @@ public final class PluginConfig {
         scalingEngageWindowSeconds = Math.max(0, c.getInt("settings.scaling.engage-window-seconds", 10));
 
         participationLoot = c.getBoolean("rewards.participation-loot", true);
+        weightRewardsByDamage = c.getBoolean("rewards.weight-by-damage", false);
         minDrops = Math.max(0, c.getInt("rewards.drop-count.min", 1));
         maxDrops = Math.max(minDrops, c.getInt("rewards.drop-count.max", 3));
         discordWebhook = c.getString("integrations.discord-webhook", "");
@@ -154,6 +158,8 @@ public final class PluginConfig {
         dropBroadcastEnabled = c.getBoolean("broadcast.drops.enabled", true);
         dropBroadcastThreshold = Math.max(0.0, Math.min(1.0, c.getDouble("broadcast.drops.announce-threshold", 0.5)));
         deathSound = c.getString("broadcast.death-sound", "ui.toast.challenge_complete");
+        spawnAlert = c.getBoolean("broadcast.spawn-alert", true);
+        spawnSound = c.getString("broadcast.spawn-sound", "");
 
         applyDifficultyOverrides(c.getConfigurationSection("difficulties"), logger);
     }
@@ -338,6 +344,21 @@ public final class PluginConfig {
 
     public boolean participationLoot() {
         return participationLoot;
+    }
+
+    /** When true, each contributor's loot roll count scales with their share of the damage dealt. */
+    public boolean weightRewardsByDamage() {
+        return weightRewardsByDamage;
+    }
+
+    /** Send every online player an action-bar alert when a boss spawns. */
+    public boolean spawnAlert() {
+        return spawnAlert;
+    }
+
+    /** Sound key played to every online player on a boss spawn (blank = none). */
+    public String spawnSound() {
+        return spawnSound;
     }
 
     public int minDrops() {

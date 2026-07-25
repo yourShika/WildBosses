@@ -24,12 +24,36 @@ public final class Broadcaster {
 
     public void bossSpawn(BossDefinition def, Location loc) {
         sendLocated(template(plugin.config().broadcastBossSpawn(), "broadcast-boss-spawn"), def, loc);
+        spawnAlert(def, loc);
         discord("discord-boss-spawn", def, loc, null, null);
     }
 
     public void armySpawn(BossDefinition def, Location loc) {
         sendLocated(template(plugin.config().broadcastArmySpawn(), "broadcast-army-spawn"), def, loc);
+        spawnAlert(def, loc);
         discord("discord-army-spawn", def, loc, null, null);
+    }
+
+    /** A global action-bar alert (+ optional sound) so players notice a boss appearing far away. */
+    private void spawnAlert(BossDefinition def, Location loc) {
+        String sound = plugin.config().spawnSound();
+        boolean hasSound = sound != null && !sound.isBlank();
+        if (!plugin.config().spawnAlert() && !hasSound) {
+            return;
+        }
+        Component bar = Text.mm("<gray>" + plugin.messages().tr("A boss has appeared:") + " ")
+                .append(Text.mm(bossName(def)))
+                .append(Text.mm(" <dark_gray>(<gray>" + Text.worldName(loc) + " "
+                        + loc.getBlockX() + " " + loc.getBlockZ() + "<dark_gray>)"));
+        String key = hasSound ? sound.toLowerCase(java.util.Locale.ROOT) : null;
+        for (org.bukkit.entity.Player p : Bukkit.getOnlinePlayers()) {
+            if (plugin.config().spawnAlert()) {
+                p.sendActionBar(bar);
+            }
+            if (key != null) {
+                p.playSound(p.getLocation(), key, 0.7f, 1.2f);
+            }
+        }
     }
 
     public void bossDeath(BossDefinition def, String slayers) {
