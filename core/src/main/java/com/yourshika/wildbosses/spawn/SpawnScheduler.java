@@ -31,6 +31,7 @@ public final class SpawnScheduler {
     private final Map<String, Long> lastSpawnMillis = new HashMap<>();
     private EncounterStarter armyStarter;
     private BukkitTask task;
+    private long nextCycleMillis;
 
     public SpawnScheduler(WildBossesPlugin plugin) {
         this.plugin = plugin;
@@ -59,7 +60,37 @@ public final class SpawnScheduler {
         int hi = cfg.spawnIntervalMaxSeconds();
         int seconds = hi > lo ? ThreadLocalRandom.current().nextInt(lo, hi + 1) : lo;
         long delay = Math.max(20L, seconds * 20L);
+        nextCycleMillis = System.currentTimeMillis() + delay * 50L; // 50 ms per tick
         task = plugin.getServer().getScheduler().runTaskLater(plugin, this::cycle, delay);
+    }
+
+    /** Human-readable spawn diagnostics for {@code /wb debug} (why a boss will/won't spawn). */
+    public java.util.List<String> debugInfo() {
+        PluginConfig cfg = plugin.config();
+        java.util.List<String> out = new ArrayList<>();
+        int bosses = plugin.bossManager().count();
+        int armies = plugin.armyManager().count();
+        out.add("<gray>random-spawns: <yellow>" + cfg.randomSpawns()
+                + " <gray>| interval <yellow>" + cfg.spawnIntervalMinSeconds() / 60 + "-"
+                + cfg.spawnIntervalMaxSeconds() / 60 + "m <gray>| attempts/cycle <yellow>"
+                + cfg.spawnAttemptsPerCycle());
+        out.add("<gray>active: <yellow>" + bosses + "<gray> boss + <yellow>" + armies
+                + "<gray> army / cap <yellow>" + cfg.maxActiveBosses());
+        out.add("<gray>next cycle in ~<yellow>" + Math.max(0, (nextCycleMillis - System.currentTimeMillis()) / 1000) + "s"
+                + " <gray>| online <yellow>" + plugin.getServer().getOnlinePlayers().size());
+        out.add("<dark_gray>--- per-boss eligibility (weight / cooldown-left / count) ---");
+        long now = System.currentTimeMillis();
+        for (BossDefinition def : plugin.registry().all()) {
+            SpawnRules r = def.spawn();
+            long cdLeft = Math.max(0, (r.cooldownSeconds() * 1000L - (now - lastSpawnMillis.getOrDefault(def.id(), 0L))) / 1000);
+            int cur = def.isArmy() ? plugin.armyManager().countOfDefinition(def.id())
+                    : plugin.bossManager().countOfDefinition(def.id());
+            out.add("<dark_gray> - <white>" + def.id() + " <gray>w<yellow>" + r.weight()
+                    + " <gray>cd<yellow>" + cdLeft + "s <gray>cnt<yellow>" + cur + "<gray>/<yellow>" + r.maxConcurrent()
+                    + (def.hasTerrain() && def.terrain().onlyUngeneratedChunks() ? " <dark_gray>[frontier]" : "")
+                    + (def.isArmy() ? " <dark_gray>[army]" : ""));
+        }
+        return out;
     }
 
     private void cycle() {

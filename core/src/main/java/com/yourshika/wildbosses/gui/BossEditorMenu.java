@@ -89,6 +89,24 @@ public final class BossEditorMenu extends Menu {
                 "<gray>toggle its chat announcement.",
                 "<yellow>Click <gray>to open"), e -> new DropEditorMenu(plugin, bossId).open((Player) e.getWhoClicked()));
 
+        boolean disabled = plugin.config().disabledBosses().contains(bossId.toLowerCase(java.util.Locale.ROOT));
+        set(28, icon(disabled ? Material.GRAY_DYE : Material.LIME_DYE,
+                "<yellow>Enabled: " + (disabled ? "<red>no (disabled)" : "<green>yes"),
+                "<gray>Disabled bosses never spawn or load.",
+                "<yellow>Click <gray>to toggle"), e -> toggleDisabled((Player) e.getWhoClicked()));
+
+        BossDefinition bd = plugin.registry().get(bossId);
+        if (bd != null) {
+            var r = bd.spawn();
+            set(34, icon(Material.COMPASS, "<gold>Spawn rules <dark_gray>(read-only)",
+                    "<gray>Worlds: <white>" + worldsStr(r),
+                    "<gray>Cooldown: <white>" + r.cooldownSeconds() + "s <gray>| Max concurrent: <white>" + r.maxConcurrent(),
+                    "<gray>Y range: <white>" + r.minY() + "-" + r.maxY(),
+                    "<gray>Frontier only: <white>"
+                            + (bd.hasTerrain() && bd.terrain().onlyUngeneratedChunks() ? "yes" : "no"),
+                    "<dark_gray>Edit spawn rules in the boss YAML."), null);
+        }
+
         set(30, icon(Material.LIME_CONCRETE, "<green><bold>Save",
                 "<gray>Write changes to <yellow>bosses/" + bossId + ".yml",
                 "<gray>and reload."), e -> save((Player) e.getWhoClicked()));
@@ -114,6 +132,48 @@ public final class BossEditorMenu extends Menu {
     private org.bukkit.inventory.ItemStack stat(Material material, String label, int value) {
         return icon(material, "<yellow>" + label + ": <white>" + value,
                 "<gray>Left-click <green>+", "<gray>Right-click <red>-");
+    }
+
+    private static String worldsStr(com.yourshika.wildbosses.boss.SpawnRules r) {
+        StringBuilder sb = new StringBuilder();
+        for (org.bukkit.World.Environment env : r.environments()) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(switch (env) {
+                case NORMAL -> "Overworld";
+                case NETHER -> "Nether";
+                case THE_END -> "End";
+                default -> env.name();
+            });
+        }
+        return sb.length() == 0 ? "-" : sb.toString();
+    }
+
+    /** Toggle this boss in settings.disabled-bosses (persisted), then reload. */
+    private void toggleDisabled(Player player) {
+        String key = bossId.toLowerCase(java.util.Locale.ROOT);
+        java.util.List<String> list =
+                new java.util.ArrayList<>(plugin.getConfig().getStringList("settings.disabled-bosses"));
+        boolean nowDisabled;
+        if (list.removeIf(s -> s != null && s.trim().equalsIgnoreCase(key))) {
+            nowDisabled = false; // it was disabled -> now enabling
+        } else {
+            list.add(key);
+            nowDisabled = true;
+        }
+        plugin.getConfig().set("settings.disabled-bosses", list);
+        plugin.saveConfig();
+        plugin.reloadAll();
+        player.sendMessage(Text.mm(nowDisabled
+                ? "<red>Disabled <yellow>" + bossId + "<red> (won't spawn or load)."
+                : "<green>Enabled <yellow>" + bossId + "<green>."));
+        // A disabled boss leaves the registry, so its editor can't reopen - go back to the list.
+        if (nowDisabled) {
+            new BossListMenu(plugin).open(player);
+        } else {
+            new BossEditorMenu(plugin, bossId).open(player);
+        }
     }
 
     private void save(Player player) {

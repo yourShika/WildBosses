@@ -971,6 +971,13 @@ public final class BossManager {
         broadcaster.bossDeath(boss.def(), slayerNames(boss, killer));
         playDeathSound();
         sendDamageSummaries(boss);
+        // Bestiary "defeated N times": credit every damage contributor once, persist once.
+        if (!boss.damageByPlayer().isEmpty()) {
+            for (UUID id : boss.damageByPlayer().keySet()) {
+                plugin.playerStats().recordKill(id, boss.def().id());
+            }
+            plugin.playerStats().save();
+        }
         encounterHook.onEnd(boss);
         // Remove the fight's summoned adds/healers BEFORE on-death skills run, so a future ON_DEATH
         // summon (death-throes adds, sharing the boss' encounter id) isn't nuked by this same sweep.

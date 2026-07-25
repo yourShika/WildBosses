@@ -29,7 +29,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
-            List.of("spawn", "army", "lunar", "list", "active", "info", "gui", "killall", "reload", "restore", "update", "help");
+            List.of("spawn", "army", "lunar", "list", "active", "track", "info", "gui", "killall",
+                    "reload", "restore", "testspawn", "debug", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -51,8 +52,11 @@ public final class WildBossesCommand implements TabExecutor {
             case "lunar", "moon" -> lunar(sender, args);
             case "list" -> list(sender);
             case "active" -> active(sender);
+            case "track" -> track(sender);
             case "info" -> info(sender, args);
             case "gui" -> gui(sender);
+            case "testspawn" -> testspawn(sender, args);
+            case "debug" -> debug(sender);
             case "update" -> update(sender);
             case "killall" -> killAll(sender);
             case "help" -> sendHelp(sender);
@@ -264,6 +268,92 @@ public final class WildBossesCommand implements TabExecutor {
         }
     }
 
+    private static final String[] DIRS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+
+    /** Point the player's compass at the nearest active boss/army in their world. */
+    private void track(CommandSender sender) {
+        if (!(sender instanceof Player p)) {
+            plugin.messages().send(sender, "player-only");
+            return;
+        }
+        Location best = null;
+        String name = null;
+        double bestSq = Double.MAX_VALUE;
+        for (ActiveBoss b : plugin.bossManager().active()) {
+            Location l = b.location();
+            if (l.getWorld() != null && l.getWorld().equals(p.getWorld())) {
+                double d = l.distanceSquared(p.getLocation());
+                if (d < bestSq) {
+                    bestSq = d;
+                    best = l;
+                    name = plugin.messages().tr(b.def().name());
+                }
+            }
+        }
+        for (ArmyEncounter a : plugin.armyManager().active()) {
+            Location l = a.anchor();
+            if (l.getWorld() != null && l.getWorld().equals(p.getWorld())) {
+                double d = l.distanceSquared(p.getLocation());
+                if (d < bestSq) {
+                    bestSq = d;
+                    best = l;
+                    name = plugin.messages().tr(a.def().name());
+                }
+            }
+        }
+        if (best == null) {
+            plugin.messages().send(sender, "no-active");
+            return;
+        }
+        p.setCompassTarget(best);
+        p.sendMessage(Text.mm("<green>" + plugin.messages().tr("Compass now points to") + " ")
+                .append(Text.mm(name))
+                .append(Text.mm(" <gray>(" + (int) Math.sqrt(bestSq) + "m " + direction(p.getLocation(), best) + ")")));
+    }
+
+    private static String direction(Location from, Location to) {
+        double dx = to.getX() - from.getX();
+        double dz = to.getZ() - from.getZ();
+        double deg = Math.toDegrees(Math.atan2(dx, -dz)); // 0 = North, 90 = East
+        return DIRS[(int) Math.round((((deg % 360) + 360) % 360) / 45.0) % 8];
+    }
+
+    /** Dry-run: report where a boss WOULD spawn (or the failing reason) without spawning it. */
+    private void testspawn(CommandSender sender, String[] args) {
+        if (denied(sender, "wildbosses.spawn")) {
+            return;
+        }
+        if (args.length < 2) {
+            sender.sendMessage(Text.mm("<red>Usage: <yellow>/wb testspawn <id|random>"));
+            return;
+        }
+        BossDefinition def = args[1].equalsIgnoreCase("random") ? randomBoss(false) : plugin.registry().get(args[1]);
+        if (def == null) {
+            plugin.messages().send(sender, "unknown-boss", Text.unparsed("id", args[1]));
+            return;
+        }
+        Location loc = plugin.spawnScheduler().randomLocationFor(def);
+        if (loc == null) {
+            sender.sendMessage(Text.mm("<red>testspawn <yellow>" + def.id() + "<red>: no valid location found "
+                    + "<gray>(no players in an enabled world, a time-of-day gate, or no frontier/nearby spot within the search)."));
+            return;
+        }
+        sender.sendMessage(Text.mm("<green>testspawn <yellow>" + def.id() + "<green> would place at <yellow>"
+                + worldName(loc) + " " + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ()
+                + " <gray>(nothing was spawned)."));
+    }
+
+    /** Print live spawn-cycle diagnostics. */
+    private void debug(CommandSender sender) {
+        if (denied(sender, "wildbosses.admin")) {
+            return;
+        }
+        sender.sendMessage(Text.mm("<gradient:#f8b500:#fceabb><bold>WildBosses debug</bold></gradient>"));
+        for (String line : plugin.spawnScheduler().debugInfo()) {
+            sender.sendMessage(Text.mm(line));
+        }
+    }
+
     private void info(CommandSender sender, String[] args) {
         if (args.length < 2) {
             plugin.messages().send(sender, "unknown-boss", Text.unparsed("id", "?"));
@@ -404,7 +494,7 @@ public final class WildBossesCommand implements TabExecutor {
         }
         if (args.length == 2) {
             String sub = args[0].toLowerCase(Locale.ROOT);
-            if (sub.equals("spawn") || sub.equals("army")) {
+            if (sub.equals("spawn") || sub.equals("army") || sub.equals("testspawn")) {
                 List<String> opts = new ArrayList<>();
                 opts.add("random");
                 opts.addAll(plugin.registry().ids());

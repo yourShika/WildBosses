@@ -26,7 +26,10 @@ import java.util.Locale;
  */
 public final class ActiveMenu extends Menu {
 
+    private static final String[] DIRS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+
     private final boolean manage;
+    private Player viewer;
 
     public ActiveMenu(WildBossesPlugin plugin, boolean manage) {
         super(plugin, 54, "<dark_gray>WildBosses <gray>- Active");
@@ -34,9 +37,19 @@ public final class ActiveMenu extends Menu {
     }
 
     @Override
+    public void open(Player player) {
+        this.viewer = player; // captured so entries can be sorted by / labelled with distance to them
+        super.open(player);
+    }
+
+    @Override
     protected void build() {
         int slot = 0;
-        for (ActiveBoss boss : plugin.bossManager().active()) {
+        java.util.List<ActiveBoss> bosses = new java.util.ArrayList<>(plugin.bossManager().active());
+        bosses.sort(java.util.Comparator.comparingDouble(b -> distSq(b.location())));
+        java.util.List<ArmyEncounter> armies = new java.util.ArrayList<>(plugin.armyManager().active());
+        armies.sort(java.util.Comparator.comparingDouble(a -> distSq(a.anchor())));
+        for (ActiveBoss boss : bosses) {
             if (slot >= 45) {
                 break;
             }
@@ -51,7 +64,7 @@ public final class ActiveMenu extends Menu {
                 }
             } : null);
         }
-        for (ArmyEncounter army : plugin.armyManager().active()) {
+        for (ArmyEncounter army : armies) {
             if (slot >= 45) {
                 break;
             }
@@ -120,6 +133,10 @@ public final class ActiveMenu extends Menu {
                 + "<gray>/<white>" + (int) boss.maxHealth());
         lore.add("<gray>" + tr("At") + " <yellow>" + worldName(loc) + " "
                 + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ());
+        String dl = distanceLine(loc);
+        if (dl != null) {
+            lore.add(dl);
+        }
         lore.add(flee);
         if (manage) {
             lore.add(" ");
@@ -138,6 +155,10 @@ public final class ActiveMenu extends Menu {
         lore.add("<gray>" + tr("Slain") + " <white>" + army.kills());
         lore.add("<gray>" + tr("At") + " <yellow>" + worldName(loc) + " "
                 + loc.getBlockX() + " " + loc.getBlockY() + " " + loc.getBlockZ());
+        String dl = distanceLine(loc);
+        if (dl != null) {
+            lore.add(dl);
+        }
         if (manage) {
             lore.add(" ");
             lore.add("<yellow>Left-click <gray>teleport");
@@ -150,5 +171,30 @@ public final class ActiveMenu extends Menu {
 
     private static String worldName(Location loc) {
         return com.yourshika.wildbosses.util.Text.worldName(loc);
+    }
+
+    /** Squared distance from the viewer to {@code loc} (MAX if unknown / another world) - for sorting. */
+    private double distSq(Location loc) {
+        if (viewer == null || loc.getWorld() == null || !loc.getWorld().equals(viewer.getWorld())) {
+            return Double.MAX_VALUE;
+        }
+        return loc.distanceSquared(viewer.getLocation());
+    }
+
+    /** A "120m NE" (or "another world") line relative to the viewer, or null if there's no viewer. */
+    private String distanceLine(Location loc) {
+        if (viewer == null || loc.getWorld() == null) {
+            return null;
+        }
+        if (!loc.getWorld().equals(viewer.getWorld())) {
+            return "<dark_gray>(" + tr("another world") + ")";
+        }
+        int dist = (int) viewer.getLocation().distance(loc);
+        return "<gray>" + tr("Distance") + " <yellow>" + dist + "m " + direction(viewer.getLocation(), loc);
+    }
+
+    private static String direction(Location from, Location to) {
+        double deg = Math.toDegrees(Math.atan2(to.getX() - from.getX(), -(to.getZ() - from.getZ())));
+        return DIRS[(int) Math.round((((deg % 360) + 360) % 360) / 45.0) % 8];
     }
 }

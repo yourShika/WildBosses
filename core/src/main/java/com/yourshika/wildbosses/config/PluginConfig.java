@@ -31,6 +31,7 @@ public final class PluginConfig {
     private int unclaimedDespawnMinutes = 8;
     private double maxHitDamagePercent = 0.5;
     private int maxAddsPerBoss = 30;
+    private boolean bestiaryDiscoveryLock = false;
     private final java.util.Set<String> disabledBosses = new java.util.HashSet<>();
 
     private int frontierMinDistance = 200;
@@ -96,6 +97,7 @@ public final class PluginConfig {
         unclaimedDespawnMinutes = Math.max(1, c.getInt("settings.unclaimed-despawn-minutes", 8));
         maxHitDamagePercent = Math.max(0.0, Math.min(1.0, c.getDouble("settings.max-hit-damage-percent", 0.5)));
         maxAddsPerBoss = Math.max(1, c.getInt("settings.max-adds-per-boss", 30));
+        bestiaryDiscoveryLock = c.getBoolean("settings.bestiary-discovery-lock", false);
         disabledBosses.clear();
         for (String id : c.getStringList("settings.disabled-bosses")) {
             if (id != null && !id.isBlank()) {
@@ -321,6 +323,11 @@ public final class PluginConfig {
     /** Live cap on summoned adds + healers per boss, so long fights can't pile up dozens of mobs. */
     public int maxAddsPerBoss() {
         return maxAddsPerBoss;
+    }
+
+    /** When true, the bestiary hides a boss' stats/drops until the viewing player has defeated it once. */
+    public boolean bestiaryDiscoveryLock() {
+        return bestiaryDiscoveryLock;
     }
 
     /** Whether terrain theming/features are allowed to replace a block of this type (failsafe). */

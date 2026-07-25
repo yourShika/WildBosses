@@ -34,6 +34,7 @@ public final class WildBossesPlugin extends JavaPlugin {
     private SpawnScheduler spawnScheduler;
     private ArmyManager armyManager;
     private DefaultSkillEngine skillEngine;
+    private com.yourshika.wildbosses.stats.PlayerStats playerStats;
     private com.yourshika.wildbosses.event.LunarEventManager lunarEvents;
 
     @Override
@@ -43,6 +44,7 @@ public final class WildBossesPlugin extends JavaPlugin {
         saveDefaultConfig();
 
         messages = new Messages(this);
+        playerStats = new com.yourshika.wildbosses.stats.PlayerStats(this);
         registry = new BossRegistry(this);
         broadcaster = new Broadcaster(this);
         bossManager = new BossManager(this, registry, broadcaster);
@@ -217,6 +219,10 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     public DefaultSkillEngine skillEngine() {
         return skillEngine;
+    }
+
+    public com.yourshika.wildbosses.stats.PlayerStats playerStats() {
+        return playerStats;
     }
 
     public Messages messages() {
