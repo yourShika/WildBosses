@@ -328,7 +328,7 @@ public final class BossManager {
         if (w != null) {
             int cx = le.getLocation().getBlockX() >> 4;
             int cz = le.getLocation().getBlockZ() >> 4;
-            w.addPluginChunkTicket(cx, cz, plugin);
+            plugin.chunkTickets().acquire(w, cx, cz);
             boss.setChunkTicket(w, cx, cz);
         }
 

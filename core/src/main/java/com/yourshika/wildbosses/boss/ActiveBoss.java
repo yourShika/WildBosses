@@ -179,9 +179,9 @@ public final class ActiveBoss {
         this.hasTicket = true;
     }
 
-    public void releaseChunkTicket(org.bukkit.plugin.Plugin plugin) {
+    public void releaseChunkTicket(com.yourshika.wildbosses.WildBossesPlugin plugin) {
         if (hasTicket && ticketWorld != null) {
-            ticketWorld.removePluginChunkTicket(ticketCx, ticketCz, plugin);
+            plugin.chunkTickets().release(ticketWorld, ticketCx, ticketCz);
             hasTicket = false;
         }
     }

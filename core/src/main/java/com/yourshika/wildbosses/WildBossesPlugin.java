@@ -35,14 +35,20 @@ public final class WildBossesPlugin extends JavaPlugin {
     private ArmyManager armyManager;
     private DefaultSkillEngine skillEngine;
     private com.yourshika.wildbosses.stats.PlayerStats playerStats;
+    private com.yourshika.wildbosses.util.ChunkTicketManager chunkTickets;
     private com.yourshika.wildbosses.event.LunarEventManager lunarEvents;
 
     @Override
     public void onEnable() {
         getLogger().info("WildBosses is starting up...");
+        if (com.yourshika.wildbosses.util.Sched.isFolia()) {
+            getLogger().warning("Folia detected: WildBosses runs on the classic scheduler and full "
+                    + "region-thread support is still in progress - expect issues on Folia for now.");
+        }
         Keys.init(this);
         saveDefaultConfig();
 
+        chunkTickets = new com.yourshika.wildbosses.util.ChunkTicketManager(this);
         messages = new Messages(this);
         playerStats = new com.yourshika.wildbosses.stats.PlayerStats(this);
         registry = new BossRegistry(this);
@@ -114,6 +120,9 @@ public final class WildBossesPlugin extends JavaPlugin {
         if (bossManager != null) {
             bossManager.saveState();   // persist live bosses before we tear them down
             bossManager.shutdown();
+        }
+        if (chunkTickets != null) {
+            chunkTickets.clear();
         }
         getLogger().info("WildBosses disabled.");
     }
@@ -223,6 +232,10 @@ public final class WildBossesPlugin extends JavaPlugin {
 
     public com.yourshika.wildbosses.stats.PlayerStats playerStats() {
         return playerStats;
+    }
+
+    public com.yourshika.wildbosses.util.ChunkTicketManager chunkTickets() {
+        return chunkTickets;
     }
 
     public Messages messages() {

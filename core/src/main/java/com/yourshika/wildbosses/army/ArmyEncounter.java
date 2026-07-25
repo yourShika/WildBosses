@@ -108,7 +108,7 @@ public final class ArmyEncounter {
         }
         // Keep the anchor chunk loaded so a frontier army doesn't unload before players arrive.
         if (anchor.getWorld() != null) {
-            anchor.getWorld().addPluginChunkTicket(anchor.getBlockX() >> 4, anchor.getBlockZ() >> 4, plugin);
+            plugin.chunkTickets().acquire(anchor.getWorld(), anchor.getBlockX() >> 4, anchor.getBlockZ() >> 4);
         }
         spawnWave();
         nextReinforceTick = army.reinforceIntervalTicks();
@@ -404,7 +404,7 @@ public final class ArmyEncounter {
             task.cancel();
         }
         if (anchor.getWorld() != null) {
-            anchor.getWorld().removePluginChunkTicket(anchor.getBlockX() >> 4, anchor.getBlockZ() >> 4, plugin);
+            plugin.chunkTickets().release(anchor.getWorld(), anchor.getBlockX() >> 4, anchor.getBlockZ() >> 4);
         }
         if (def.hasTerrain()) {
             plugin.terrainManager().restoreEncounter(id, def.terrain().restoreOnEnd());

@@ -8,9 +8,17 @@ val placeholderApiVersion: String by project
 dependencies {
     compileOnly("io.papermc.paper:paper-api:$paperVersion")
     compileOnly("me.clip:placeholderapi:$placeholderApiVersion")
+
+    testImplementation("io.papermc.paper:paper-api:$paperVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks {
+    named<Test>("test") {
+        useJUnitPlatform()
+    }
+
     named<Jar>("jar") {
         archiveClassifier.set("plain")
     }
