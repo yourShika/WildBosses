@@ -68,7 +68,9 @@ public final class Updater {
             }
             String latest = tagMatcher.group(1).replaceFirst("^[vV]", "");
             String current = plugin.getPluginMeta().getVersion();
-            if (latest.equals(current)) {
+            // Only download when the release is STRICTLY newer than what's running - never re-download
+            // the same version, and never "update" to an older tag (a downgrade).
+            if (compareVersions(latest, current) <= 0) {
                 reply(plugin, sender, "<green>WildBosses is already up to date (v" + current + ").");
                 return;
             }
@@ -109,5 +111,47 @@ public final class Updater {
 
     private static void reply(WildBossesPlugin plugin, CommandSender sender, String mini) {
         plugin.getServer().getScheduler().runTask(plugin, () -> sender.sendMessage(Text.mm(mini)));
+    }
+
+    /**
+     * Compare two dotted version strings numerically (e.g. {@code 0.21.10} > {@code 0.21.9}).
+     * Returns &gt;0 when {@code a} is newer than {@code b}, &lt;0 when older, 0 when equal. Missing
+     * trailing parts count as 0; any non-numeric suffix (e.g. {@code -beta}) is compared textually
+     * only as a tie-breaker so a plain release ranks above the same version's pre-release.
+     */
+    static int compareVersions(String a, String b) {
+        String[] pa = a.split("\\.");
+        String[] pb = b.split("\\.");
+        int len = Math.max(pa.length, pb.length);
+        for (int i = 0; i < len; i++) {
+            String sa = i < pa.length ? pa[i] : "0";
+            String sb = i < pb.length ? pb[i] : "0";
+            int na = leadingInt(sa);
+            int nb = leadingInt(sb);
+            if (na != nb) {
+                return Integer.compare(na, nb);
+            }
+            int cmp = sa.compareTo(sb);
+            if (cmp != 0) {
+                return cmp;
+            }
+        }
+        return 0;
+    }
+
+    /** The leading run of digits of {@code s} as an int (0 if none / on overflow). */
+    private static int leadingInt(String s) {
+        int end = 0;
+        while (end < s.length() && Character.isDigit(s.charAt(end))) {
+            end++;
+        }
+        if (end == 0) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(s.substring(0, end));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }

@@ -15,10 +15,13 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Leaves;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -33,6 +36,10 @@ public final class TerrainManager implements EncounterHook {
     private final ProtectionService protection;
     private final File directory;
     private final Map<String, TerrainSnapshot> active = new HashMap<>();
+    // Encounter ids whose async chunk-preload is in flight but whose block work hasn't run yet. Lets
+    // restoreEncounter() cancel a still-pending apply (nothing has been changed yet), so an encounter
+    // that ends during the async window never gets its terrain applied AFTER it's already over.
+    private final Set<String> pendingApply = new java.util.HashSet<>();
 
     public TerrainManager(WildBossesPlugin plugin) {
         this.plugin = plugin;
@@ -55,11 +62,16 @@ public final class TerrainManager implements EncounterHook {
         }
         int total = 0;
         int deferred = 0;
+        int permanentKept = 0;
         for (File file : files) {
             boolean remove = true;
             try {
                 TerrainSnapshot snapshot = TerrainSnapshot.load(file);
-                if (snapshot.worldAvailable()) {
+                if (snapshot.permanent()) {
+                    // Intentionally-permanent corruption (restore-on-end: false): leave it in the
+                    // world and just drop the tracking file below - never revert it on restart.
+                    permanentKept++;
+                } else if (snapshot.worldAvailable()) {
                     total += snapshot.restore();
                 } else {
                     // The target world isn't loaded yet (e.g. a Multiverse/custom world loads after
@@ -78,7 +90,8 @@ public final class TerrainManager implements EncounterHook {
             }
         }
         plugin.getLogger().info("Restored " + total + " terrain block(s) from previous snapshot(s)"
-                + (deferred > 0 ? " (" + deferred + " deferred - world not loaded yet)." : "."));
+                + (deferred > 0 ? " (" + deferred + " deferred - world not loaded yet)" : "")
+                + (permanentKept > 0 ? " (" + permanentKept + " permanent snapshot(s) kept)" : "") + ".");
     }
 
     @Override
@@ -97,6 +110,9 @@ public final class TerrainManager implements EncounterHook {
 
     /** Restore (optionally) and forget an encounter's terrain changes, deleting its snapshot file. */
     public void restoreEncounter(String encounterId, boolean doRestore) {
+        // If the async apply is still queued, cancel it: applyNow() will see the id gone from
+        // pendingApply and skip entirely, so no terrain is ever applied after the encounter ended.
+        pendingApply.remove(encounterId);
         TerrainSnapshot snapshot = active.remove(encounterId);
         if (snapshot != null && doRestore) {
             snapshot.restore();
@@ -107,10 +123,48 @@ public final class TerrainManager implements EncounterHook {
         }
     }
 
-    /** Apply a terrain effect around a location, snapshotting every change for guaranteed restore. */
+    /**
+     * Apply a terrain effect around a location, snapshotting every change for guaranteed restore.
+     * The footprint chunks are generated ASYNCHRONOUSLY first, then the block work runs on the main
+     * thread, so a frontier boss never force-generates a whole disc of pristine chunks in one tick
+     * (which was a multi-hundred-ms stall). On already-generated chunks this completes immediately.
+     */
     public void applyAt(String encounterId, Location center, TerrainSettings ts) {
         World world = center.getWorld();
         if (world == null || (ts.mappings().isEmpty() && ts.features().isEmpty())) {
+            return;
+        }
+        pendingApply.add(encounterId); // mark in-flight so restoreEncounter() can cancel it
+        int radius = ts.radius();
+        int minCx = (center.getBlockX() - radius) >> 4;
+        int maxCx = (center.getBlockX() + radius) >> 4;
+        int minCz = (center.getBlockZ() - radius) >> 4;
+        int maxCz = (center.getBlockZ() + radius) >> 4;
+        List<CompletableFuture<org.bukkit.Chunk>> futures = new ArrayList<>();
+        for (int cx = minCx; cx <= maxCx; cx++) {
+            for (int cz = minCz; cz <= maxCz; cz++) {
+                futures.add(world.getChunkAtAsync(cx, cz, true));
+            }
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .whenComplete((ignored, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
+                    if (error != null) {
+                        plugin.getLogger().warning("Terrain chunk preload failed for " + encounterId
+                                + ": " + error.getMessage());
+                    }
+                    applyNow(encounterId, center, ts);
+                }));
+    }
+
+    /** The actual (main-thread) block work, run once the footprint chunks are ready. */
+    private void applyNow(String encounterId, Location center, TerrainSettings ts) {
+        // If the encounter already ended during the async preload, restoreEncounter() removed the id -
+        // skip applying so we never corrupt terrain for an encounter that's already over.
+        if (!pendingApply.remove(encounterId)) {
+            return;
+        }
+        World world = center.getWorld();
+        if (world == null) {
             return;
         }
         TerrainSnapshot snapshot = new TerrainSnapshot(encounterId, world.getUID());
@@ -148,6 +202,8 @@ public final class TerrainManager implements EncounterHook {
         }
 
         if (snapshot.size() > 0) {
+            // restore-on-end:false means "the change STAYS": record it so a crash/restart won't revert it.
+            snapshot.setPermanent(!ts.restoreOnEnd());
             active.put(encounterId, snapshot);
             snapshot.save(snapshotFile(encounterId), plugin.getLogger());
         }

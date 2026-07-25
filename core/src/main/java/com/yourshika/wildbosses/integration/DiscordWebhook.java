@@ -41,7 +41,33 @@ public final class DiscordWebhook {
         }
     }
 
+    /**
+     * JSON-escape a string per RFC 8259: backslash and quote, the named escapes, and EVERY other
+     * control character (U+0000..U+001F, e.g. a stray TAB) as {@code \\uXXXX}. Leaving a raw control
+     * char in the body produced invalid JSON, which Discord rejected with HTTP 400 - silently killing
+     * every webhook. Not an injection vector (backslash/quote are handled), just correctness.
+     */
     private static String escape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+        StringBuilder sb = new StringBuilder(s.length() + 16);
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '"' -> sb.append("\\\"");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                case '\b' -> sb.append("\\b");
+                case '\f' -> sb.append("\\f");
+                default -> {
+                    if (c < 0x20) {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
+                }
+            }
+        }
+        return sb.toString();
     }
 }

@@ -120,6 +120,7 @@ public final class ArmyEncounter {
             return;
         }
         elapsedTicks += 20;
+        pruneVanishedMinions(); // untrack minions that unloaded/vanished without a death event
         updateViewers();
 
         if (lifetimeTicks > 0 && elapsedTicks >= lifetimeTicks) {
@@ -192,6 +193,31 @@ public final class ArmyEncounter {
             manager.registerMinion(entity.getUniqueId(), id);
         }
         updateBar();
+    }
+
+    /**
+     * Drop tracked minions that no longer exist: a minion spawned in a chunk adjacent to the (only)
+     * force-loaded anchor chunk is non-persistent, so when players leave and that chunk unloads it is
+     * silently discarded with NO {@link Entity#isDead() death event}. Untracking it here (WITHOUT
+     * crediting a kill) keeps {@code room = maxAlive - alive.size()} and stage progress reflecting only
+     * live minions, instead of freezing reinforcements/progress on ghost UUIDs until the flee timer.
+     */
+    private void pruneVanishedMinions() {
+        boolean changed = false;
+        Iterator<UUID> it = alive.iterator();
+        while (it.hasNext()) {
+            UUID uuid = it.next();
+            Entity e = Bukkit.getEntity(uuid);
+            if (e == null || e.isDead()) {
+                it.remove();
+                templateOf.remove(uuid);
+                manager.unregisterMinion(uuid);
+                changed = true;
+            }
+        }
+        if (changed) {
+            updateBar();
+        }
     }
 
     /** Called by the manager when a tracked minion of this encounter dies. */

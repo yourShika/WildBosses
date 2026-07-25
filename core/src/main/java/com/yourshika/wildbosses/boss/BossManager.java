@@ -108,6 +108,16 @@ public final class BossManager {
             boss.cleanup(true); // remove the entity too, so a reload/disable leaves nothing behind
         }
         byEntity.clear();
+        // Sweep any tagged entities NOT in byEntity: summoned adds/healers, army minions, and a boss
+        // that was mid-flee (already removed from byEntity, its delayed remove() cancelled by the
+        // disable). Guarantees a reload/disable never leaves a WildBosses mob roaming.
+        for (World world : plugin.getServer().getWorlds()) {
+            for (Entity e : world.getEntities()) {
+                if (Keys.isWildBossesEntity(e)) {
+                    e.remove();
+                }
+            }
+        }
     }
 
     // ---- restart persistence --------------------------------------------------------------
@@ -685,11 +695,37 @@ public final class BossManager {
         }
         encounterHook.onEnd(boss);
         boss.cleanup(false); // remove bar, let the entity dash off
+        despawnAdds(boss); // its summoned adds/healers flee with it - remove them now
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (e.isValid()) {
                 e.remove();
             }
         }, 100L);
+    }
+
+    /**
+     * Remove every add/healer summoned under this boss' encounter id that is still in the boss' loaded
+     * world, so a fight never leaves orphaned buffed hostiles behind when the boss dies or flees. Adds
+     * in unloaded chunks are non-persistent (they vanish on unload) and are reaped by CleanupListener
+     * if their chunk ever reloads.
+     */
+    private void despawnAdds(ActiveBoss boss) {
+        String encounterId = boss.encounterId();
+        LivingEntity self = boss.entity();
+        World world = self != null ? self.getWorld() : null;
+        if (encounterId == null || world == null) {
+            return;
+        }
+        UUID selfId = self.getUniqueId();
+        for (Entity e : world.getEntities()) {
+            if (e.getUniqueId().equals(selfId)) {
+                continue; // never the boss itself
+            }
+            String eid = e.getPersistentDataContainer().get(Keys.ENCOUNTER_ID, PersistentDataType.STRING);
+            if (encounterId.equals(eid)) {
+                e.remove();
+            }
+        }
     }
 
     private void processEnrage(ActiveBoss boss) {
@@ -811,6 +847,9 @@ public final class BossManager {
         broadcaster.bossDeath(boss.def(), slayerNames(boss, killer));
         playDeathSound();
         encounterHook.onEnd(boss);
+        // Remove the fight's summoned adds/healers BEFORE on-death skills run, so a future ON_DEATH
+        // summon (death-throes adds, sharing the boss' encounter id) isn't nuked by this same sweep.
+        despawnAdds(boss);
         skillEngine.onDeath(boss);
         boss.releaseChunkTicket(plugin);
         boss.cleanup(false);

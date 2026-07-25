@@ -291,10 +291,12 @@ public final class BossLoader {
             features.add(new TerrainFeature(type.trim().toLowerCase(Locale.ROOT),
                     Math.max(0, fp.getInt("count", 1))));
         }
+        // Clamp to sane maxima so a typo/abuse like radius:2000 can't freeze the server with a
+        // synchronous multi-million block-edit / column-probe storm when the boss spawns.
         return new TerrainSettings(
                 enabled,
-                Math.max(0, s.getInt("radius", 6)),
-                Math.max(0, s.getInt("max-blocks", 4000)),
+                Math.min(64, Math.max(0, s.getInt("radius", 6))),
+                Math.min(20_000, Math.max(0, s.getInt("max-blocks", 4000))),
                 s.getBoolean("restore-on-end", true),
                 s.getBoolean("require-coreprotect", false),
                 s.getBoolean("only-ungenerated-chunks", true),

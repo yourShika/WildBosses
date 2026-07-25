@@ -29,6 +29,9 @@ public final class TerrainSnapshot {
     private final String encounterId;
     private final UUID worldUid;
     private final List<Change> changes = new ArrayList<>();
+    // true when the owning encounter's terrain is meant to STAY (restore-on-end: false). Persisted so
+    // a crash/restart mid-encounter doesn't wrongly revert intentionally-permanent corruption.
+    private boolean permanent;
 
     public TerrainSnapshot(String encounterId, UUID worldUid) {
         this.encounterId = encounterId;
@@ -37,6 +40,14 @@ public final class TerrainSnapshot {
 
     public String encounterId() {
         return encounterId;
+    }
+
+    public boolean permanent() {
+        return permanent;
+    }
+
+    public void setPermanent(boolean permanent) {
+        this.permanent = permanent;
     }
 
     public int size() {
@@ -85,6 +96,7 @@ public final class TerrainSnapshot {
         YamlConfiguration yml = new YamlConfiguration();
         yml.set("encounter", encounterId);
         yml.set("world", worldUid.toString());
+        yml.set("permanent", permanent);
         List<String> lines = new ArrayList<>(changes.size());
         for (Change c : changes) {
             lines.add(c.x() + ";" + c.y() + ";" + c.z() + ";" + c.from() + ";" + c.to());
@@ -106,6 +118,7 @@ public final class TerrainSnapshot {
         }
         UUID world = UUID.fromString(worldStr);
         TerrainSnapshot snapshot = new TerrainSnapshot(encounter, world);
+        snapshot.permanent = yml.getBoolean("permanent", false);
         for (String line : yml.getStringList("changes")) {
             String[] parts = line.split(";", 5);
             if (parts.length < 5) {

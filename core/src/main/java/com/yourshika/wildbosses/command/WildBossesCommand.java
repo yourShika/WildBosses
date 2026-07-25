@@ -119,10 +119,10 @@ public final class WildBossesCommand implements TabExecutor {
             plugin.messages().send(sender, "unknown-boss", Text.unparsed("id", args[1]));
             return;
         }
-        Location loc = resolveLocation(sender, args);
+        Location loc = resolveSpawnLocation(sender, args, def);
         if (loc == null) {
             plugin.messages().send(sender, "spawn-failed", Text.unparsed("id", args[1]),
-                    Text.unparsed("reason", "no location (run in-game or name a player)"));
+                    Text.unparsed("reason", "no location (use 'here', a player name, or 'random')"));
             return;
         }
         ActiveBoss boss = plugin.bossManager().spawn(def, loc);
@@ -150,6 +150,18 @@ public final class WildBossesCommand implements TabExecutor {
         return null;
     }
 
+    /**
+     * Resolve the spawn location for {@code /wb spawn|army <id> [here|player|random]}. {@code random}
+     * asks the spawn scheduler for a valid random spot (near a random online player, frontier for
+     * terrain bosses) - so {@code /wb spawn random random} = a random boss at a random location.
+     */
+    private Location resolveSpawnLocation(CommandSender sender, String[] args, BossDefinition def) {
+        if (args.length >= 3 && args[2].equalsIgnoreCase("random")) {
+            return plugin.spawnScheduler().randomLocationFor(def);
+        }
+        return resolveLocation(sender, args);
+    }
+
     private void army(CommandSender sender, String[] args) {
         if (denied(sender, "wildbosses.spawn")) {
             return;
@@ -169,10 +181,10 @@ public final class WildBossesCommand implements TabExecutor {
                     Text.unparsed("reason", "this boss has no army block"));
             return;
         }
-        Location loc = resolveLocation(sender, args);
+        Location loc = resolveSpawnLocation(sender, args, def);
         if (loc == null) {
             plugin.messages().send(sender, "spawn-failed", Text.unparsed("id", args[1]),
-                    Text.unparsed("reason", "no location (run in-game or name a player)"));
+                    Text.unparsed("reason", "no location (use 'here', a player name, or 'random')"));
             return;
         }
         if (plugin.armyManager().start(def, loc)) {
@@ -417,9 +429,10 @@ public final class WildBossesCommand implements TabExecutor {
             }
             return filter(worlds, args[2]);
         }
-        if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
+        if (args.length == 3 && (args[0].equalsIgnoreCase("spawn") || args[0].equalsIgnoreCase("army"))) {
             List<String> opts = new ArrayList<>();
             opts.add("here");
+            opts.add("random");
             for (Player p : Bukkit.getOnlinePlayers()) {
                 opts.add(p.getName());
             }

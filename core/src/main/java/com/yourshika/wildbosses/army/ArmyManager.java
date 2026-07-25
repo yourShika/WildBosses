@@ -10,7 +10,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,8 +20,11 @@ import java.util.UUID;
 public final class ArmyManager implements EncounterStarter {
 
     private final WildBossesPlugin plugin;
-    private final Map<String, ArmyEncounter> encounters = new HashMap<>();
-    private final Map<UUID, String> minionOwner = new HashMap<>();
+    // ConcurrentHashMap: PlaceholderAPI (via TAB/scoreboard plugins) reads count()/active() off the
+    // main thread while the main thread mutates these; weakly-consistent iteration avoids a CME (parity
+    // with BossManager.byEntity).
+    private final Map<String, ArmyEncounter> encounters = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<UUID, String> minionOwner = new java.util.concurrent.ConcurrentHashMap<>();
 
     public ArmyManager(WildBossesPlugin plugin) {
         this.plugin = plugin;
@@ -79,6 +81,29 @@ public final class ArmyManager implements EncounterStarter {
 
     public int count() {
         return encounters.size();
+    }
+
+    /** Number of active army encounters of a given boss definition (for the per-boss spawn cap). */
+    public int countOfDefinition(String bossId) {
+        int n = 0;
+        for (ArmyEncounter e : encounters.values()) {
+            if (e.def().id().equalsIgnoreCase(bossId)) {
+                n++;
+            }
+        }
+        return n;
+    }
+
+    /** Distance to the nearest active army anchor in {@code loc}'s world, or {@link Double#MAX_VALUE}. */
+    public double nearestArmyDistance(Location loc) {
+        double best = Double.MAX_VALUE;
+        for (ArmyEncounter e : encounters.values()) {
+            org.bukkit.World w = e.anchor().getWorld();
+            if (w != null && w.equals(loc.getWorld())) {
+                best = Math.min(best, e.anchor().distance(loc));
+            }
+        }
+        return best;
     }
 
     public Collection<ArmyEncounter> active() {

@@ -1,7 +1,9 @@
 package com.yourshika.wildbosses.event;
 
 import com.yourshika.wildbosses.WildBossesPlugin;
+import com.yourshika.wildbosses.util.Keys;
 import com.yourshika.wildbosses.util.Text;
+import org.bukkit.persistence.PersistentDataType;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -81,21 +83,64 @@ public final class LunarEventManager implements Listener {
             task.cancel();
             task = null;
         }
-        // Clean up any lingering empowerment side-effects (esp. infinite invisibility) so nothing is
-        // left stuck after a reload/disable - and, on the next enable, after a crash.
+        // Fully revert any lingering empowerment (esp. the infinite invisibility) so nothing is left
+        // stuck after a reload/disable - and, on the next enable, after a crash.
         for (World w : plugin.getServer().getWorlds()) {
-            clearInvisibility(w);
+            revertLunarMobs(w);
         }
         activeByWorld.clear();
         forced.clear();
         startedAt.clear();
     }
 
-    /** Remove the infinite invisibility from any empowered mobs in a world (they become visible again). */
-    private void clearInvisibility(World world) {
+    /** Fully un-empower every lunar mob in a world (loaded chunks): they revert to normal mobs. */
+    private void revertLunarMobs(World world) {
         for (LivingEntity le : world.getLivingEntities()) {
             if (le.getScoreboardTags().contains(LUNAR_TAG)) {
-                le.removePotionEffect(PotionEffectType.INVISIBILITY);
+                revertLunarMob(le);
+            }
+        }
+    }
+
+    /**
+     * Strip all lunar empowerment from a single mob: its infinite invisibility/strength/speed, its
+     * inflated base health (restored from {@link Keys#LUNAR_BASE_HP}), its variant name and the tag.
+     * Leaves a plain vanilla mob behind so nothing dangerous or unseeable lingers past the event.
+     */
+    private void revertLunarMob(LivingEntity le) {
+        le.getScoreboardTags().remove(LUNAR_TAG);
+        le.removePotionEffect(PotionEffectType.INVISIBILITY);
+        le.removePotionEffect(PotionEffectType.STRENGTH);
+        le.removePotionEffect(PotionEffectType.SPEED);
+        Double base = le.getPersistentDataContainer().get(Keys.LUNAR_BASE_HP, PersistentDataType.DOUBLE);
+        if (base != null && base > 0) {
+            AttributeInstance maxHp = le.getAttribute(Attribute.MAX_HEALTH);
+            if (maxHp != null) {
+                maxHp.setBaseValue(base);
+                if (le.getHealth() > base) {
+                    le.setHealth(base);
+                }
+            }
+            le.getPersistentDataContainer().remove(Keys.LUNAR_BASE_HP);
+        }
+        le.customName(null);
+        le.setCustomNameVisible(false);
+    }
+
+    /**
+     * When a chunk's entities load and NO event is active in that world, fully revert any leftover
+     * empowered lunar mob. This catches mobs that were in UNLOADED chunks when the event ended - whose
+     * infinite invisibility {@link #revertLunarMobs} (loaded-only) could not otherwise ever clear,
+     * leaving a permanently unseeable hostile that can still attack.
+     */
+    @EventHandler
+    public void onEntitiesLoad(org.bukkit.event.world.EntitiesLoadEvent event) {
+        if (isActive(event.getWorld())) {
+            return; // an event is running here - these mobs are legitimately empowered
+        }
+        for (org.bukkit.entity.Entity e : event.getEntities()) {
+            if (e instanceof LivingEntity le && le.getScoreboardTags().contains(LUNAR_TAG)) {
+                revertLunarMob(le);
             }
         }
     }
@@ -298,7 +343,7 @@ public final class LunarEventManager implements Listener {
         activeByWorld.remove(world.getUID());
         forced.remove(world.getUID());
         startedAt.remove(world.getUID());
-        clearInvisibility(world); // empowered mobs become visible again - never left permanently invisible
+        revertLunarMobs(world); // empowered mobs fully revert - never left buffed, named or invisible
         Component msg = Text.mm("<gray>The " + prettyName(type) + " fades away.");
         for (Player p : world.getPlayers()) {
             p.removePotionEffect(PotionEffectType.DARKNESS); // clear any lingering eclipse gloom at once
@@ -412,6 +457,8 @@ public final class LunarEventManager implements Listener {
         double healthMult = healthMax > 1.0 ? 1.0 + rnd.nextDouble() * (healthMax - 1.0) : 1.0;
         AttributeInstance maxHp = monster.getAttribute(Attribute.MAX_HEALTH);
         if (maxHp != null && healthMult > 1.0) {
+            // Record the pre-buff base so the event's end can restore it (no permanently inflated HP).
+            monster.getPersistentDataContainer().set(Keys.LUNAR_BASE_HP, PersistentDataType.DOUBLE, maxHp.getBaseValue());
             maxHp.setBaseValue(maxHp.getBaseValue() * healthMult);
             monster.setHealth(maxHp.getBaseValue());
         }

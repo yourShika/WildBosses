@@ -52,7 +52,13 @@ public final class NumberRange {
 
     /** A random value in {@code [min, max]}. */
     public int roll() {
-        return min == max ? min : ThreadLocalRandom.current().nextInt(min, max + 1);
+        if (min == max) {
+            return min;
+        }
+        // Use long arithmetic so an upper bound of Integer.MAX_VALUE doesn't overflow max+1 (which
+        // would make nextInt(min, negative) throw). Amount ranges are tiny in practice, but a hostile
+        // config value like "1-2147483647" must degrade gracefully rather than error on every kill.
+        return (int) ThreadLocalRandom.current().nextLong(min, (long) max + 1L);
     }
 
     @Override

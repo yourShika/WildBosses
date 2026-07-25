@@ -19,6 +19,8 @@ public final class Keys {
     public static NamespacedKey ARMY_ID;
     /** Marks a dropped/awarded item as boss loot (byte flag). */
     public static NamespacedKey LOOT_TAG;
+    /** Stores an empowered lunar mob's pre-buff max-health base value (Double) so it can be restored. */
+    public static NamespacedKey LUNAR_BASE_HP;
 
     private Keys() {
     }
@@ -28,6 +30,7 @@ public final class Keys {
         ENCOUNTER_ID = new NamespacedKey(plugin, "encounter_id");
         ARMY_ID = new NamespacedKey(plugin, "army_id");
         LOOT_TAG = new NamespacedKey(plugin, "loot_tag");
+        LUNAR_BASE_HP = new NamespacedKey(plugin, "lunar_base_hp");
     }
 
     /** Whether an entity is a WildBosses boss, minion or army member (by its persistent tags). */

@@ -57,6 +57,11 @@ public final class BossListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        // Admin/void/plugin kills bypass the one-shot cap entirely: a deliberate /kill (cause KILL,
+        // damage Float.MAX_VALUE) or a void plunge must actually kill the boss, not clamp it to ~50% HP.
+        if (bypass) {
+            return;
+        }
         // No one-shots: cap a single hit to a fraction of the boss' max health. Applied to the base
         // damage, so the post-armour final damage is always <= the cap.
         double pct = manager.maxHitDamagePercent();
@@ -77,6 +82,11 @@ public final class BossListener implements Listener {
     public void onDamageClamp(EntityDamageEvent event) {
         ActiveBoss boss = manager.get(event.getEntity());
         if (boss == null) {
+            return;
+        }
+        // Never clamp an admin/void/plugin kill - it must land at full magnitude (see onDamageCause).
+        String cause = event.getCause().name();
+        if (cause.equals("VOID") || cause.equals("CUSTOM") || cause.equals("KILL") || cause.equals("SUICIDE")) {
             return;
         }
         double pct = manager.maxHitDamagePercent();

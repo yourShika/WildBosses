@@ -80,7 +80,9 @@ public final class SpawnScheduler {
     /** One spawn attempt. Returns true if a boss/army was started. */
     public boolean attemptSpawn() {
         PluginConfig cfg = plugin.config();
-        if (plugin.bossManager().count() >= cfg.maxActiveBosses()) {
+        // Armies count toward the global cap too (they were previously invisible to it, letting
+        // unbounded concurrent armies accumulate).
+        if (plugin.bossManager().count() + plugin.armyManager().count() >= cfg.maxActiveBosses()) {
             return false;
         }
         Player anchor = pickAnchorPlayer();
@@ -99,7 +101,10 @@ public final class SpawnScheduler {
         if (loc == null) {
             return false;
         }
-        if (plugin.bossManager().nearestBossDistance(loc) < cfg.minDistanceBetweenBosses()) {
+        // Keep new encounters spaced from BOTH active bosses and active army anchors.
+        double nearest = Math.min(plugin.bossManager().nearestBossDistance(loc),
+                plugin.armyManager().nearestArmyDistance(loc));
+        if (nearest < cfg.minDistanceBetweenBosses()) {
             return false;
         }
 
@@ -113,6 +118,16 @@ public final class SpawnScheduler {
             lastSpawnMillis.put(def.id(), System.currentTimeMillis());
         }
         return started;
+    }
+
+    /**
+     * Find a scheduler-style random spawn location for a boss - near a random online player in an
+     * enabled world, and on a frontier chunk for terrain bosses - or {@code null} if none was found.
+     * Backs {@code /wb spawn <id> random} (and {@code /wb army <id> random}).
+     */
+    public Location randomLocationFor(BossDefinition def) {
+        Player anchor = pickAnchorPlayer();
+        return anchor == null ? null : resolveLocation(anchor, def);
     }
 
     private Player pickAnchorPlayer() {
@@ -138,7 +153,12 @@ public final class SpawnScheduler {
             if (rules.weight() <= 0) {
                 continue;
             }
-            if (plugin.bossManager().countOfDefinition(def.id()) >= rules.maxConcurrent()) {
+            // Count army encounters via the army manager (they aren't in BossManager.byEntity), so the
+            // per-boss max-concurrent cap applies to army bosses too.
+            int activeOfDef = def.isArmy()
+                    ? plugin.armyManager().countOfDefinition(def.id())
+                    : plugin.bossManager().countOfDefinition(def.id());
+            if (activeOfDef >= rules.maxConcurrent()) {
                 continue;
             }
             long last = lastSpawnMillis.getOrDefault(def.id(), 0L);

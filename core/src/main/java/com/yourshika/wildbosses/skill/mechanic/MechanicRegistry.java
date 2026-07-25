@@ -200,7 +200,12 @@ public final class MechanicRegistry {
             Entity e = world.spawnEntity(loc, type);
             e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
             e.addScoreboardTag("wildbosses");
+            // Match boss/army minions: never persist across a restart as an untracked mob, and let it
+            // despawn if it wanders far. Combined with the boss removing its adds on death/flee, this
+            // stops fights from leaving orphaned buffed hostiles roaming forever.
+            e.setPersistent(false);
             if (e instanceof LivingEntity le) {
+                le.setRemoveWhenFarAway(true);
                 if (health > 0) {
                     AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
                     if (max != null) {
@@ -302,13 +307,13 @@ public final class MechanicRegistry {
 
     private static void teleport(SkillContext ctx, List<Target> targets, Params p) {
         double radius = p.getDouble("radius", 0);
-        Location dest = targets.isEmpty() ? ctx.location() : targets.get(0).location().clone();
+        Location origin = targets.isEmpty() ? ctx.location() : targets.get(0).location().clone();
+        Location dest = origin;
         if (radius > 0) {
-            dest.add(rand(radius), 0, rand(radius));
-            Location safe = safeGround(dest);
-            if (safe != null) {
-                dest = safe;
-            }
+            // Only commit to the randomized offset if it lands on a verified-safe spot; otherwise fall
+            // back to the (known-passable) origin rather than blink into solid rock or out over the void.
+            Location safe = safeGround(origin.clone().add(rand(radius), 0, rand(radius)));
+            dest = safe != null ? safe : origin;
         }
         ctx.boss().markScriptedTeleport(); // allow this one past the anti-blink guard
         ctx.self().teleport(dest);
@@ -762,7 +767,9 @@ public final class MechanicRegistry {
             Entity e = w.spawnEntity(loc, type);
             e.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, ctx.boss().encounterId());
             e.addScoreboardTag("wildbosses");
+            e.setPersistent(false); // don't survive a restart; removed with the boss on death/flee
             if (e instanceof LivingEntity le) {
+                le.setRemoveWhenFarAway(true);
                 le.customName(Text.mm(name));
                 le.setCustomNameVisible(true);
             }

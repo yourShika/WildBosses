@@ -45,7 +45,9 @@ terrain:
   radius: 7
   max-blocks: 1800
   restore-on-end: false
-  only-ungenerated-chunks: false
+  # Permanent terrain only ever lands on never-generated frontier chunks, so it can never overwrite a
+  # player build (that guarantee must NOT depend on an optional protection plugin being installed).
+  only-ungenerated-chunks: true
   mappings:
     END_STONE: OBSIDIAN
     END_STONE_BRICKS: OBSIDIAN
