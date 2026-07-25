@@ -62,7 +62,7 @@ public final class SettingsMenu extends Menu {
 
     private void apply() {
         plugin.saveConfig();
-        plugin.reloadAll();
+        plugin.reloadConfigOnly(); // config-only: don't re-parse every boss YAML on a single toggle
         rebuild();
     }
 }

@@ -153,8 +153,26 @@ public final class BossManager {
             list.add(m);
         }
         yml.set("bosses", list);
+        // The values were read on the main thread above; hand the actual disk write off-thread so the
+        // periodic 10s snapshot never stalls the server. During disable the async scheduler is gone, so
+        // write synchronously then (a plugin can't schedule async tasks while disabling).
+        java.io.File file = stateFile();
+        if (plugin.isEnabled() && !stateSaving) {
+            stateSaving = true;
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                writeState(yml, file);
+                stateSaving = false;
+            });
+        } else if (!plugin.isEnabled()) {
+            writeState(yml, file);
+        }
+    }
+
+    private volatile boolean stateSaving;
+
+    private void writeState(org.bukkit.configuration.file.YamlConfiguration yml, java.io.File file) {
         try {
-            yml.save(stateFile());
+            yml.save(file);
         } catch (java.io.IOException ex) {
             plugin.getLogger().warning("Could not save active-boss state: " + ex.getMessage());
         }
@@ -295,6 +313,8 @@ public final class BossManager {
         le.setCustomNameVisible(true);
 
         ActiveBoss boss = new ActiveBoss(def, le, bar, maxHp, tick, encounterId);
+        boss.setBarBaseName(plugin.messages().tr(def.name())); // live-title base (translated name)
+        boss.refreshBar(tick);
         // Player-scaling is now measured when a player first engages (see onBossDamaged), not at spawn -
         // a boss spawned far from everyone would otherwise never scale.
         spawnBurst(le.getLocation());
@@ -539,35 +559,65 @@ public final class BossManager {
             if (byEntity.get(boss.entity().getUniqueId()) != boss) {
                 continue;
             }
-            if (!boss.isValid()) {
-                encounterHook.onEnd(boss);
-                boss.releaseChunkTicket(plugin);
-                boss.cleanup(true);
-                byEntity.remove(boss.entity().getUniqueId());
-                continue;
+            // Guard each boss: an error in one boss' phase/enrage/AI logic must not throw out of the
+            // tick loop (which would skip every remaining boss and spam the console 20x/second).
+            try {
+                tickBoss(boss);
+            } catch (Exception ex) {
+                logTickError(boss, ex);
             }
-            if (boss.fleeAtTick() > 0 && tick >= boss.fleeAtTick()) {
-                fleeBoss(boss);
-                byEntity.remove(boss.entity().getUniqueId());
-                continue;
-            }
-            boss.updateBossBar();
-            if (!boss.hasNearbyPlayers()) {
-                continue; // nobody near (e.g. a far, un-reached boss): don't waste ticks on AI/abilities
-            }
-            int newPhase = computePhaseIndex(boss);
-            if (newPhase > boss.phaseIndex()) {
-                applyPhase(boss, newPhase, false);
-            }
-            processEnrage(boss);
-            processHealers(boss);
-            if (tick % 20 == 0) {
-                acquireTarget(boss); // keep every boss proactively hostile toward players
-            }
-            if (boss.entity() instanceof org.bukkit.entity.Bee bee) {
-                bee.setHasStung(false); // a boss bee must not die to its own sting
-            }
-            skillEngine.onTick(boss, tick);
+        }
+    }
+
+    /** Per-boss tick body (extracted so a single boss' failure can't break the whole loop). */
+    private void tickBoss(ActiveBoss boss) {
+        if (!boss.isValid()) {
+            encounterHook.onEnd(boss);
+            boss.releaseChunkTicket(plugin);
+            boss.cleanup(true);
+            despawnAdds(boss);
+            byEntity.remove(boss.entity().getUniqueId());
+            return;
+        }
+        if (boss.fleeAtTick() > 0 && tick >= boss.fleeAtTick()) {
+            fleeBoss(boss);
+            byEntity.remove(boss.entity().getUniqueId());
+            return;
+        }
+        // Throttle the bar off 20 Hz: the cheap progress/title a few times a second, the expensive
+        // nearby-player scan ~twice a second.
+        if (tick % 4 == 0) {
+            boss.refreshBar(tick);
+        }
+        if (tick % 10 == 0) {
+            boss.refreshViewers();
+        }
+        if (!boss.hasNearbyPlayers()) {
+            return; // nobody near (e.g. a far, un-reached boss): don't waste ticks on AI/abilities
+        }
+        int newPhase = computePhaseIndex(boss);
+        if (newPhase > boss.phaseIndex()) {
+            applyPhase(boss, newPhase, false);
+        }
+        processEnrage(boss);
+        processHealers(boss);
+        if (tick % 20 == 0) {
+            acquireTarget(boss); // keep every boss proactively hostile toward players
+        }
+        if (boss.entity() instanceof org.bukkit.entity.Bee bee) {
+            bee.setHasStung(false); // a boss bee must not die to its own sting
+        }
+        skillEngine.onTick(boss, tick);
+    }
+
+    private final Map<UUID, Long> lastTickErrorTick = new java.util.HashMap<>();
+
+    /** Log a per-boss tick error at most once every 5s per boss, so a broken boss can't spam the log. */
+    private void logTickError(ActiveBoss boss, Exception ex) {
+        UUID id = boss.entity().getUniqueId();
+        if (tick - lastTickErrorTick.getOrDefault(id, Long.MIN_VALUE) >= 100) {
+            lastTickErrorTick.put(id, tick);
+            plugin.getLogger().warning("Tick error for boss " + boss.def().id() + ": " + ex);
         }
     }
 
@@ -645,11 +695,24 @@ public final class BossManager {
         PhaseDefinition phase = boss.def().phases().get(index);
         if (phase.enrage()) {
             applyEnrage(boss.entity());
+            announceEnrage(boss);
         }
         if (phase.message() != null && !phase.message().isBlank()) {
             announceNearby(boss, Text.mm(plugin.messages().tr(phase.message())));
         }
         skillEngine.onPhaseChange(boss, index);
+    }
+
+    /** Telegraph an enrage to nearby players: flash the bar red, warn in chat, and growl. */
+    private void announceEnrage(ActiveBoss boss) {
+        boss.flashEnrage(tick + 60);
+        boss.refreshBar(tick);
+        announceNearby(boss, Text.mm("<red><bold>⚠ </bold>" + plugin.messages().tr(boss.def().name())
+                + " <red>" + plugin.messages().tr("is enraged!")));
+        LivingEntity e = boss.entity();
+        if (e.getWorld() != null) {
+            e.getWorld().playSound(e.getLocation(), "entity.ender_dragon.growl", 2.0f, 0.7f);
+        }
     }
 
     private void applyEnrage(LivingEntity le) {
@@ -752,6 +815,7 @@ public final class BossManager {
             spd.setBaseValue(spd.getBaseValue() * et.speedMult());
         }
         e.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, e.getLocation().add(0, 1.8, 0), 8, 0.4, 0.4, 0.4, 0);
+        announceEnrage(boss); // warn nearby players (visual + audible) when the enrage timer trips
     }
 
     private void processHealers(ActiveBoss boss) {

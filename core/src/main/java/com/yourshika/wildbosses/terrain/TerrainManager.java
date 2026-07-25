@@ -205,7 +205,15 @@ public final class TerrainManager implements EncounterHook {
             // restore-on-end:false means "the change STAYS": record it so a crash/restart won't revert it.
             snapshot.setPermanent(!ts.restoreOnEnd());
             active.put(encounterId, snapshot);
-            snapshot.save(snapshotFile(encounterId), plugin.getLogger());
+            // A large frontier footprint can be thousands of blocks; write the snapshot off-thread so
+            // it doesn't stall the main thread right after the boss spawns. The snapshot is complete and
+            // no longer mutated here, so it's safe to read off-thread.
+            java.io.File file = snapshotFile(encounterId);
+            if (plugin.isEnabled()) {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> snapshot.save(file, plugin.getLogger()));
+            } else {
+                snapshot.save(file, plugin.getLogger());
+            }
         }
     }
 

@@ -77,7 +77,12 @@ public final class SpawnScheduler {
         scheduleNext(); // keep the loop going with a fresh random delay
     }
 
-    /** One spawn attempt. Returns true if a boss/army was started. */
+    /**
+     * One spawn attempt. For a normal boss this resolves a spot in already-generated terrain and spawns
+     * synchronously. For a FRONTIER (terrain) boss the location search generates pristine chunks, so it
+     * runs ASYNCHRONOUSLY (off the main thread) and the spawn happens later in a callback - this is what
+     * removes the main-thread world-gen stall on boss spawn.
+     */
     public boolean attemptSpawn() {
         PluginConfig cfg = plugin.config();
         // Armies count toward the global cap too (they were previously invisible to it, letting
@@ -96,18 +101,38 @@ public final class SpawnScheduler {
         if (def == null) {
             return false;
         }
-
-        Location loc = resolveLocation(anchor, def);
-        if (loc == null) {
+        if (!timeOk(def, world)) {
             return false;
         }
-        // Keep new encounters spaced from BOTH active bosses and active army anchors.
+
+        boolean frontier = def.hasTerrain() && def.terrain().onlyUngeneratedChunks();
+        if (frontier) {
+            // Async: generate candidate chunks off-thread, spawn in the callback (no main-thread stall).
+            findFrontierLocationAsync(anchor, def, loc -> {
+                if (loc == null || !spacedFarEnough(loc)) {
+                    return;
+                }
+                spawnResolved(def, loc);
+            });
+            return true; // dispatched; the actual spawn resolves on a later tick
+        }
+
+        Location loc = findNearbyLocation(anchor, def);
+        if (loc == null || !spacedFarEnough(loc)) {
+            return false;
+        }
+        return spawnResolved(def, loc);
+    }
+
+    /** New encounters must be at least min-distance from every active boss AND army anchor. */
+    private boolean spacedFarEnough(Location loc) {
         double nearest = Math.min(plugin.bossManager().nearestBossDistance(loc),
                 plugin.armyManager().nearestArmyDistance(loc));
-        if (nearest < cfg.minDistanceBetweenBosses()) {
-            return false;
-        }
+        return nearest >= plugin.config().minDistanceBetweenBosses();
+    }
 
+    /** Start the boss/army at a resolved location; records the spawn time on success. */
+    private boolean spawnResolved(BossDefinition def, Location loc) {
         boolean started;
         if (def.isArmy() && armyStarter != null) {
             started = armyStarter.start(def, loc);
@@ -326,11 +351,60 @@ public final class SpawnScheduler {
         return null;
     }
 
-    /** Find a standing Y at (x,z) with a solid floor and two passable blocks above, within bounds. */
+    /**
+     * Frontier search that never force-generates chunks on the main thread: for each attempt it checks
+     * the footprint is ungenerated, then generates the candidate chunk with {@code getChunkAtAsync} and
+     * probes it on the main thread. Recurses (via the scheduler) to the next attempt on failure and
+     * finally calls {@code callback} with a location or {@code null}.
+     */
+    private void findFrontierLocationAsync(Player anchor, BossDefinition def,
+                                           java.util.function.Consumer<Location> callback) {
+        World world = anchor.getWorld();
+        int radius = def.terrain().radius() + 8;
+        frontierAttempt(world, anchor.getLocation(), def, radius, 0, callback);
+    }
+
+    private void frontierAttempt(World world, Location anchorLoc, BossDefinition def, int radius,
+                                 int attempt, java.util.function.Consumer<Location> callback) {
+        PluginConfig cfg = plugin.config();
+        if (attempt >= cfg.frontierAttempts() || world.getPlayers().isEmpty()) {
+            callback.accept(null);
+            return;
+        }
+        double angle = ThreadLocalRandom.current().nextDouble(Math.PI * 2);
+        double span = cfg.frontierMaxDistance() - cfg.frontierMinDistance();
+        double dist = cfg.frontierMinDistance() + (span > 0 ? ThreadLocalRandom.current().nextDouble(span) : 0);
+        int x = anchorLoc.getBlockX() + (int) (Math.cos(angle) * dist);
+        int z = anchorLoc.getBlockZ() + (int) (Math.sin(angle) * dist);
+        if (!TerrainManager.footprintUngenerated(world, x, z, radius)) {
+            frontierAttempt(world, anchorLoc, def, radius, attempt + 1, callback);
+            return;
+        }
+        SpawnRules rules = def.spawn();
+        world.getChunkAtAsync(x >> 4, z >> 4, true).whenComplete((chunk, err) ->
+                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                    Integer y = err != null ? null : findSafeY(world, x, z, rules.minY(), rules.maxY());
+                    if (y != null) {
+                        Location candidate = new Location(world, x + 0.5, y, z + 0.5);
+                        if (conditionsMet(def, candidate)) {
+                            callback.accept(candidate);
+                            return;
+                        }
+                    }
+                    frontierAttempt(world, anchorLoc, def, radius, attempt + 1, callback);
+                }));
+    }
+
+    /**
+     * Find a standing Y at (x,z) with a solid floor and two passable blocks above, within bounds.
+     * Starts at the SURFACE ({@code getHighestBlockYAt}) rather than the world top, so a normal spawn
+     * resolves in a couple of block checks instead of a ~380-block top-down sweep per column.
+     */
     private Integer findSafeY(World world, int x, int z, int minY, int maxY) {
         int top = Math.min(maxY, world.getMaxHeight() - 3);
         int bottom = Math.max(minY, world.getMinHeight() + 1);
-        for (int y = top; y >= bottom; y--) {
+        int start = Math.min(top, Math.max(bottom, world.getHighestBlockYAt(x, z)));
+        for (int y = start; y >= bottom; y--) {
             var floor = world.getBlockAt(x, y, z);
             var feet = world.getBlockAt(x, y + 1, z);
             var head = world.getBlockAt(x, y + 2, z);

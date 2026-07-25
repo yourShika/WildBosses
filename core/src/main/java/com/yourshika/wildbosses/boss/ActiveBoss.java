@@ -57,6 +57,11 @@ public final class ActiveBoss {
     private boolean deathHandled;
     private boolean scriptedTeleport;
 
+    // Live boss-bar title/flash state.
+    private String barBaseName;                 // the translated boss name shown on the bar
+    private final BossBar.Color baseBarColor;   // restored after an enrage flash
+    private long enrageFlashUntil;
+
     public ActiveBoss(BossDefinition def, LivingEntity entity, BossBar bossBar,
                       double maxHealth, long spawnTick, String encounterId) {
         this.def = def;
@@ -65,6 +70,17 @@ public final class ActiveBoss {
         this.maxHealth = maxHealth;
         this.spawnTick = spawnTick;
         this.encounterId = encounterId;
+        this.baseBarColor = bossBar.color();
+    }
+
+    /** The (translated) name the live bar title is built from. Set once, right after spawn. */
+    public void setBarBaseName(String mini) {
+        this.barBaseName = mini;
+    }
+
+    /** Flash the boss bar red until {@code untilTick} to telegraph an enrage. */
+    public void flashEnrage(long untilTick) {
+        this.enrageFlashUntil = untilTick;
     }
 
     public BossDefinition def() {
@@ -252,10 +268,33 @@ public final class ActiveBoss {
 
     // ---- boss bar -------------------------------------------------------------------------
 
-    /** Recompute the bar progress/title and show/hide it based on nearby players. */
-    public void updateBossBar() {
+    /**
+     * Refresh the bar's progress and live title (name + HP% + phase + enrage flash). Cheap - no player
+     * scan - so it can run a few times a second without the per-tick cost of {@link #refreshViewers()}.
+     */
+    public void refreshBar(long tick) {
         bossBar.progress((float) Math.max(0, Math.min(1, entity.getHealth() / maxHealth)));
+        boolean flashing = tick < enrageFlashUntil;
+        double pct = healthPercent();
+        String base = barBaseName != null ? barBaseName : def.name();
+        int phases = def.phases().size();
+        String phaseTag = phases > 1 && phaseIndex >= 0 ? " <dark_gray>P" + (phaseIndex + 1) : "";
+        String title = base + " <dark_gray>[<" + hpColor(pct) + ">" + (int) Math.ceil(pct) + "%<dark_gray>]"
+                + phaseTag + (flashing ? " <red><bold>⚡" : "");
+        bossBar.name(Text.mm(title));
+        bossBar.color(flashing ? BossBar.Color.RED
+                : (baseBarColor != null ? baseBarColor : BossBar.Color.WHITE));
+    }
 
+    private static String hpColor(double pct) {
+        if (pct > 60) {
+            return "green";
+        }
+        return pct > 30 ? "yellow" : "red";
+    }
+
+    /** Show/hide the bar based on which players are in range. The per-tick-expensive part. */
+    public void refreshViewers() {
         World world = entity.getWorld();
         Location loc = entity.getLocation();
         double rangeSq = BOSS_BAR_RANGE * BOSS_BAR_RANGE;

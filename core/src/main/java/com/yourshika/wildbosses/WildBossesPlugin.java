@@ -145,6 +145,21 @@ public final class WildBossesPlugin extends JavaPlugin {
     }
 
     /**
+     * Lightweight reload for GUI setting toggles: re-reads {@code config.yml} and re-applies the typed
+     * {@link PluginConfig} + spawn interval, WITHOUT re-parsing every boss YAML or rebuilding the boss
+     * registry (which {@link #reloadAll()} does). Use after changing a {@code settings.*}/{@code worlds.*}
+     * value so a single toggle click doesn't re-load 18+ boss files.
+     */
+    public void reloadConfigOnly() {
+        reloadConfig();
+        pluginConfig.load(getConfig(), getLogger());
+        registry.setDisabled(pluginConfig.disabledBosses());
+        if (spawnScheduler != null) {
+            spawnScheduler.start();
+        }
+    }
+
+    /**
      * Migrate {@code config.yml} across plugin updates: any option present in the bundled default but
      * missing from the user's file is added (with its default value and comment), and the internal
      * {@code config-version} is bumped. Existing values are never touched. No-op once up to date.
