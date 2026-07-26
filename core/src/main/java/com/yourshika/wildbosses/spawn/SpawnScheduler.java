@@ -32,6 +32,9 @@ public final class SpawnScheduler {
     private EncounterStarter armyStarter;
     private BukkitTask task;
     private long nextCycleMillis;
+    // Anti-repeat: the last boss the random spawner actually spawned, and how many times in a row.
+    private String lastSpawnedId;
+    private int consecutiveSpawns;
 
     public SpawnScheduler(WildBossesPlugin plugin) {
         this.plugin = plugin;
@@ -186,6 +189,12 @@ public final class SpawnScheduler {
         }
         if (started) {
             lastSpawnMillis.put(def.id(), System.currentTimeMillis());
+            if (def.id().equals(lastSpawnedId)) {
+                consecutiveSpawns++;
+            } else {
+                lastSpawnedId = def.id();
+                consecutiveSpawns = 1;
+            }
         }
         return started;
     }
@@ -242,6 +251,23 @@ public final class SpawnScheduler {
             }
             eligible.add(def);
             totalWeight += rules.weight();
+        }
+        // Variety: never let the same boss spawn a 3rd time in a row - drop it from this pick (unless
+        // it's the only eligible boss, in which case spawning it again beats spawning nothing).
+        if (consecutiveSpawns >= 2 && lastSpawnedId != null && eligible.size() > 1) {
+            List<BossDefinition> filtered = new ArrayList<>();
+            int filteredWeight = 0;
+            for (BossDefinition d : eligible) {
+                if (d.id().equals(lastSpawnedId)) {
+                    continue;
+                }
+                filtered.add(d);
+                filteredWeight += d.spawn().weight();
+            }
+            if (!filtered.isEmpty() && filteredWeight > 0) {
+                eligible = filtered;
+                totalWeight = filteredWeight;
+            }
         }
         if (eligible.isEmpty() || totalWeight <= 0) {
             return null;
