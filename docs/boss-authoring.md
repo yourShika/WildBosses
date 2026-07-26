@@ -289,3 +289,26 @@ terrain:
 ```
 
 See the main README's [Terrain safety](../README.md#terrain-safety) for how builds are protected.
+
+## Updating bosses without losing your loot
+
+When the plugin ships new abilities or rebalanced stats, on-disk boss files that you've edited are
+**not** auto-overwritten (so your changes survive) — which also means an edited boss never gets the
+new content automatically. Three admin commands cover the update paths:
+
+| Command | What it does to your boss files |
+|---|---|
+| `/wb reload` | Re-reads the files from disk. Changes nothing on disk. |
+| `/wb sync` | **Updates every boss's abilities, stats, phases, bossbar, equipment and terrain from the plugin, but keeps your `drops:` (loot) exactly as-is.** Also refreshes files you've edited. |
+| `/wb restore default` | Factory-resets every default boss file from the plugin — **including loot**. |
+
+`/wb sync` is the one to run after a plugin update to pull in new boss mechanics while keeping the
+loot tables you tuned. It works because `drops:` is always the last section in a boss file: the part
+above it is refreshed from the plugin, the `drops:` block is taken verbatim from your current file.
+A timestamped copy of your boss folder is written to `plugins/WildBosses/boss-backup/<timestamp>/`
+first, and your own custom bosses (files that aren't bundled with the plugin) are left untouched.
+
+> **Note:** `/wb sync` only preserves your **loot**. Any non-loot edits you made to a bundled boss on
+> disk (custom stats, skills or phases) are replaced by the plugin's version — that's the point of the
+> command. The timestamped backup is your recovery path if you want those edits back. To keep custom
+> mechanics permanently, put them in a **new** boss file (a non-bundled id), which `/wb sync` never touches.

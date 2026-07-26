@@ -30,7 +30,7 @@ public final class WildBossesCommand implements TabExecutor {
 
     private static final List<String> SUBCOMMANDS =
             List.of("spawn", "army", "lunar", "list", "active", "track", "info", "gui", "killall",
-                    "reload", "restore", "testspawn", "debug", "update", "help");
+                    "reload", "restore", "sync", "testspawn", "debug", "update", "help");
 
     private final WildBossesPlugin plugin;
 
@@ -47,6 +47,7 @@ public final class WildBossesCommand implements TabExecutor {
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> reload(sender);
             case "restore" -> restore(sender);
+            case "sync" -> sync(sender);
             case "spawn" -> spawn(sender, args);
             case "army" -> army(sender, args);
             case "lunar", "moon" -> lunar(sender, args);
@@ -94,6 +95,29 @@ public final class WildBossesCommand implements TabExecutor {
         int loaded = plugin.reloadAll();
         sender.sendMessage(Text.mm("<green>Factory-reset <yellow>" + n + "<green> boss files "
                 + "(config kept), reloaded <yellow>" + loaded + "<green> bosses."));
+    }
+
+    /**
+     * {@code /wb sync} - refresh every boss's abilities/stats/phases from the plugin's bundled
+     * definitions while KEEPING the admin's loot ({@code drops:}). Unlike {@code /wb restore} this
+     * never touches loot; unlike the boot-time auto-updater it also updates files the admin has edited.
+     */
+    private void sync(CommandSender sender) {
+        if (denied(sender, "wildbosses.admin")) {
+            return;
+        }
+        try {
+            com.yourshika.wildbosses.boss.BossRegistry.SyncResult r = plugin.registry().syncPreservingLoot();
+            int loaded = plugin.reloadAll();
+            plugin.messages().send(sender, "sync-done",
+                    Text.num("written", r.written()),
+                    Text.num("loaded", loaded),
+                    Text.unparsed("backup", r.backupDir()));
+        } catch (RuntimeException ex) {
+            plugin.messages().send(sender, "sync-failed",
+                    Text.unparsed("error", String.valueOf(ex.getMessage())));
+            plugin.getLogger().severe("Boss sync failed: " + ex);
+        }
     }
 
     private BossDefinition randomBoss(boolean armyOnly) {

@@ -4,6 +4,8 @@ no-permission: "<red>Nie masz do tego uprawnień."
 player-only: "<red>To może zrobić tylko gracz w grze."
 reloaded: "<green>Przeładowano konfigurację i bossów (<yellow><count></yellow> bossów)."
 reload-failed: "<red>Przeładowanie nie powiodło się: <yellow><error></yellow>. Sprawdź konsolę."
+sync-done: "<green>Zsynchronizowano definicje bossów z pluginu: <yellow><written></yellow> plik(ów) zaktualizowano, <yellow><loaded></yellow> wczytano. <gray>Twój loot został zachowany. <dark_gray>(kopia: <backup>)"
+sync-failed: "<red>Synchronizacja bossów nie powiodła się: <yellow><error></yellow>. Sprawdź konsolę."
 unknown-boss: "<red>Nieznane id bossa: <yellow><id></yellow>."
 spawned: "<green>Zrodzono <boss> <green>w <yellow><x>, <y>, <z></yellow> na <yellow><world></yellow>."
 spawn-failed: "<red>Nie udało się zrodzić <yellow><id></yellow>: <gray><reason></gray>."
@@ -34,6 +36,7 @@ help:
   - "<yellow>/wb killall <gray>- usuń wszystkich aktywnych bossów"
   - "<yellow>/wb reload <gray>- przeładuj konfigurację i bossów"
   - "<yellow>/wb restore default <gray>- przywróć domyślne pliki bossów"
+  - "<yellow>/wb sync <gray>- zaktualizuj zdolności/statystyki bossów z pluginu, zachowaj loot"
   - "<yellow>/wb update <gray>- pobierz najnowszą wersję z GitHub"
 
 # Translations for authored names/titles/items (keyed by their English text).
