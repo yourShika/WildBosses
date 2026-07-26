@@ -118,6 +118,14 @@ public final class BossListener implements Listener {
         if (boss == null) {
             return;
         }
+        // Backstop: if a non-player, non-force-kill/void hit reached HIGHEST still ACTIVE, another
+        // plugin re-enabled the damage that onDamageCause (LOW) had cancelled. Cancel it again - a
+        // boss only ever takes player-attributable damage, no matter what another plugin does.
+        if (!isForceKillOrVoid(event)
+                && !(event instanceof EntityDamageByEntityEvent ede && isPlayerSource(ede.getDamager()))) {
+            event.setCancelled(true);
+            return;
+        }
         // Never clamp the void or a deliberate force-kill - it must land at full magnitude (see
         // onDamageCause). Generic CUSTOM damage is clamped like anything else.
         if (isForceKillOrVoid(event)) {

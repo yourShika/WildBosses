@@ -1029,16 +1029,7 @@ public final class BossManager {
         event.getDrops().clear();
         event.setDroppedExp(0);
         Player killer = boss.entity().getKiller();
-        // Diagnostics: a boss dying with NO player credited is unexpected (it should only happen via
-        // the void or a deliberate /kill). Log the real damage cause so an external plugin/datapack
-        // killing bosses is identifiable in the console instead of just showing "slain by ?".
-        if (killer == null && boss.damageByPlayer().isEmpty()) {
-            org.bukkit.event.entity.EntityDamageEvent last = boss.entity().getLastDamageCause();
-            plugin.getLogger().warning("Boss '" + boss.def().id() + "' died with no player credited"
-                    + " - cause=" + (last == null ? "UNKNOWN (direct setHealth/remove)" : last.getCause())
-                    + (last == null ? "" : " damage=" + String.format(java.util.Locale.ROOT, "%.1f", last.getFinalDamage()))
-                    + ". If this repeats, another plugin/datapack is likely damaging WildBosses mobs.");
-        }
+        logDeathCause(boss, killer);
         try {
             deathListener.onBossDeath(boss, killer, event);
         } catch (Exception ex) {
@@ -1061,6 +1052,37 @@ public final class BossManager {
         skillEngine.onDeath(boss);
         boss.releaseChunkTicket(plugin);
         boss.cleanup(false);
+    }
+
+    /**
+     * Log the killing blow for every boss death, so what actually killed a boss is visible in the
+     * console instead of guessed. Escalates to WARNING when the death looks external/anomalous -
+     * nobody credited, or a single blow >= half the boss' max health (a suspected one-shot) - which
+     * points at another plugin or datapack damaging WildBosses mobs (add the scoreboard tag
+     * {@code wildbosses} to that plugin's ignore/whitelist).
+     */
+    private void logDeathCause(ActiveBoss boss, Player killer) {
+        org.bukkit.event.entity.EntityDamageEvent last = boss.entity().getLastDamageCause();
+        String cause = last == null ? "UNKNOWN (setHealth/remove - no damage event)" : last.getCause().name();
+        double blow = last == null ? -1 : last.getFinalDamage();
+        String damager = "n/a";
+        if (last instanceof org.bukkit.event.entity.EntityDamageByEntityEvent ede) {
+            damager = ede.getDamager().getType().name();
+        }
+        boolean credited = killer != null || !boss.damageByPlayer().isEmpty();
+        double maxHp = boss.maxHealth();
+        boolean oneShot = blow >= 0 && maxHp > 0 && blow >= maxHp * 0.5;
+        String msg = "Boss '" + boss.def().id() + "' died: cause=" + cause
+                + " killing-blow=" + String.format(java.util.Locale.ROOT, "%.1f", blow)
+                + " maxHp=" + String.format(java.util.Locale.ROOT, "%.0f", maxHp)
+                + " damager=" + damager + " player-credited=" + credited;
+        if (!credited || oneShot) {
+            plugin.getLogger().warning(msg + "  <-- UNEXPECTED. WildBosses bosses only take player damage;"
+                    + " this looks like an external plugin/datapack. Add the tag 'wildbosses' to its"
+                    + " ignore/whitelist (see docs/configuration.md).");
+        } else {
+            plugin.getLogger().info(msg);
+        }
     }
 
     /** Privately tell each online contributor their share of the damage and their rank at the kill. */

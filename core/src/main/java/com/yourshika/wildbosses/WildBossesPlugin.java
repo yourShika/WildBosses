@@ -103,7 +103,7 @@ public final class WildBossesPlugin extends JavaPlugin {
             getLogger().severe("Command 'wildbosses' missing from plugin.yml - commands disabled.");
         }
 
-        getLogger().info("WildBosses enabled.");
+        getLogger().info("WildBosses v" + getPluginMeta().getVersion() + " enabled.");
     }
 
     @Override
