@@ -123,12 +123,18 @@ Every WildBosses entity (bosses, army minions, summoned adds) is given the score
 them, add `wildbosses` to that plugin's mob **whitelist / safelist** (or tell it to skip named /
 tagged mobs). Bosses also have `removeWhenFarAway = false` so they don't despawn on their own.
 
-**Boss dies instantly to "?"** — if a boss dies the moment a player approaches and the death message
-credits **`?`** (nobody), an external plugin or datapack is dealing damage to WildBosses mobs.
-Bosses only take damage that traces back to a player; all other damage (environmental, and any generic
-plugin/datapack `CUSTOM` damage) is now rejected — only the void and a real admin `/kill` can bypass
-that. When a boss does die uncredited, the console logs a **warning naming the exact damage cause**, so
-you can identify the offending plugin (add `wildbosses` to its ignore list as above).
+**Boss dies instantly** — two protections stop this:
+- Bosses only take damage that traces back to a **player**. Environmental damage and any generic
+  plugin/datapack `CUSTOM` damage is rejected — only the void and a real admin `/kill` can bypass that.
+- The one-shot cap (`max-hit-damage-percent`) is **cumulative per server tick**: a boss loses at most
+  that fraction of its max HP per tick, summed across *every* hit and bonus-damage proc that tick. This
+  specifically stops a **custom-enchant plugin** (e.g. ExcellentEnchants) whose single swing fires
+  several bonus-damage procs from stacking them into a one-shot.
+
+Every boss death is logged to the console with the exact killing blow
+(`Boss '…' died: cause=… killing-blow=… maxHp=… damager=… player-credited=…`); anomalous deaths (nobody
+credited, or a ≥50 %-max-HP one-shot) are logged as a **warning**. If it names an external plugin, add
+`wildbosses` to that plugin's ignore list as above.
 
 ## Terrain replacement
 

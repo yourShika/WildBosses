@@ -277,6 +277,18 @@ public final class ActiveBoss {
         damageByPlayer.merge(player, amount, Double::sum);
     }
 
+    private final TickDamageCap tickDamageCap = new TickDamageCap();
+
+    /**
+     * Cumulative one-shot cap: how much of {@code incomingFinal} may actually be applied on
+     * {@code serverTick} so the TOTAL damage this boss takes in a single tick never exceeds
+     * {@code capTotal}. Guards against a single swing whose several bonus-damage procs would each be
+     * capped individually yet still sum past 100%. See {@link TickDamageCap}.
+     */
+    public double allowDamageThisTick(int serverTick, double capTotal, double incomingFinal) {
+        return tickDamageCap.allow(serverTick, capTotal, incomingFinal);
+    }
+
     public Map<UUID, Double> damageByPlayer() {
         return damageByPlayer;
     }

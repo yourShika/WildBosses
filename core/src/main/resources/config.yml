@@ -34,8 +34,9 @@ settings:
   # An un-engaged boss (nobody has fought it) despawns after this many minutes, freeing its
   # force-loaded chunk. The full flee lifetime below only starts once a player makes contact.
   unclaimed-despawn-minutes: 8
-  # A single hit can never take more than this fraction of a boss' max health (prevents one-shots).
-  # 0.5 = at most 50% per hit (>= 2 hits to kill). Set to 1.0 to allow one-shots.
+  # A boss can never lose more than this fraction of its max health in a SINGLE SERVER TICK - summed
+  # across every hit and every bonus-damage proc that tick (so a custom-enchant plugin firing several
+  # procs on one swing can't one-shot it). 0.5 = at most 50% per tick (>= 2 swings to kill). 1.0 = off.
   max-hit-damage-percent: 0.5
   # Live cap on how many summoned adds + healers a single boss may have at once (long fights won't
   # pile up dozens of mobs). Summons over the cap are simply skipped until some die.

@@ -136,8 +136,17 @@ public final class BossListener implements Listener {
             return;
         }
         double cap = boss.maxHealth() * pct;
-        if (cap > 0 && event.getFinalDamage() > cap) {
-            double overflow = event.getFinalDamage() - cap;
+        if (cap <= 0) {
+            return;
+        }
+        // Cumulative one-shot cap: the boss can lose at most `pct` of its max health per SERVER TICK,
+        // summed across every damage event that tick. A single sword swing that triggers several
+        // bonus-damage procs (e.g. a custom-enchant plugin) fires multiple damage events in one tick;
+        // capping each one individually still let them sum past 100% and delete a full-HP boss in one
+        // swing. Capping the tick total guarantees the boss always survives any single swing from full.
+        double allowed = boss.allowDamageThisTick(org.bukkit.Bukkit.getCurrentTick(), cap, event.getFinalDamage());
+        if (event.getFinalDamage() > allowed) {
+            double overflow = event.getFinalDamage() - allowed;
             event.setDamage(Math.max(0, event.getDamage() - overflow));
         }
     }
