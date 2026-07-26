@@ -887,6 +887,9 @@ public final class MechanicRegistry {
      */
     private static void invulnerable(SkillContext ctx, List<Target> targets, Params p) {
         var boss = ctx.boss();
+        if (boss.isInvulnerable()) {
+            return; // don't stack over an active shield/immunity (would orphan its anchors)
+        }
         int duration = Math.max(20, p.getInt("duration", 100));
         boss.setInvulnerable(ctx.plugin().bossManager().currentTick() + duration);
         LivingEntity self = ctx.self();
@@ -908,12 +911,14 @@ public final class MechanicRegistry {
         if (boss.isInvulnerable()) {
             return; // already shielded/immune
         }
+        // NOTE: the shield's own config uses `anchor-*`/`shield-duration` so the un-prefixed keys
+        // (radius, damage, count, ...) are free for the doom PAYLOAD, which reads this same block.
         EntityType type = enumOr(EntityType.class, p.getString("anchor-type", "SHULKER"), EntityType.SHULKER);
-        int count = Math.max(1, p.getInt("count", 3));
-        double radius = p.getDouble("radius", 5);
+        int count = Math.max(1, p.getInt("anchor-count", 3));
+        double radius = p.getDouble("anchor-radius", 5);
         double health = p.getDouble("anchor-health", 20);
         String anchorName = p.getString("anchor-name", "<aqua>Ward Anchor");
-        int duration = Math.max(60, p.getInt("duration", 200));
+        int duration = Math.max(60, p.getInt("shield-duration", 200));
         String payload = p.getString("payload", "aoe_damage");
         String payloadTargeter = p.getString("payload-targeter", "players_in_radius");
         var plugin = ctx.plugin();

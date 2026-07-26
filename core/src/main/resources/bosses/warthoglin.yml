@@ -36,6 +36,9 @@ skills:
   - { trigger: onHealthBelow, value: 60, mechanic: shockwave, targeter: self, params: { radius: 9, damage: 15, knockup: 1.0, particle: LAVA } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 7, damage: 16, knockback: 1.6, particle: FLAME } }
   - { trigger: onHealthBelow, value: 30, mechanic: buff, targeter: self, params: { type: STRENGTH, duration: 300, amplifier: 1 } }
+  # Signature setpiece (FF): Golden Charge - immune while charging, ground-slam at the end.
+  - { trigger: onHealthBelow, value: 40, mechanic: invulnerable, targeter: self, params: { duration: 90, message: "<gold><bold>Warthoglin's Golden Charge!</bold> <yellow>Do not stand in his path!" } }
+  - { trigger: onHealthBelow, value: 40, mechanic: shockwave, targeter: self, params: { radius: 10, damage: 22, knockup: 1.2, particle: EXPLOSION } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

@@ -36,6 +36,8 @@ skills:
   - { trigger: onTimer, interval: 100, mechanic: buff, targeter: self, conditions: [{ type: time_is, value: NIGHT }], params: { type: SPEED, duration: 130, amplifier: 1 } }
   - { trigger: onTimer, interval: 102, mechanic: buff, targeter: self, conditions: [{ type: time_is, value: NIGHT }, { type: phase_at_least, phase: 1 }], params: { type: STRENGTH, duration: 130, amplifier: 1 } }
   - { trigger: onTimer, interval: 240, interval-max: 360, mechanic: summon, targeter: self_location, conditions: [{ type: time_is, value: NIGHT }], params: { type: WOLF, amount: 2, radius: 5, health: 30 } }
+  # Signature setpiece (FF): the Blood Pack shields him - cut them down.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: WOLF, anchor-count: 4, anchor-radius: 6, anchor-health: 30, anchor-name: "<red>Blood Wolf", shield-duration: 220, payload: aoe_damage, payload-targeter: players_in_radius, radius: 8, damage: 20, knockback: 1.2, particle: DAMAGE_INDICATOR, message: "<red><bold>Fenrar howls and the Blood Pack rises!</bold> <gray>Cut them down!" } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

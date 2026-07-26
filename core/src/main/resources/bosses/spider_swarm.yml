@@ -34,6 +34,8 @@ skills:
   - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: leap, targeter: nearest_player, params: { power: 1.4, vertical: 0.5 } }
   - { trigger: onHealthBelow, value: 50, mechanic: summon, targeter: self_location, params: { type: SPIDER, amount: 4, radius: 6, name: "<gray>Broodguard" } }
   - { trigger: onHealthBelow, value: 50, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 6, damage: 10, knockback: 0.8, particle: CRIT } }
+  # Signature setpiece (FF): Egg Sacs shield her - destroy them before they hatch.
+  - { trigger: onHealthBelow, value: 45, mechanic: shield_break, targeter: self, params: { anchor-type: SPIDER, anchor-count: 4, anchor-radius: 7, anchor-health: 30, anchor-name: "<dark_red>Egg Sac", shield-duration: 220, payload: summon, payload-targeter: self_location, type: CAVE_SPIDER, amount: 6, radius: 5, message: "<dark_red><bold>The Broodmother lays Egg Sacs!</bold> <red>Destroy them before they hatch!" } }
 army:
   stages: [10, 15, 20, 26]
   wave-size: 7

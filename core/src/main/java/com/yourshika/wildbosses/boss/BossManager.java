@@ -595,6 +595,9 @@ public final class BossManager {
         if (tick % 10 == 0) {
             boss.refreshViewers();
         }
+        // Drive shield/invulnerability BEFORE the nearby-players gate so its timer/doom never freezes
+        // (and can't soft-lock the boss immune) just because players stepped out of bar range.
+        processShield(boss);
         if (!boss.hasNearbyPlayers()) {
             return; // nobody near (e.g. a far, un-reached boss): don't waste ticks on AI/abilities
         }
@@ -604,7 +607,6 @@ public final class BossManager {
         }
         processEnrage(boss);
         processHealers(boss);
-        processShield(boss); // drive invulnerability / shield-break setpieces
         if (tick % 20 == 0) {
             acquireTarget(boss); // keep every boss proactively hostile toward players
         }
@@ -1186,10 +1188,11 @@ public final class BossManager {
         return best;
     }
 
-    /** Remove a single active boss (bar, model and entity). */
+    /** Remove a single active boss (bar, model and entity), plus its summoned adds / shield anchors. */
     public void killOne(ActiveBoss boss) {
         if (byEntity.remove(boss.entity().getUniqueId()) != null) {
             encounterHook.onEnd(boss);
+            despawnAdds(boss); // don't orphan summoned adds / glowing shield anchors
             boss.releaseChunkTicket(plugin);
             boss.cleanup(true);
         }

@@ -39,6 +39,8 @@ skills:
   - { trigger: onHealthBelow, value: 15, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SCULK_SOUL } }
   # Contagion (Signature): the plague jumps host to host - a poison cloud blooms on each of you.
   - { trigger: onTimer, interval: 120, interval-max: 170, mechanic: potion_cloud, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { type: POISON, duration: 120, amplifier: 1, radius: 3, cloud-duration: 140 } }
+  # Signature setpiece (FF): Plague Totems shield him - destroy them or drown in the Miasma.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: ZOMBIE, anchor-count: 4, anchor-radius: 6, anchor-health: 40, anchor-name: "<dark_green>Plague Totem", shield-duration: 240, payload: potion_cloud, payload-targeter: players_in_radius, radius: 5, type: POISON, duration: 140, amplifier: 1, cloud-duration: 160, message: "<dark_green><bold>Pestis raises Plague Totems!</bold> <green>Destroy them or drown in the Miasma!" } }
 army:
   stages: [10, 16, 22, 28]
   wave-size: 6

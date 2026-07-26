@@ -37,6 +37,8 @@ skills:
   # Bone Cage (Signature): from her arrow-storm phase she snaps a short bone prison around a target.
   # Guaranteed cleanup: the cage is removed on a timer AND restored on the next start if the server crashes.
   - { trigger: onTimer, interval: 150, interval-max: 210, mechanic: bone_cage, targeter: nearest_player, conditions: [{ type: phase_at_least, phase: 2 }, { type: chance, value: 0.7 }], params: { material: BONE_BLOCK, radius: 1, height: 3, duration: 90 } }
+  # Signature setpiece (FF): Bone Pillars shield him - shatter them or face the Bone Storm.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: SKELETON, anchor-count: 4, anchor-radius: 7, anchor-health: 40, anchor-name: "<white>Bone Pillar", shield-duration: 240, payload: arrow_rain, payload-targeter: players_in_radius, count: 24, spread: 6, height: 20, damage: 8, message: "<white><bold>Ossaria erects Bone Pillars!</bold> <gray>Shatter them or face the Bone Storm!" } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

@@ -42,6 +42,9 @@ skills:
   - { trigger: onTimer, interval: 100, interval-max: 150, mechanic: potion, targeter: players_in_radius, params: { radius: 8, type: MINING_FATIGUE, duration: 200, amplifier: 2 } }
   - { trigger: onHealthBelow, value: 30, mechanic: sound, targeter: self_location, params: { sound: "entity.warden.sonic_boom", volume: 2.0, pitch: 0.8 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 15, knockback: 1.5, particle: SPLASH } }
+  # Signature setpiece (FF): Tidal Wrath - immune while summoning the flood; reach high ground.
+  - { trigger: onHealthBelow, value: 40, mechanic: invulnerable, targeter: self, params: { duration: 110, message: "<aqua><bold>Abyssos calls the Tidal Wrath!</bold> <blue>Reach high ground!" } }
+  - { trigger: onHealthBelow, value: 40, mechanic: meteor, targeter: nearest_player, params: { count: 10, radius: 12, damage: 16, delay: 50, particle: SPLASH } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

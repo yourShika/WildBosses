@@ -40,6 +40,8 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: summon, targeter: self_location, params: { type: ENDERMAN, amount: 1, radius: 2, health: 120, name: "<dark_purple>Shadow of Nyxara" } }
 # Warps the End-stone beneath her into an obsidian dais veined with crying obsidian and eerie lights -
 # it STAYS (restore-on-end: false). Kept modest so it never becomes an obsidian fortress.
+  # Signature setpiece (FF): Void Rifts shield her - seal them before the Collapse.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: SHULKER, anchor-count: 4, anchor-radius: 6, anchor-health: 40, anchor-name: "<dark_purple>Void Sentinel", shield-duration: 240, payload: aoe_damage, payload-targeter: players_in_radius, radius: 10, damage: 24, knockback: 1.6, particle: PORTAL, message: "<dark_purple><bold>Nyxara opens Void Rifts!</bold> <light_purple>Seal them before the Collapse!" } }
 terrain:
   enabled: true
   radius: 7

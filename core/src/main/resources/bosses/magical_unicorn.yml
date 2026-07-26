@@ -34,6 +34,8 @@ skills:
   # Prism Sweep (Signature): a rotating fan of prism-bolts, then beams that rake everyone nearby.
   - { trigger: onTimer, interval: 110, interval-max: 160, mechanic: radial, targeter: self, params: { count: 12, velocity: 1.3, type: SNOWBALL, particle: DUST_COLOR_TRANSITION } }
   - { trigger: onTimer, interval: 112, interval-max: 162, mechanic: beam, targeter: players_in_radius, params: { radius: 18, damage: 8, particle: DUST_COLOR_TRANSITION } }
+  # Signature setpiece (FF): Prism Crystals shield her - destroy them or be seared.
+  - { trigger: onHealthBelow, value: 45, mechanic: shield_break, targeter: self, params: { anchor-type: SHULKER, anchor-count: 3, anchor-radius: 6, anchor-health: 50, anchor-name: "<light_purple>Prism Crystal", shield-duration: 220, payload: beam, payload-targeter: players_in_radius, damage: 20, particle: END_ROD, message: "<light_purple><bold>Aurelith raises Prism Crystals!</bold> <white>Destroy them or be seared by the Prism Nova!" } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

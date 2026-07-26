@@ -40,6 +40,8 @@ skills:
   - { trigger: onHealthBelow, value: 50, mechanic: shield, targeter: self, params: { duration: 160, amplifier: 1 } }
   - { trigger: onHealthBelow, value: 20, mechanic: shockwave, targeter: self, params: { radius: 9, damage: 14, knockup: 1.1, particle: EXPLOSION } }
   - { trigger: onHealthBelow, value: 20, mechanic: summon, targeter: self_location, params: { type: SILVERFISH, amount: 6, radius: 5, name: "<gray>Living Stone" } }
+  # Signature setpiece (FF): Seismic Cores shield him - shatter them before the Quake.
+  - { trigger: onHealthBelow, value: 45, mechanic: shield_break, targeter: self, params: { anchor-type: MAGMA_CUBE, anchor-count: 3, anchor-radius: 6, anchor-health: 70, anchor-name: "<gold>Seismic Core", shield-duration: 260, payload: shockwave, payload-targeter: self, radius: 10, damage: 20, knockup: 1.0, particle: EXPLOSION, message: "<gold><bold>Golakar's Seismic Cores flare!</bold> <yellow>Shatter them before the Quake!" } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

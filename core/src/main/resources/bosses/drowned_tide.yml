@@ -38,6 +38,8 @@ skills:
   - { trigger: onTimer, interval: 150, interval-max: 220, mechanic: summon, targeter: self_location, params: { type: GUARDIAN, amount: 3, radius: 6 } }
   - { trigger: onHealthBelow, value: 55, mechanic: summon, targeter: self_location, params: { type: DROWNED, amount: 4, radius: 6, name: "<aqua>Tide-Guard" } }
   - { trigger: onHealthBelow, value: 25, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 10, damage: 15, knockback: 1.4, particle: SPLASH } }
+  # Signature setpiece (FF): Tidal Wards shield him - break them.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: DROWNED, anchor-count: 4, anchor-radius: 6, anchor-health: 40, anchor-name: "<aqua>Tidal Ward", shield-duration: 240, payload: aoe_damage, payload-targeter: players_in_radius, radius: 10, damage: 20, knockback: 2.0, particle: SPLASH, message: "<aqua><bold>The Drowned King summons a Maelstrom!</bold> <blue>Break the Tidal Wards!" } }
 army:
   stages: [10, 16, 22, 28]
   wave-size: 6

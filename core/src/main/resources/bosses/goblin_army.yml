@@ -24,6 +24,8 @@ skills:
   - { trigger: onTimer, interval: 100, interval-max: 160, mechanic: leap, targeter: nearest_player, params: { power: 1.2, vertical: 0.5 } }
   - { trigger: onTimer, interval: 150, interval-max: 240, mechanic: summon, targeter: self_location, params: { type: VINDICATOR, amount: 3, radius: 5 } }
   - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: knockback, targeter: players_in_radius, params: { radius: 4, strength: 1.0, vertical: 0.35 } }
+  # Signature setpiece (FF): War Banners rally the warband - tear them down.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: VINDICATOR, anchor-count: 4, anchor-radius: 6, anchor-health: 35, anchor-name: "<red>War Banner", shield-duration: 220, payload: aoe_damage, payload-targeter: players_in_radius, radius: 8, damage: 16, knockback: 1.4, particle: CRIT, message: "<red><bold>Grizznak rallies behind War Banners!</bold> <gold>Tear them down!" } }
 army:
   # Kill counts per wave (increasing). After the last wave, the outcome resolves.
   stages: [8, 12, 16, 20, 24]

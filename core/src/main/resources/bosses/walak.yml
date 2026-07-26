@@ -43,6 +43,8 @@ skills:
   - { trigger: onTimer, interval: 88, interval-max: 133, mechanic: potion, targeter: players_in_radius, conditions: [{ type: phase_equals, phase: 1 }], params: { radius: 8, type: SLOWNESS, duration: 120, amplifier: 2 } }
   # Phase 3 - Storm.
   - { trigger: onTimer, interval: 80, interval-max: 120, mechanic: lightning, targeter: players_in_radius, conditions: [{ type: phase_equals, phase: 2 }], params: { damage: true } }
+  # Signature setpiece (FF): living-stone Wards shield him - break them.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: SHULKER, anchor-count: 4, anchor-radius: 5, anchor-health: 45, anchor-name: "<gray>Stone Ward", shield-duration: 240, payload: shockwave, payload-targeter: self, radius: 9, damage: 18, knockup: 0.9, particle: EXPLOSION, message: "<gray><bold>Walak encases himself in living stone!</bold> <white>Break the Stone Wards!" } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

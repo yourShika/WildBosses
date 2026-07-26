@@ -39,6 +39,9 @@ skills:
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 11, knockback: 1.0, particle: SNEEZE } }
   # Petrifying Gaze (Signature): meet her eyes and you seize up - look away to break the gaze.
   - { trigger: onTimer, interval: 70, interval-max: 110, mechanic: gaze, targeter: players_in_radius, params: { radius: 16, duration: 90, min-dot: 0.6 } }
+  # Signature setpiece (FF): Petrifying Gaze - immune while gazing; LOOK AWAY or be petrified.
+  - { trigger: onHealthBelow, value: 40, mechanic: invulnerable, targeter: self, params: { duration: 120, message: "<green><bold>Medusa's Petrifying Gaze!</bold> <white>LOOK AWAY or be turned to stone!" } }
+  - { trigger: onHealthBelow, value: 40, mechanic: gaze, targeter: players_in_radius, params: { radius: 24, duration: 100, min-dot: 0.4 } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

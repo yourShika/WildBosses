@@ -40,6 +40,8 @@ skills:
   - { trigger: onTimer, interval: 90, interval-max: 140, mechanic: lifesteal, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { radius: 6, amount: 8, heal-ratio: 1.0 } }
 # Withers the ground into dead soil and leaves a small, abandoned, overgrown pumpkin farm behind -
 # it STAYS (restore-on-end: false). Player builds are never overwritten.
+  # Signature setpiece (FF): Scarecrow Effigies shield him - burn them before the Harvest.
+  - { trigger: onHealthBelow, value: 35, mechanic: shield_break, targeter: self, params: { anchor-type: SHULKER, anchor-count: 4, anchor-radius: 7, anchor-health: 40, anchor-name: "<gold>Scarecrow Effigy", shield-duration: 240, payload: meteor, payload-targeter: nearest_player, count: 8, radius: 10, damage: 16, delay: 40, message: "<gold><bold>Mortarion plants Scarecrow Effigies!</bold> <yellow>Burn them before the Harvest!" } }
 terrain:
   enabled: true
   radius: 9

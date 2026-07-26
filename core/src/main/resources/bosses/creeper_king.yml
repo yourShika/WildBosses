@@ -33,6 +33,9 @@ skills:
   # Sprengsaat (Signature): once overcharged he sows slow, telegraphed proximity mines (no block damage).
   - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: say, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { radius: 40, lines: ["Mind the eggs.", "Sssurprise underfoot."] } }
   - { trigger: onTimer, interval: 120, interval-max: 180, mechanic: danger_zone, targeter: players_in_radius, conditions: [{ type: phase_at_least, phase: 1 }], params: { radius: 3, damage: 9, knockback: 1.2, delay: 60, warn-particle: FLAME, particle: EXPLOSION_EMITTER } }
+  # Signature setpiece (FF): Overcharge - immune while charging, then a huge blast. Flee the ring.
+  - { trigger: onHealthBelow, value: 35, mechanic: invulnerable, targeter: self, params: { duration: 100, message: "<red><bold>Kaboomicus OVERCHARGES!</bold> <yellow>Flee the blast radius!" } }
+  - { trigger: onHealthBelow, value: 35, mechanic: danger_zone, targeter: self, params: { radius: 10, damage: 30, knockback: 2.0, delay: 90, warn-particle: FLAME, particle: EXPLOSION_EMITTER } }
 drops:
   items:
     # Trophy (Mythical) - a wall-mountable proof of the kill.

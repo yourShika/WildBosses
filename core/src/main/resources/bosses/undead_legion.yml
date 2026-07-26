@@ -42,6 +42,8 @@ skills:
   - { trigger: onHealthBelow, value: 60, mechanic: shield, targeter: self, params: { duration: 140, amplifier: 1 } }
   - { trigger: onTimer, interval: 160, interval-max: 220, mechanic: bone_cage, targeter: nearest_player, conditions: [{ type: health_below, value: 60 }, { type: chance, value: 0.7 }], params: { material: BONE_BLOCK, radius: 1, height: 3, duration: 90 } }
   - { trigger: onHealthBelow, value: 30, mechanic: aoe_damage, targeter: players_in_radius, params: { radius: 8, damage: 12, knockback: 1.0, particle: SCULK_SOUL } }
+  # Signature setpiece (FF): the Phylactery shields the Lich - destroy it to make him mortal.
+  - { trigger: onHealthBelow, value: 40, mechanic: shield_break, targeter: self, params: { anchor-type: VEX, anchor-count: 1, anchor-radius: 3, anchor-health: 120, anchor-name: "<light_purple>Phylactery", shield-duration: 260, payload: arrow_rain, payload-targeter: players_in_radius, count: 20, spread: 6, height: 18, damage: 8, message: "<light_purple><bold>The Lich retreats behind its Phylactery!</bold> <white>Destroy it to make him mortal!" } }
 army:
   stages: [10, 16, 22, 28]
   wave-size: 6
