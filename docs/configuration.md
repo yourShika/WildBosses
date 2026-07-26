@@ -123,6 +123,13 @@ Every WildBosses entity (bosses, army minions, summoned adds) is given the score
 them, add `wildbosses` to that plugin's mob **whitelist / safelist** (or tell it to skip named /
 tagged mobs). Bosses also have `removeWhenFarAway = false` so they don't despawn on their own.
 
+**Boss dies instantly to "?"** — if a boss dies the moment a player approaches and the death message
+credits **`?`** (nobody), an external plugin or datapack is dealing damage to WildBosses mobs.
+Bosses only take damage that traces back to a player; all other damage (environmental, and any generic
+plugin/datapack `CUSTOM` damage) is now rejected — only the void and a real admin `/kill` can bypass
+that. When a boss does die uncredited, the console logs a **warning naming the exact damage cause**, so
+you can identify the offending plugin (add `wildbosses` to its ignore list as above).
+
 ## Terrain replacement
 
 A terrain-changing boss/army replaces natural ground using `terrain.mappings: { FROM: TO }` — you

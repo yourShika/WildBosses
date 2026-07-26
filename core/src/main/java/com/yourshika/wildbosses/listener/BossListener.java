@@ -20,10 +20,37 @@ import org.bukkit.persistence.PersistentDataType;
 /** Bridges Bukkit combat/death events into the boss runtime. */
 public final class BossListener implements Listener {
 
+    /**
+     * Damage magnitude at/above which a hit counts as a deliberate force-kill. Vanilla {@code /kill}
+     * (and {@code Entity#kill()}) deal {@code Float.MAX_VALUE} (~3.4e38); nothing a normal plugin,
+     * datapack or mob deals comes anywhere near this, so it cleanly separates "destroy this entity"
+     * from ordinary (even large) damage.
+     */
+    private static final double FORCE_KILL_DAMAGE = 1.0E9;
+
     private final BossManager manager;
 
     public BossListener(BossManager manager) {
         this.manager = manager;
+    }
+
+    /**
+     * Whether this hit may bypass ALL of a boss' damage protections (immunities, the one-shot cap and
+     * the player-only gate). Only two things qualify: the void (so a boss can never get stuck below the
+     * world), and a deliberate force-kill - cause {@code KILL}/{@code SUICIDE} at {@code Float.MAX_VALUE}
+     * (an admin {@code /kill}). Generic {@code CUSTOM} damage is intentionally excluded so stray
+     * external plugins/datapacks can no longer instantly kill an unattended boss.
+     */
+    private static boolean isForceKillOrVoid(EntityDamageEvent event) {
+        return isForceKillOrVoid(event.getCause().name(), event.getDamage());
+    }
+
+    /** Pure decision (see {@link #isForceKillOrVoid(EntityDamageEvent)}); split out for unit testing. */
+    static boolean isForceKillOrVoid(String cause, double baseDamage) {
+        if (cause.equals("VOID")) {
+            return true;
+        }
+        return (cause.equals("KILL") || cause.equals("SUICIDE")) && baseDamage >= FORCE_KILL_DAMAGE;
     }
 
     /** Cancel damage a boss is immune to. Runs early (LOW) so immune hits are ignored downstream. */
@@ -40,20 +67,21 @@ public final class BossListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        // The void and admin/plugin kills always go through, so a boss can never get stuck below the
-        // world or survive a deliberate /kill.
-        boolean bypass = cause.equals("VOID") || cause.equals("CUSTOM")
-                || cause.equals("KILL") || cause.equals("SUICIDE");
+        // Only the void or a deliberate force-kill (an admin /kill) may bypass a boss' protections. A
+        // generic CUSTOM hit is NOT a bypass anymore: it used to be, which let ANY external plugin or
+        // datapack (clear-lag, mob-stackers, anti-cheat, region/difficulty plugins, ...) one-shot an
+        // unattended boss - it would then die the instant a player loaded its chunk, credited to nobody.
+        boolean bypass = isForceKillOrVoid(event);
         // FF-style setpiece: while invulnerable (channelling an ultimate, or shielded until its anchors
-        // are destroyed) the boss takes NO damage - only void/admin kills still land.
+        // are destroyed) the boss takes NO damage - only the void/an admin force-kill still lands.
         if (boss.isInvulnerable() && !bypass) {
             event.setCancelled(true);
             return;
         }
         // A boss only ever takes damage that traces back to a PLAYER. That means its own explosions,
-        // fall damage, its own lightning, fire/lava, cacti, its own minions etc. never hurt it - while
-        // player-attributable damage (melee, arrows, player-lit TNT, splash potions, thorns, pets)
-        // still works normally.
+        // fall damage, its own lightning, fire/lava, cacti, its own minions, AND any plugin/datapack
+        // CUSTOM damage never hurt it - while player-attributable damage (melee, arrows, player-lit
+        // TNT, splash potions, thorns, pets) still works normally.
         if (!bypass
                 && !(event instanceof EntityDamageByEntityEvent ede && isPlayerSource(ede.getDamager()))) {
             event.setCancelled(true);
@@ -63,8 +91,8 @@ public final class BossListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        // Admin/void/plugin kills bypass the one-shot cap entirely: a deliberate /kill (cause KILL,
-        // damage Float.MAX_VALUE) or a void plunge must actually kill the boss, not clamp it to ~50% HP.
+        // A void plunge or a deliberate force-kill (cause KILL/SUICIDE at Float.MAX_VALUE) bypasses the
+        // one-shot cap entirely: it must actually kill the boss, not clamp it to ~50% HP.
         if (bypass) {
             return;
         }
@@ -90,9 +118,9 @@ public final class BossListener implements Listener {
         if (boss == null) {
             return;
         }
-        // Never clamp an admin/void/plugin kill - it must land at full magnitude (see onDamageCause).
-        String cause = event.getCause().name();
-        if (cause.equals("VOID") || cause.equals("CUSTOM") || cause.equals("KILL") || cause.equals("SUICIDE")) {
+        // Never clamp the void or a deliberate force-kill - it must land at full magnitude (see
+        // onDamageCause). Generic CUSTOM damage is clamped like anything else.
+        if (isForceKillOrVoid(event)) {
             return;
         }
         double pct = manager.maxHitDamagePercent();

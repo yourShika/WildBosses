@@ -1029,6 +1029,16 @@ public final class BossManager {
         event.getDrops().clear();
         event.setDroppedExp(0);
         Player killer = boss.entity().getKiller();
+        // Diagnostics: a boss dying with NO player credited is unexpected (it should only happen via
+        // the void or a deliberate /kill). Log the real damage cause so an external plugin/datapack
+        // killing bosses is identifiable in the console instead of just showing "slain by ?".
+        if (killer == null && boss.damageByPlayer().isEmpty()) {
+            org.bukkit.event.entity.EntityDamageEvent last = boss.entity().getLastDamageCause();
+            plugin.getLogger().warning("Boss '" + boss.def().id() + "' died with no player credited"
+                    + " - cause=" + (last == null ? "UNKNOWN (direct setHealth/remove)" : last.getCause())
+                    + (last == null ? "" : " damage=" + String.format(java.util.Locale.ROOT, "%.1f", last.getFinalDamage()))
+                    + ". If this repeats, another plugin/datapack is likely damaging WildBosses mobs.");
+        }
         try {
             deathListener.onBossDeath(boss, killer, event);
         } catch (Exception ex) {
