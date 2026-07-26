@@ -14,26 +14,32 @@ import java.util.Locale;
 /**
  * Live overview of active bosses, armies and lunar events (all with coordinates).
  *
- * <p>Two modes:
+ * <p>Two independent flags:
  * <ul>
- *   <li><b>Read-only</b> (a normal player running {@code /wb active}): purely informational - shows
- *       each encounter and where it is. No teleport, no removal, and NO way into the admin menu.</li>
- *   <li><b>Manage</b> (a player with the admin-GUI permission, or reached from the admin main menu):
- *       left-click teleports, right-click removes/terminates, and a Back button returns to the menu.</li>
+ *   <li><b>manage</b> - left-click teleports and right-click removes/terminates. Granted to players
+ *       with the admin-GUI permission.</li>
+ *   <li><b>showBack</b> - whether the Back button (which opens the admin {@link MainMenu}) is shown.
+ *       This is <em>only</em> true when the menu was opened <b>from</b> the admin main menu, so the
+ *       door back into the admin GUI is never present in the standalone {@code /wb active} view -
+ *       not even for admins. {@code /wb active} is a read-only-ish info screen; management lives
+ *       under {@code /wb gui}.</li>
  * </ul>
- * This split is a security boundary: {@code /wb active} is available to everyone, so the interactive
- * controls (and the door back into the admin GUI) must never be handed to players without permission.
+ * This split is a security boundary: {@code /wb active} is available to everyone, so the door into
+ * the admin GUI must never appear there; you only ever reach {@link MainMenu} via the perm-gated
+ * {@code /wb gui}.
  */
 public final class ActiveMenu extends Menu {
 
     private static final String[] DIRS = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
 
     private final boolean manage;
+    private final boolean showBack;
     private Player viewer;
 
-    public ActiveMenu(WildBossesPlugin plugin, boolean manage) {
+    public ActiveMenu(WildBossesPlugin plugin, boolean manage, boolean showBack) {
         super(plugin, 54, "<dark_gray>WildBosses <gray>- Active");
         this.manage = manage;
+        this.showBack = showBack;
     }
 
     @Override
@@ -93,8 +99,9 @@ public final class ActiveMenu extends Menu {
         if (slot == 0 && lunarSlot == 45) {
             set(22, icon(Material.BARRIER, "<gray>No active encounters"), null);
         }
-        // The Back button leads into the admin main menu, so only show it to players who may use it.
-        if (manage) {
+        // The Back button leads into the admin main menu, so only show it when we actually came from
+        // there (i.e. /wb gui -> Active). It is never shown in the standalone /wb active view.
+        if (showBack) {
             set(49, icon(Material.ARROW, "<yellow>Back"), e -> new MainMenu(plugin).open((Player) e.getWhoClicked()));
         }
         filler(Material.BLACK_STAINED_GLASS_PANE);

@@ -20,7 +20,7 @@ public final class MainMenu extends Menu {
         set(13, icon(Material.DIAMOND_SWORD, "<red>Active Encounters",
                 "<gray>View, teleport to and remove",
                 "<gray>active bosses and armies.",
-                "<yellow>Click to open."), e -> new ActiveMenu(plugin, true).open((Player) e.getWhoClicked()));
+                "<yellow>Click to open."), e -> new ActiveMenu(plugin, true, true).open((Player) e.getWhoClicked()));
 
         set(15, icon(Material.COMPARATOR, "<aqua>Settings",
                 "<gray>Toggle random spawns, worlds,",
