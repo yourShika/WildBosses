@@ -44,6 +44,12 @@ public final class BossListener implements Listener {
         // world or survive a deliberate /kill.
         boolean bypass = cause.equals("VOID") || cause.equals("CUSTOM")
                 || cause.equals("KILL") || cause.equals("SUICIDE");
+        // FF-style setpiece: while invulnerable (channelling an ultimate, or shielded until its anchors
+        // are destroyed) the boss takes NO damage - only void/admin kills still land.
+        if (boss.isInvulnerable() && !bypass) {
+            event.setCancelled(true);
+            return;
+        }
         // A boss only ever takes damage that traces back to a PLAYER. That means its own explosions,
         // fall damage, its own lightning, fire/lava, cacti, its own minions etc. never hurt it - while
         // player-attributable damage (melee, arrows, player-lit TNT, splash potions, thorns, pets)

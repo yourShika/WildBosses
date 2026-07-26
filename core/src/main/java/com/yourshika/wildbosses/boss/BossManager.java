@@ -604,6 +604,7 @@ public final class BossManager {
         }
         processEnrage(boss);
         processHealers(boss);
+        processShield(boss); // drive invulnerability / shield-break setpieces
         if (tick % 20 == 0) {
             acquireTarget(boss); // keep every boss proactively hostile toward players
         }
@@ -643,6 +644,66 @@ public final class BossManager {
         e.addPotionEffect(new org.bukkit.potion.PotionEffect(
                 org.bukkit.potion.PotionEffectType.SLOWNESS, 30, 2, false, true, true)); // brief stagger
         announceNearby(boss, Text.mm("<green>" + plugin.messages().tr("The channel is interrupted!")));
+    }
+
+    /**
+     * Drive an active shield/invulnerability setpiece: expire a timed immunity, or break the anchor
+     * shield once its anchors are destroyed (players win) - or unleash the ultimate if the doom timer
+     * runs out first (players failed).
+     */
+    private void processShield(ActiveBoss boss) {
+        if (!boss.isInvulnerable()) {
+            return;
+        }
+        LivingEntity e = boss.entity();
+        World w = e.getWorld();
+        if (w != null && tick % 4 == 0) {
+            w.spawnParticle(Particle.WAX_ON, e.getLocation().add(0, 1.3, 0), 12, 0.7, 0.9, 0.7, 0.01);
+        }
+        // Timed invulnerability (from the `invulnerable` mechanic).
+        if (boss.invulnUntilTick() > 0) {
+            if (tick >= boss.invulnUntilTick()) {
+                boss.clearInvulnerable();
+            }
+            return;
+        }
+        // Anchor shield (from `shield_break`): drop dead anchors, break when all gone or on doom timer.
+        boss.shieldAnchors().removeIf(u -> {
+            Entity a = Bukkit.getEntity(u);
+            return a == null || a.isDead();
+        });
+        if (boss.shieldAnchors().isEmpty()) {
+            breakShield(boss, false);
+        } else if (boss.shieldDoomTick() > 0 && tick >= boss.shieldDoomTick()) {
+            breakShield(boss, true);
+        }
+    }
+
+    /** End a shield: timedOut=true means players failed (unleash the ultimate); false = they broke it. */
+    private void breakShield(ActiveBoss boss, boolean timedOut) {
+        Runnable doom = boss.clearShield();
+        LivingEntity e = boss.entity();
+        World w = e.getWorld();
+        if (timedOut && doom != null) {
+            announceNearby(boss, Text.mm("<dark_red><bold>" + plugin.messages().tr(boss.def().name())
+                    + " <dark_red>" + plugin.messages().tr("unleashes its ultimate!")));
+            if (w != null) {
+                w.playSound(e.getLocation(), "entity.wither.spawn", 2.0f, 0.6f);
+            }
+            try {
+                doom.run();
+            } catch (Exception ex) {
+                logTickError(boss, ex);
+            }
+        } else {
+            announceNearby(boss, Text.mm("<green><bold>" + plugin.messages().tr("The shield shatters!")));
+            if (w != null) {
+                w.playSound(e.getLocation(), "block.glass.break", 2.0f, 0.7f);
+                w.spawnParticle(Particle.END_ROD, e.getLocation().add(0, 1, 0), 40, 0.6, 0.9, 0.6, 0.1);
+            }
+            e.addPotionEffect(new org.bukkit.potion.PotionEffect(
+                    org.bukkit.potion.PotionEffectType.SLOWNESS, 40, 2, false, true, true)); // brief stagger
+        }
     }
 
     private static Particle parseParticle(String name, Particle fallback) {

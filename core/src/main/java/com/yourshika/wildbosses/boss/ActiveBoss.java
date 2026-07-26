@@ -337,6 +337,70 @@ public final class ActiveBoss {
         }
     }
 
+    // ---- invulnerability / shield-break (FF-style setpieces) -------------------------------
+
+    private boolean invulnerable;
+    private long invulnUntilTick;                       // >0 = time-based expiry
+    private final Set<UUID> shieldAnchors = new HashSet<>();
+    private long shieldDoomTick;                        // >0 = doom timer active
+    private Runnable shieldDoom;
+
+    /** True while the boss takes no damage (except VOID/KILL) - see BossListener. */
+    public boolean isInvulnerable() {
+        return invulnerable;
+    }
+
+    /** Become invulnerable until {@code untilTick} (a timed "immune while I channel my ultimate"). */
+    public void setInvulnerable(long untilTick) {
+        this.invulnerable = true;
+        this.invulnUntilTick = untilTick;
+        this.shieldDoomTick = 0;
+        this.shieldAnchors.clear();
+        this.shieldDoom = null;
+    }
+
+    public long invulnUntilTick() {
+        return invulnUntilTick;
+    }
+
+    /** End a timed invulnerability. */
+    public void clearInvulnerable() {
+        this.invulnerable = false;
+        this.invulnUntilTick = 0;
+    }
+
+    /**
+     * Become invulnerable and gate it on anchor entities: destroying them all drops the shield; if the
+     * doom timer elapses first, the doom payload (ultimate) fires. See BossManager.processShield.
+     */
+    public void startShield(Set<UUID> anchors, long doomTick, Runnable doom) {
+        this.invulnerable = true;
+        this.invulnUntilTick = 0;
+        this.shieldAnchors.clear();
+        this.shieldAnchors.addAll(anchors);
+        this.shieldDoomTick = doomTick;
+        this.shieldDoom = doom;
+    }
+
+    public Set<UUID> shieldAnchors() {
+        return shieldAnchors;
+    }
+
+    public long shieldDoomTick() {
+        return shieldDoomTick;
+    }
+
+    /** Drop the anchor shield; returns the doom payload (only meaningful when timed out). */
+    public Runnable clearShield() {
+        Runnable d = shieldDoom;
+        this.invulnerable = false;
+        this.invulnUntilTick = 0;
+        this.shieldAnchors.clear();
+        this.shieldDoomTick = 0;
+        this.shieldDoom = null;
+        return d;
+    }
+
     // ---- skill timers ---------------------------------------------------------------------
 
     public long nextTick(int skillIndex) {

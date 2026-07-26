@@ -89,6 +89,10 @@ public final class MechanicRegistry {
         register("healer_adds", MechanicRegistry::healerAdds);
         register("cast", MechanicRegistry::cast);
         register("channel", MechanicRegistry::cast);
+        register("invulnerable", MechanicRegistry::invulnerable);
+        register("immune", MechanicRegistry::invulnerable);
+        register("shield_break", MechanicRegistry::shieldBreak);
+        register("barrier", MechanicRegistry::shieldBreak);
     }
 
     // Rate-limit repeated mechanic warnings so one broken ON_TIMER skill can't spam the console.
@@ -872,6 +876,102 @@ public final class MechanicRegistry {
                         pl.sendMessage(comp);
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Make the boss fully invulnerable for {@code duration} ticks - a timed "I am immune while I unleash
+     * my ultimate" moment. Pair it in YAML with the actual big attack (cast/aoe/meteor) so players must
+     * dodge/take cover rather than out-DPS it.
+     */
+    private static void invulnerable(SkillContext ctx, List<Target> targets, Params p) {
+        var boss = ctx.boss();
+        int duration = Math.max(20, p.getInt("duration", 100));
+        boss.setInvulnerable(ctx.plugin().bossManager().currentTick() + duration);
+        LivingEntity self = ctx.self();
+        World world = self.getWorld();
+        if (world != null) {
+            world.playSound(self.getLocation(), p.getString("sound", "item.totem.use"), 1.5f, 1.2f);
+        }
+        sayNearby(ctx, p.getString("message", null));
+    }
+
+    /**
+     * The flagship setpiece: the boss becomes invulnerable and spawns anchor entities. Destroying every
+     * anchor drops the shield (players win). If the doom timer expires first, the {@code payload}
+     * (ultimate) fires. Params: anchor-type, count, radius, anchor-health, anchor-name, duration,
+     * payload, payload-targeter, message, sound - plus the payload reads its own params from this block.
+     */
+    private static void shieldBreak(SkillContext ctx, List<Target> targets, Params p) {
+        var boss = ctx.boss();
+        if (boss.isInvulnerable()) {
+            return; // already shielded/immune
+        }
+        EntityType type = enumOr(EntityType.class, p.getString("anchor-type", "SHULKER"), EntityType.SHULKER);
+        int count = Math.max(1, p.getInt("count", 3));
+        double radius = p.getDouble("radius", 5);
+        double health = p.getDouble("anchor-health", 20);
+        String anchorName = p.getString("anchor-name", "<aqua>Ward Anchor");
+        int duration = Math.max(60, p.getInt("duration", 200));
+        String payload = p.getString("payload", "aoe_damage");
+        String payloadTargeter = p.getString("payload-targeter", "players_in_radius");
+        var plugin = ctx.plugin();
+        World world = ctx.world();
+        LivingEntity self = ctx.self();
+        if (world == null) {
+            return;
+        }
+        java.util.Set<java.util.UUID> anchors = new java.util.HashSet<>();
+        for (int i = 0; i < count; i++) {
+            Location loc = safeGround(self.getLocation().clone().add(rand(radius), 0, rand(radius)));
+            if (loc == null) {
+                loc = self.getLocation();
+            }
+            Entity a = world.spawnEntity(loc, type);
+            a.getPersistentDataContainer().set(Keys.ENCOUNTER_ID, PersistentDataType.STRING, boss.encounterId());
+            a.addScoreboardTag("wildbosses");
+            a.setPersistent(false);
+            a.setGlowing(true); // so players can find the anchors to break the shield
+            if (a instanceof LivingEntity le) {
+                le.setRemoveWhenFarAway(true);
+                le.customName(Text.mm(plugin.messages().tr(anchorName)));
+                le.setCustomNameVisible(true);
+                AttributeInstance max = le.getAttribute(Attribute.MAX_HEALTH);
+                if (max != null && health > 0) {
+                    max.setBaseValue(health);
+                    le.setHealth(health);
+                }
+                if (le instanceof Mob mob) {
+                    mob.setAware(false); // a stationary anchor, not a roaming add
+                }
+            }
+            anchors.add(a.getUniqueId());
+        }
+        if (anchors.isEmpty()) {
+            return;
+        }
+        long doomTick = plugin.bossManager().currentTick() + duration;
+        boss.startShield(anchors, doomTick,
+                () -> plugin.skillEngine().runMechanicNow(boss, payload, payloadTargeter, p));
+        world.playSound(self.getLocation(), p.getString("sound", "block.beacon.activate"), 2.0f, 0.7f);
+        sayNearby(ctx, p.getString("message", null));
+    }
+
+    /** Send a (translated) MiniMessage line to players within ~45 blocks of the boss. */
+    private static void sayNearby(SkillContext ctx, String message) {
+        if (message == null) {
+            return;
+        }
+        World world = ctx.world();
+        if (world == null) {
+            return;
+        }
+        var comp = Text.mm(ctx.plugin().messages().tr(message));
+        double rSq = 45 * 45;
+        for (Player pl : world.getPlayers()) {
+            if (pl.getLocation().distanceSquared(ctx.location()) <= rSq) {
+                pl.sendMessage(comp);
             }
         }
     }
