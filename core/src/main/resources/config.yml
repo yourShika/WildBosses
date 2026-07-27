@@ -6,7 +6,7 @@
 
 # Internal - do NOT edit. When the plugin updates, any NEW options are merged into your config
 # automatically (your existing values are kept) and this number is bumped.
-config-version: 5
+config-version: 6
 
 settings:
   # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
@@ -38,6 +38,12 @@ settings:
   # across every hit and every bonus-damage proc that tick (so a custom-enchant plugin firing several
   # procs on one swing can't one-shot it). 0.5 = at most 50% per tick (>= 2 swings to kill). 1.0 = off.
   max-hit-damage-percent: 0.5
+  # Whether a command/plugin force-kill (an admin /kill, or a datapack/plugin running /kill @e or
+  # entity.kill()) may kill a boss. Default false: bosses are IMMUNE to it, because automated /kills
+  # from datapacks or lag plugins were deleting bosses. Admins can always remove a boss with
+  # /wb killall regardless. Set true only if you want /kill to work on bosses and have no plugin/
+  # datapack that auto-kills mobs.
+  allow-command-kill: false
   # Live cap on how many summoned adds + healers a single boss may have at once (long fights won't
   # pile up dozens of mobs). Summons over the cap are simply skipped until some die.
   max-adds-per-boss: 30

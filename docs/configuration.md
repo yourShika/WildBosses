@@ -131,6 +131,12 @@ tagged mobs). Bosses also have `removeWhenFarAway = false` so they don't despawn
   specifically stops a **custom-enchant plugin** (e.g. ExcellentEnchants) whose single swing fires
   several bonus-damage procs from stacking them into a one-shot.
 
+- **Command-kills** (`cause=KILL`): a `/kill`, `entity.kill()`, or a datapack running `/kill @e`
+  deals `Float.MAX_VALUE` and would delete a boss. By default bosses are **immune** to it
+  (`settings.allow-command-kill: false`) because automated `/kill`s from datapacks/lag plugins were
+  killing bosses. Admins remove bosses with `/wb killall` regardless. Set `allow-command-kill: true`
+  only if you actually want `/kill` to work on bosses and run no plugin/datapack that auto-kills mobs.
+
 Every boss death is logged to the console with the exact killing blow
 (`Boss '…' died: cause=… killing-blow=… maxHp=… damager=… player-credited=…`); anomalous deaths (nobody
 credited, or a ≥50 %-max-HP one-shot) are logged as a **warning**. If it names an external plugin, add

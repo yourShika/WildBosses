@@ -36,21 +36,24 @@ public final class BossListener implements Listener {
 
     /**
      * Whether this hit may bypass ALL of a boss' damage protections (immunities, the one-shot cap and
-     * the player-only gate). Only two things qualify: the void (so a boss can never get stuck below the
-     * world), and a deliberate force-kill - cause {@code KILL}/{@code SUICIDE} at {@code Float.MAX_VALUE}
-     * (an admin {@code /kill}). Generic {@code CUSTOM} damage is intentionally excluded so stray
-     * external plugins/datapacks can no longer instantly kill an unattended boss.
+     * the player-only gate). The void always qualifies (so a boss can never get stuck below the world).
+     * A force-kill - cause {@code KILL}/{@code SUICIDE} at {@code Float.MAX_VALUE}, i.e. {@code /kill} or
+     * {@code entity.kill()} - qualifies ONLY when {@code allow-command-kill} is enabled; by default it
+     * does NOT, because datapacks / lag plugins issuing automated {@code /kill}s were deleting bosses.
+     * Generic {@code CUSTOM} damage never bypasses.
      */
-    private static boolean isForceKillOrVoid(EntityDamageEvent event) {
-        return isForceKillOrVoid(event.getCause().name(), event.getDamage());
+    private boolean isForceKillOrVoid(EntityDamageEvent event) {
+        return isForceKillOrVoid(event.getCause().name(), event.getDamage(), manager.allowCommandKill());
     }
 
     /** Pure decision (see {@link #isForceKillOrVoid(EntityDamageEvent)}); split out for unit testing. */
-    static boolean isForceKillOrVoid(String cause, double baseDamage) {
+    static boolean isForceKillOrVoid(String cause, double baseDamage, boolean allowCommandKill) {
         if (cause.equals("VOID")) {
             return true;
         }
-        return (cause.equals("KILL") || cause.equals("SUICIDE")) && baseDamage >= FORCE_KILL_DAMAGE;
+        return allowCommandKill
+                && (cause.equals("KILL") || cause.equals("SUICIDE"))
+                && baseDamage >= FORCE_KILL_DAMAGE;
     }
 
     /** Cancel damage a boss is immune to. Runs early (LOW) so immune hits are ignored downstream. */

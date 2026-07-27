@@ -30,6 +30,7 @@ public final class PluginConfig {
     private double minPlayerDistance = 500;
     private int unclaimedDespawnMinutes = 8;
     private double maxHitDamagePercent = 0.5;
+    private boolean allowCommandKill = false;
     private int maxAddsPerBoss = 30;
     private boolean bestiaryDiscoveryLock = false;
     private final java.util.Set<String> disabledBosses = new java.util.HashSet<>();
@@ -98,6 +99,7 @@ public final class PluginConfig {
         minPlayerDistance = Math.max(0, c.getDouble("settings.min-player-distance", 500));
         unclaimedDespawnMinutes = Math.max(1, c.getInt("settings.unclaimed-despawn-minutes", 8));
         maxHitDamagePercent = Math.max(0.0, Math.min(1.0, c.getDouble("settings.max-hit-damage-percent", 0.5)));
+        allowCommandKill = c.getBoolean("settings.allow-command-kill", false);
         maxAddsPerBoss = Math.max(1, c.getInt("settings.max-adds-per-boss", 30));
         bestiaryDiscoveryLock = c.getBoolean("settings.bestiary-discovery-lock", false);
         disabledBosses.clear();
@@ -349,6 +351,16 @@ public final class PluginConfig {
     /** A single hit deals at most this fraction of a boss' max health (1.0 = no cap / one-shots allowed). */
     public double maxHitDamagePercent() {
         return maxHitDamagePercent;
+    }
+
+    /**
+     * Whether a command/plugin force-kill (cause KILL/SUICIDE at {@code Float.MAX_VALUE}, e.g. an admin
+     * {@code /kill} or a datapack {@code /kill @e}) may kill a boss. Default false: bosses are immune to
+     * it, since automated {@code /kill}s from datapacks/lag plugins were deleting bosses. Admins remove
+     * bosses with {@code /wb killall} regardless of this setting.
+     */
+    public boolean allowCommandKill() {
+        return allowCommandKill;
     }
 
     /** Live cap on summoned adds + healers per boss, so long fights can't pile up dozens of mobs. */

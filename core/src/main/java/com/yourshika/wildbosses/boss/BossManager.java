@@ -87,6 +87,11 @@ public final class BossManager {
         return plugin.config().maxHitDamagePercent();
     }
 
+    /** Whether a command/plugin force-kill (cause KILL/SUICIDE at Float.MAX_VALUE) may kill a boss. */
+    public boolean allowCommandKill() {
+        return plugin.config().allowCommandKill();
+    }
+
     public BossRegistry registry() {
         return registry;
     }
