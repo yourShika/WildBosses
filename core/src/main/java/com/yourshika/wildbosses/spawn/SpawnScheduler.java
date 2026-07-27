@@ -349,6 +349,10 @@ public final class SpawnScheduler {
             double dist = minDist + ThreadLocalRandom.current().nextDouble(300);
             int x = anchor.getLocation().getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getLocation().getBlockZ() + (int) (Math.sin(angle) * dist);
+            // Never spawn on or past the world-border.
+            if (!insideBorder(world, x, z, borderMargin(def))) {
+                continue;
+            }
             // Only probe already-generated (explored) terrain - never force-generate far chunks
             // synchronously (that was the spawn-cycle lag spike).
             if (!world.isChunkGenerated(x >> 4, z >> 4)) {
@@ -369,6 +373,35 @@ public final class SpawnScheduler {
             }
         }
         return null;
+    }
+
+    /**
+     * Whether {@code (x,z)} is safely inside this world's world-border, keeping a {@code margin}-block
+     * buffer from the edge so the boss - and any terrain footprint it corrupts - never lands on or past
+     * the border. A spot beyond the border is unreachable for players, so bosses must never spawn there.
+     * Worlds without a shrunk border keep the ~30M-block vanilla default, so this never rejects them.
+     */
+    private static boolean insideBorder(World world, int x, int z, int margin) {
+        org.bukkit.WorldBorder border = world.getWorldBorder();
+        return insideBorder(border.getCenter().getX(), border.getCenter().getZ(),
+                border.getSize(), x, z, margin);
+    }
+
+    /** Pure border test (see {@link #insideBorder(World, int, int, int)}); split out for unit testing.
+     *  {@code size} is the border's full side length (diameter); a spot must be within half of that,
+     *  minus {@code margin}, of the centre on both axes. */
+    static boolean insideBorder(double centerX, double centerZ, double size, int x, int z, int margin) {
+        double half = size / 2.0 - margin;
+        if (half <= 0) {
+            return false; // border smaller than the safety margin: nowhere safe to spawn
+        }
+        return Math.abs(x - centerX) <= half && Math.abs(z - centerZ) <= half;
+    }
+
+    /** Border buffer for a boss: keep a terrain boss' whole footprint (plus slack) inside; otherwise a
+     *  16-block buffer so the boss and its immediate adds don't land on the very edge. */
+    private static int borderMargin(BossDefinition def) {
+        return def.hasTerrain() ? def.terrain().radius() + 16 : 16;
     }
 
     /** True if the spot is submerged or in an ocean/river biome (bad for a non-water boss). */
@@ -412,6 +445,9 @@ public final class SpawnScheduler {
                     + (span > 0 ? ThreadLocalRandom.current().nextDouble(span) : 0);
             int x = anchor.getLocation().getBlockX() + (int) (Math.cos(angle) * dist);
             int z = anchor.getLocation().getBlockZ() + (int) (Math.sin(angle) * dist);
+            if (!insideBorder(world, x, z, borderMargin(def))) {
+                continue; // never spawn on or past the world-border
+            }
             if (!TerrainManager.footprintUngenerated(world, x, z, radius)) {
                 continue;
             }
@@ -452,7 +488,8 @@ public final class SpawnScheduler {
         double dist = cfg.frontierMinDistance() + (span > 0 ? ThreadLocalRandom.current().nextDouble(span) : 0);
         int x = anchorLoc.getBlockX() + (int) (Math.cos(angle) * dist);
         int z = anchorLoc.getBlockZ() + (int) (Math.sin(angle) * dist);
-        if (!TerrainManager.footprintUngenerated(world, x, z, radius)) {
+        if (!insideBorder(world, x, z, borderMargin(def))
+                || !TerrainManager.footprintUngenerated(world, x, z, radius)) {
             frontierAttempt(world, anchorLoc, def, radius, attempt + 1, callback);
             return;
         }
