@@ -6,7 +6,7 @@
 
 # Internal - do NOT edit. When the plugin updates, any NEW options are merged into your config
 # automatically (your existing values are kept) and this number is bumped.
-config-version: 6
+config-version: 7
 
 settings:
   # Language for all plugin text (messages, broadcasts, boss/item names): en, de or pl.
@@ -46,6 +46,10 @@ settings:
   allow-command-kill: false
   # Boss fire abilities (flaming arrow-rain, incendiary meteors/fireballs) burn players but never set
   # the WORLD on fire - so a boss can't turn a forest into an impassable spreading inferno. (Always on.)
+  # Anti-spam safety net: the most abilities ANY single boss may cast per second. Whatever drives a
+  # boss to fire (a bad interval, an edited skill, an external plugin flooding it), it can never exceed
+  # this - excess casts are refused and a throttle warning is logged. Normal bosses cast 1-4/s. 0 = off.
+  max-ability-casts-per-second: 12
   # Live cap on how many summoned adds + healers a single boss may have at once (long fights won't
   # pile up dozens of mobs). Summons over the cap are simply skipped until some die.
   max-adds-per-boss: 30

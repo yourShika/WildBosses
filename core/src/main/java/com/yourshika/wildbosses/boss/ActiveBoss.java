@@ -278,6 +278,15 @@ public final class ActiveBoss {
     }
 
     private final TickDamageCap tickDamageCap = new TickDamageCap();
+    private final CastRateLimiter castLimiter = new CastRateLimiter();
+
+    /**
+     * Anti-spam gate: whether this boss may cast an ability on {@code tick} without exceeding
+     * {@code maxPerSecond} casts in the current one-second window. Returns false to refuse the cast.
+     */
+    public boolean allowCast(long tick, int maxPerSecond) {
+        return castLimiter.allow(tick, maxPerSecond);
+    }
 
     /**
      * Cumulative one-shot cap: how much of {@code incomingFinal} may actually be applied on

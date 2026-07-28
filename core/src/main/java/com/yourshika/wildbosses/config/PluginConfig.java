@@ -31,6 +31,7 @@ public final class PluginConfig {
     private int unclaimedDespawnMinutes = 8;
     private double maxHitDamagePercent = 0.5;
     private boolean allowCommandKill = false;
+    private int maxAbilityCastsPerSecond = 12;
     private int maxAddsPerBoss = 30;
     private boolean bestiaryDiscoveryLock = false;
     private final java.util.Set<String> disabledBosses = new java.util.HashSet<>();
@@ -100,6 +101,7 @@ public final class PluginConfig {
         unclaimedDespawnMinutes = Math.max(1, c.getInt("settings.unclaimed-despawn-minutes", 8));
         maxHitDamagePercent = Math.max(0.0, Math.min(1.0, c.getDouble("settings.max-hit-damage-percent", 0.5)));
         allowCommandKill = c.getBoolean("settings.allow-command-kill", false);
+        maxAbilityCastsPerSecond = Math.max(0, c.getInt("settings.max-ability-casts-per-second", 12));
         maxAddsPerBoss = Math.max(1, c.getInt("settings.max-adds-per-boss", 30));
         bestiaryDiscoveryLock = c.getBoolean("settings.bestiary-discovery-lock", false);
         disabledBosses.clear();
@@ -361,6 +363,11 @@ public final class PluginConfig {
      */
     public boolean allowCommandKill() {
         return allowCommandKill;
+    }
+
+    /** Anti-spam cap: the most ability casts a single boss may run per second (0 = unlimited). */
+    public int maxAbilityCastsPerSecond() {
+        return maxAbilityCastsPerSecond;
     }
 
     /** Live cap on summoned adds + healers per boss, so long fights can't pile up dozens of mobs. */
