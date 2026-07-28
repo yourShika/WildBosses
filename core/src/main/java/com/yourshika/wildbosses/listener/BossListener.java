@@ -274,6 +274,39 @@ public final class BossListener implements Listener {
     }
 
     /**
+     * A boss' fire abilities (flaming arrow-rain, incendiary meteors/fireballs, fire explosions) may
+     * burn PLAYERS but must never set the WORLD on fire. Left unchecked, a flaming arrow-storm in a
+     * forest ignites the grass/leaves/wood and the fire spreads on its own into an ever-growing,
+     * impassable inferno around the boss - so we cancel any block ignition caused by a boss or a
+     * projectile it fired. Players' own fire (flint & steel, their own flaming arrows) is untouched.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onBossFireIgnite(org.bukkit.event.block.BlockIgniteEvent event) {
+        org.bukkit.entity.Entity igniter = event.getIgnitingEntity();
+        if (igniter == null) {
+            return; // e.g. lava/lightning with no attributable entity
+        }
+        boolean fromBoss = isWildBossesEntity(igniter)
+                || (igniter instanceof org.bukkit.entity.Projectile proj
+                        && proj.getShooter() instanceof org.bukkit.entity.Entity shooter
+                        && isWildBossesEntity(shooter));
+        if (fromBoss) {
+            event.setCancelled(true);
+        }
+    }
+
+    /** Whether an entity is a WildBosses boss / minion / summoned add (by scoreboard tag or PDC). */
+    private static boolean isWildBossesEntity(org.bukkit.entity.Entity e) {
+        if (e.getScoreboardTags().contains("wildbosses")) {
+            return true;
+        }
+        var pdc = e.getPersistentDataContainer();
+        return pdc.has(Keys.BOSS_ID, PersistentDataType.STRING)
+                || pdc.has(Keys.ARMY_ID, PersistentDataType.STRING)
+                || pdc.has(Keys.ENCOUNTER_ID, PersistentDataType.STRING);
+    }
+
+    /**
      * Prevent WildBosses entities from transforming (e.g. a Piglin Brute boss zombifying when struck
      * by lightning, or an infected minion turning into a Drowned).
      */

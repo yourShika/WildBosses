@@ -44,6 +44,8 @@ settings:
   # /wb killall regardless. Set true only if you want /kill to work on bosses and have no plugin/
   # datapack that auto-kills mobs.
   allow-command-kill: false
+  # Boss fire abilities (flaming arrow-rain, incendiary meteors/fireballs) burn players but never set
+  # the WORLD on fire - so a boss can't turn a forest into an impassable spreading inferno. (Always on.)
   # Live cap on how many summoned adds + healers a single boss may have at once (long fights won't
   # pile up dozens of mobs). Summons over the cap are simply skipped until some die.
   max-adds-per-boss: 30
