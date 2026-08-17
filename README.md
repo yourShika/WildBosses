@@ -1,5 +1,9 @@
 # WildBosses
 
+<!-- ai-disclaimer -->
+> ⚠️ **Disclaimer:** This project — its code and its project artwork — was created with the help of AI. The plugin itself is tested by real people, and bugs and issues are actively fixed.
+
+
 **Random custom world bosses for Paper/Spigot — Minecraft 26.2.**
 
 WildBosses spawns unique, configurable bosses at random across the Overworld, Nether and End,
